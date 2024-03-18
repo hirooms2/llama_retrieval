@@ -150,6 +150,10 @@ def createLogFile(args):
     log_file = open(os.path.join(args.result_path, log_name + ".json"), 'a', buffering=1, encoding='UTF-8')
     args.log_file = log_file
 
+    peft_weights = os.path.join(args.home, 'saved_model')
+    if not os.path.exists(peft_weights): os.mkdir(peft_weights)
+    args.peft_weights = os.path.join(peft_weights, args.peft_weights)
+
     return args
 
 
