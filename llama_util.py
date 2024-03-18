@@ -120,6 +120,7 @@ def dir_init(default_args):
     from platform import system as sysChecker
     if sysChecker() == 'Linux':
         args.home = os.path.dirname(os.path.dirname(__file__))
+        print(args.home)
     elif sysChecker() == "Windows":
         args.home = ''
         # args.batch_size, args.num_epochs = 4, 2
