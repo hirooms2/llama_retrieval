@@ -5,6 +5,7 @@ import sys
 import numpy as np
 import torch
 # import wandb
+import wandb
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 from transformers import GenerationConfig, LlamaForCausalLM, LlamaTokenizer
@@ -178,33 +179,25 @@ class LLaMaEvaluator:
             responses = np.reshape(responses, (-1, self.args.num_beams)).tolist()  # [B, beam]
             # scores = np.reshape(scores, (-1, self.args.num_beams)).tolist()  # [B, beam]
 
-            labels = batch[1]
-            # print("Instruction:", instruction)
-            # print("Response:", response)
-            # print("#################################################")
-            # generated_results.extend(responses)
-        #     for dialog, response, label in zip(batch[0], responses, labels):
-        #         generated_results.append(
-        #             {'CONTEXT': dialog, 'GEN': output, 'ANSWER': label, 'HIT': label.lower() in output.lower(),
-        #              'AVG_HIT': ', '.join(topk_results), 'NEW_ITEM': idx in self.new_idx})
-        #         idx += 1
-        #
-        #     # mentioned_hit_ratio = mentioned_hit / mentioned_cnt
-        #     # not_mentioned_hit_ratio = not_mentioned_hit / not_mentioned_cnt
-        #
-        #     if self.args.write:
-        #         for i in generated_results:
-        #             self.args.log_file.write(json.dumps(i, ensure_ascii=False) + '\n')
-        #
-        #     if cnt % 100 == 0 and cnt != 0:
-        #         wandb.log({"hit_ratio": (hit / cnt)})
-        #         print("%.4f" % (hit / cnt))
-        #
-        # self.args.score_file.write('Overall\n')
-        # self.args.score_file.write('%.4f\n' % (hit_ratio))
-    # return generated_results
+            dialogs, labels = batch[0], batch[1]
 
-# if __name__ == "__main__":
-#     # fire.Fire(main)
-#     args = parse_args()
-#     llama_test(args)
+            for dialog, response, label in zip(batch[0], responses, labels):
+                topk_results = []
+                for j, k in enumerate([1, 3, 5]):
+                    output = '| '.join(response[:k])
+                    if label.lower() in output.lower():
+                        # if title == gen_title and year == gen_year:
+                        hits[j] += 1.0
+                    cnts[j] += 1.0
+                    hit_ratio = (hits[j] / cnts[j]) * 100
+                    topk_results.append('%.2f' % hit_ratio)
+
+                generated_results.append(
+                    {'CONTEXT': dialog, 'GEN': output, 'ANSWER': label, 'AVG_HIT': ', '.join(topk_results)})
+
+            for i in generated_results:
+                self.args.log_file.write(json.dumps(i, ensure_ascii=False) + '\n')
+
+            if cnt % 100 == 0 and cnt != 0:
+                wandb.log({"hit_ratio": (hit / cnt)})
+                print("%.4f" % (hit / cnt))
