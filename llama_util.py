@@ -33,13 +33,32 @@ class Prompter(object):
                 f"Using prompt template {template_name}: {self.template['description']}"
             )
 
+    def generate_instructions(self,
+                              mode,
+                              dialogs: list,
+                              profiles: list = None,
+                              labels: list = None):
+        if mode == 'train':
+            if self.args.prompt.split('2')[0] == 'D':
+                instructions = [self.generate_prompt(instruction=dialog, label=label) for dialog, label in zip(dialogs, labels)]
+            elif self.args.prompt.split('2')[0] == 'UD':
+                instructions = [self.generate_prompt(instruction=dialog, input=profile, label=label) for dialog, profile, label in zip(dialogs, profiles, labels)]
+            else:
+                raise ValueError
+        elif mode == 'test':
+            if self.args.prompt.split('2')[0] == 'D':
+                instructions = [self.generate_prompt(instruction=dialog) for dialog in zip(dialogs)]
+            elif self.args.prompt.split('2')[0] == 'UD':
+                instructions = [self.generate_prompt(instruction=dialog, input=profile) for dialog, profile in zip(dialogs, profiles)]
+            else:
+                raise ValueError
+        return instructions
+
     def generate_prompt(
             self,
             instruction: str,
             input: Union[None, str] = None,
-            label: Union[None, str] = None,
-            isNew: bool = False,
-    ) -> str:
+            label: Union[None, str] = None) -> str:
         # returns the full prompt from instruction and optional input
         # if a label (=response, =output) is provided, it's also appended.
         if input:
@@ -72,16 +91,30 @@ def load_dataset(args):
     return train_dataset, test_dataset
 
 
-def prepare_dataset(dataset):
-    instructions = []
+def prepare_dataset(args, tokenizer, dataset):
+    dialogs = []
+    profiles = []
     labels = []
-    for data in dataset:
-        instruction = data['dialog'].replace('[SEP]', '\n')
-        label = data['candidate_knowledges'][0]
-        instructions.append(instruction)
+
+    if args.debug:
+        dataset = dataset[:100]
+
+    for data in tqdm(dataset):
+        dialog = data['dialog'].replace('[SEP]', '\n')[:-1]
+        dialog = tokenizer.decode(tokenizer(dialog).input_ids[1:][-args.cutoff:])
+        dialogs.append(dialog)
+
+        profile = data['user_profile']
+        profile = tokenizer.decode(tokenizer(profile).input_ids[1:][:args.cutoff])
+        profiles.append(profile)
+
+        if args.task == 'know':
+            label = data['candidate_knowledges'][0]
+        if args.task == 'topic':
+            label = data['topic']
         labels.append(label)
 
-    return instructions, labels
+    return dialogs, profiles, labels
 
 
 def parse_args():
@@ -93,6 +126,7 @@ def parse_args():
     parser.add_argument('--peft', type=str, default="lora")
     parser.add_argument('--mode', type=str, default="test")
     parser.add_argument('--prompt', type=str, default="D2P")
+
     parser.add_argument('--peft_weights', type=str, default="")
     parser.add_argument('--batch_size', type=int, default=2)
     parser.add_argument('--eval_batch_size', type=int, default=2)
@@ -109,7 +143,14 @@ def parse_args():
 
     args = parser.parse_args()
     args.num_device = torch.cuda.device_count()
-
+    if args.prompt.split('2')[-1] == 'I':
+        args.task = 'topic'
+    elif args.prompt.split('2')[-1] == 'P':
+        args.task = 'know'
+    elif args.prompt.split('2')[-1] == 'R':
+        args.task = 'resp'
+    else:
+        raise ValueError
     return args
 
 
@@ -154,7 +195,8 @@ def createLogFile(args):
     args.saved_model_path = saved_model_path
 
     if not os.path.exists(saved_model_path): os.mkdir(saved_model_path)
-    args.peft_weights = os.path.join(saved_model_path, args.peft_weights)
+    if args.peft_weights != '':
+        args.peft_weights = os.path.join(saved_model_path, args.peft_weights)
 
     return args
 
