@@ -42,13 +42,12 @@ from llama_util import Prompter, parse_args, dir_init, createLogFile, prepare_da
 class QueryEvalCallback(TrainerCallback):
     def __init__(self, args):
         self.log_name = args.log_name
+        self.saved_model_path = args.saved_model_path
 
     def on_epoch_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         model = kwargs['model']
         epoch = state.epoch
-        file_path = os.path.join('', 'model_save_llm')
-        if not os.path.exists(file_path): os.mkdir(file_path)
-        path = os.path.join(file_path, self.log_name + '_E' + str(int(epoch)))
+        path = os.path.join(self.saved_model_path, self.log_name + '_E' + str(int(epoch)))
         if not os.path.isdir(path):
             os.makedirs(path)
         model.save_pretrained(path)
