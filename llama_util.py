@@ -38,27 +38,20 @@ class Prompter(object):
                               dialogs: list,
                               profiles: list = None,
                               labels: list = None):
-        if mode == 'train':
-            if self.args.prompt.split('2')[0] == 'D':
-                instructions = [self.generate_prompt(instruction=dialog, label=label) for dialog, label in zip(dialogs, labels)]
-            elif self.args.prompt.split('2')[0] == 'UD':
-                instructions = [self.generate_prompt(instruction=dialog, input=profile, label=label) for dialog, profile, label in zip(dialogs, profiles, labels)]
-            else:
-                raise ValueError
-        elif mode == 'test':
-            if self.args.prompt.split('2')[0] == 'D':
-                instructions = [self.generate_prompt(instruction=dialog) for dialog in zip(dialogs)]
-            elif self.args.prompt.split('2')[0] == 'UD':
-                instructions = [self.generate_prompt(instruction=dialog, input=profile) for dialog, profile in zip(dialogs, profiles)]
-            else:
-                raise ValueError
+
+        if self.args.prompt.split('2')[0] == 'UD':
+            instructions = [self.generate_prompt(instruction=dialog, input=profile, label=label, mode=mode) for dialog, profile, label in zip(dialogs, profiles, labels)]
+        else:
+            instructions = [self.generate_prompt(instruction=dialog, label=label, mode=mode) for dialog, label in zip(dialogs, labels)]
+
         return instructions
 
     def generate_prompt(
             self,
             instruction: str,
             input: Union[None, str] = None,
-            label: Union[None, str] = None) -> str:
+            label: Union[None, str] = None,
+            mode: str = 'test') -> str:
         # returns the full prompt from instruction and optional input
         # if a label (=response, =output) is provided, it's also appended.
         if input:
@@ -69,7 +62,7 @@ class Prompter(object):
             res = self.template["prompt_no_input"].format(
                 instruction=instruction
             )
-        if label:
+        if mode == 'train':
             res = f"{res}{label}"
         if self._verbose:
             print(res)
@@ -110,8 +103,10 @@ def prepare_dataset(args, tokenizer, dataset):
 
         if args.task == 'know':
             label = data['candidate_knowledges'][0]
-        if args.task == 'topic':
+        elif args.task == 'topic':
             label = data['topic']
+        elif args.task == 'pretrain':
+            label = ''
         labels.append(label)
 
     return dialogs, profiles, labels
@@ -149,6 +144,8 @@ def parse_args():
         args.task = 'know'
     elif args.prompt.split('2')[-1] == 'R':
         args.task = 'resp'
+    elif args.prompt == 'pretrain':
+        args.task = 'pretrain'
     else:
         raise ValueError
     return args
