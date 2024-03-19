@@ -135,10 +135,10 @@ def dir_init(default_args):
 def createLogFile(args):
     mdhm = str(datetime.now(timezone('Asia/Seoul')).strftime('%m%d%H%M%S'))
     if args.log_name == '':
-        log_name = mdhm + '_' + 'llama_result'
+        log_name = 'llama_result'
     else:
         log_name = args.log_name
-    args.log_name = log_name
+    args.log_name = mdhm + '_' + log_name
 
     args.output_dir = 'result'
     if not os.path.exists(args.output_dir): os.mkdir(args.output_dir)
