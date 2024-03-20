@@ -93,7 +93,7 @@ def llama_finetune(
     learning_rate = args.learning_rate
     gradient_accumulation_steps = args.num_device  # update the model's weights once every gradient_accumulation_steps batches instead of updating the weights after every batch.
     per_device_train_batch_size = batch_size // args.num_device
-    resume_from_checkpoint = args.resume_from_checkpoint
+    resume_from_checkpoint = args.peft_weights
     prompt_template_name = args.prompt_template_name
 
     # if args.warmup != 0:
