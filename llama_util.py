@@ -35,14 +35,14 @@ class Prompter(object):
 
     def generate_instructions(self,
                               mode,
-                              dialogs: list,
-                              profiles: list = None,
-                              labels: list = None):
+                              know_dataset: list):
 
-        if self.args.prompt.split('2')[0] == 'UD':
-            instructions = [self.generate_prompt(instruction=dialog, input=profile, label=label, mode=mode) for dialog, profile, label in zip(dialogs, profiles, labels)]
-        else:
-            instructions = [self.generate_prompt(instruction=dialog, label=label, mode=mode) for dialog, label in zip(dialogs, labels)]
+        if self.args.prompt == 'UD2I':
+            instructions = [self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], label=data['topic'], mode=mode) for data in know_dataset]
+        elif self.args.prompt == 'DP2R':
+            instructions = [self.generate_prompt(instruction=data['dialog'], input='\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(data['predicted_know'])]), label=data['response'], mode=mode) for data in know_dataset]
+        # else:
+        #     instructions = [self.generate_prompt(instruction=dialog, label=label, mode=mode) for data in know_dataset]
 
         return instructions
 
@@ -50,6 +50,7 @@ class Prompter(object):
             self,
             instruction: str,
             input: Union[None, str] = None,
+            input2: Union[None, str] = None,
             label: Union[None, str] = None,
             mode: str = 'test') -> str:
         # returns the full prompt from instruction and optional input
@@ -84,9 +85,22 @@ def load_dataset(args):
     return train_dataset, test_dataset
 
 
+def merge_dataset_passages(args, dataset, mode='train'):
+    if mode == 'train':
+        know_file_path = args.train_know_file
+    else:
+        know_file_path = args.test_know_file
+
+    know_file_path = os.path.join(args.home, f'data/know/en_{mode}_know_{know_file_path}.json')
+    know_dataset = json.load(open(know_file_path, 'r', encoding='utf-8'))
+
+    for idx, know_data in enumerate(know_dataset):
+        dataset[idx]['predicted_know'] = know_data['predicted_know']
+
+    return dataset
+
+
 def prepare_dataset(args, tokenizer, dataset):
-    dialogs = []
-    profiles = []
     labels = []
 
     if args.debug:
@@ -95,21 +109,22 @@ def prepare_dataset(args, tokenizer, dataset):
     for data in tqdm(dataset):
         dialog = data['dialog'].replace('[SEP]', '\n')[:-1]
         dialog = tokenizer.decode(tokenizer(dialog).input_ids[1:][-args.cutoff:])
-        dialogs.append(dialog)
+        data['dialog'] = dialog
 
-        profile = data['user_profile']
-        profile = tokenizer.decode(tokenizer(profile).input_ids[1:][:args.cutoff])
-        profiles.append(profile)
+        user_profile = data['user_profile']
+        user_profile = tokenizer.decode(tokenizer(user_profile).input_ids[1:][:args.cutoff])
+        data['user_profile'] = user_profile
 
-        if args.task == 'know':
-            label = data['candidate_knowledges'][0]
-        elif args.task == 'topic':
-            label = data['topic']
-        elif args.task == 'pretrain':
-            label = ''
-        labels.append(label)
+        data['response'] = data['response'].replace('[SEP]', '')
 
-    return dialogs, profiles, labels
+        if args.prompt.split('2')[-1] == 'I':
+            labels.append(data['topic'])
+        elif args.prompt.split('2')[-1] == 'R':
+            labels.append(data['response'])
+        elif args.prompt.split('2')[-1] == 'P':
+            labels.append(data['target_knowledge'])
+
+    return dataset, labels
 
 
 def parse_args():
@@ -121,6 +136,8 @@ def parse_args():
     parser.add_argument('--peft', type=str, default="lora")
     parser.add_argument('--mode', type=str, default="test")
     parser.add_argument('--prompt', type=str, default="D2P")
+    parser.add_argument('--train_know_file', type=str, default="espresso")
+    parser.add_argument('--test_know_file', type=str, default="espresso")
 
     parser.add_argument('--peft_weights', type=str, default="")
     parser.add_argument('--batch_size', type=int, default=2)
@@ -131,7 +148,7 @@ def parse_args():
     parser.add_argument('--learning_rate', type=float, default=3e-4)
     parser.add_argument('--base_model', type=str, default='meta-llama/Llama-2-7b-chat-hf')
     parser.add_argument('--resume_from_checkpoint', type=str, default='')
-    parser.add_argument('--prompt_template_name', type=str, default='D2P')
+    # parser.add_argument('--prompt_template_name', type=str, default='D2P')
 
     parser.add_argument('--max_new_tokens', type=int, default=50)
     parser.add_argument('--num_beams', type=int, default=5)

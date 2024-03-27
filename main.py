@@ -4,7 +4,7 @@ from transformers import LlamaTokenizer
 
 from llama_test import LLaMaEvaluator
 from llama_train import llama_finetune
-from llama_util import parse_args, dir_init, createLogFile, load_dataset, prepare_dataset, cutoffInstruction, Prompter
+from llama_util import parse_args, dir_init, createLogFile, load_dataset, prepare_dataset, cutoffInstruction, Prompter, merge_dataset_passages
 
 if __name__ == "__main__":
     # fire.Fire(llama_finetune)
@@ -14,13 +14,17 @@ if __name__ == "__main__":
 
     tokenizer = LlamaTokenizer.from_pretrained(args.base_model)
 
-    train_dataset, test_dataset = load_dataset(args)
-    train_dialogs, train_profiles, train_labels = prepare_dataset(args, tokenizer, train_dataset)
-    test_dialogs, train_profiles, test_labels = prepare_dataset(args, tokenizer, test_dataset)
+    train_raw_dataset, test_raw_dataset = load_dataset(args)
+
+    train_know_dataset = merge_dataset_passages(args, train_raw_dataset, mode='train')
+    test_know_dataset = merge_dataset_passages(args, train_raw_dataset, mode='test')
+
+    train_know_dataset, train_labels = prepare_dataset(args, tokenizer, train_know_dataset)
+    test_know_dataset, test_labels = prepare_dataset(args, tokenizer, test_know_dataset)
 
     prompter = Prompter(args, args.prompt)
-    train_instructions = prompter.generate_instructions('train', train_dialogs, train_profiles, train_labels)
-    test_instructions = prompter.generate_instructions('test', train_dialogs, train_profiles, train_labels)
+    train_instructions = prompter.generate_instructions('train', train_know_dataset)
+    test_instructions = prompter.generate_instructions('test', test_know_dataset)
     #
     # train_instructions = [prompter.generate_prompt(instruction=instruction) for instruction in self.instructions]
     # train_dialogs = cutoffInstruction(tokenizer, train_dialogs, args.cutoff, reverse=True)
