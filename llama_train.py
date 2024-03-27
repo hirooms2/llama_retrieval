@@ -48,8 +48,6 @@ class QueryEvalCallback(TrainerCallback):
         model = kwargs['model']
         epoch = state.epoch
         path = os.path.join(self.saved_model_path, self.log_name + '_E' + str(int(epoch)))
-        if not os.path.isdir(path):
-            os.makedirs(path)
         model.save_pretrained(path)
 
 
