@@ -40,7 +40,13 @@ class Prompter(object):
         if self.args.prompt == 'UD2I':
             instructions = [self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], label=data['topic'], mode=mode) for data in know_dataset]
         elif self.args.prompt == 'DP2R':
-            instructions = [self.generate_prompt(instruction=data['dialog'], input='\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(data['predicted_know'])]), label=data['response'], mode=mode) for data in know_dataset]
+            # instructions = [self.generate_prompt(instruction=data['dialog'], input=, label=data['response'], mode=mode) for data in know_dataset]
+            instructions = []
+            for data in know_dataset:
+                predicted_know = data['predicted_know'][:self.args.n_docs]
+                predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=data['response'], mode=mode))
+
         # else:
         #     instructions = [self.generate_prompt(instruction=dialog, label=label, mode=mode) for data in know_dataset]
 
@@ -142,6 +148,7 @@ def parse_args():
     parser.add_argument('--peft_weights', type=str, default="")
     parser.add_argument('--batch_size', type=int, default=2)
     parser.add_argument('--eval_batch_size', type=int, default=2)
+    parser.add_argument('--n_docs', type=int, default=2)
 
     parser.add_argument('--cutoff', type=int, default=256)
     parser.add_argument('--epoch', type=int, default=5)
