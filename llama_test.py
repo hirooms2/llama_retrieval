@@ -52,9 +52,9 @@ class LLaMaEvaluator:
         self.prompter = Prompter(args, prompt_template_name)
 
         self.dataloader = self.prepare_dataloader()
-        self.metric = {'bleu@1': 0, 'bleu@2': 0, 'bleu@3': 0, 'bleu@4': 0,
-                       'dist@1': set(), 'dist@2': set(), 'dist@3': set(), 'dist@4': set(),
-                       'hit@1': 0, 'hit@3': 0, 'hit@5': 0,
+        self.metric = {'bleu1': 0, 'bleu2': 0, 'bleu3': 0, 'bleu4': 0,
+                       'dist1': set(), 'dist2': set(), 'dist3': set(), 'dist4': set(),
+                       'hit1': 0, 'hit3': 0, 'hit5': 0,
                        'cnt': 0}
         # self.model = self.prepare_model()
 
@@ -65,14 +65,14 @@ class LLaMaEvaluator:
         for j, k in enumerate([1, 3, 5]):
             output = '| '.join(pred[:k])
             if label.lower() in output.lower():
-                self.metric[f'hit@{k}'] += 1
+                self.metric[f'hit{k}'] += 1
 
     def compute_bleu(self, pred, label):
         pred, label = pred.split(), [label.split()]
         for k in range(4):
             weights = [0] * 4
             weights[k] = 1
-            self.metric[f'bleu@{k + 1}'] += sentence_bleu(label, pred, weights)
+            self.metric[f'bleu{k + 1}'] += sentence_bleu(label, pred, weights)
 
     def prepare_model(self,
                       base_model: str = "",
@@ -199,8 +199,8 @@ class LLaMaEvaluator:
 
             for dialog, response, label in zip(batch[0], responses, labels):
                 self.metric['cnt'] += 1
-                self.compute_bleu(responses, labels)
-                self.compute_hit(responses, labels)
+                self.compute_bleu(response[0], label)
+                self.compute_hit(response, label)
 
                 bleu1 = self.metric['bleu1'] / self.metric['cnt']
                 bleu2 = self.metric['bleu2'] / self.metric['cnt']
@@ -212,5 +212,5 @@ class LLaMaEvaluator:
                 hit5 = self.metric['hit5'] / self.metric['cnt']
 
                 self.args.log_file.write(json.dumps({'CONTEXT': dialog, 'GEN': ' | '.join(response), 'ANSWER': label,
-                                                     'hit_scores': '|'.join([hit1, hit3, hit5]),
-                                                     'bleu_scores': '|'.join([bleu1, bleu2, bleu3, bleu4])}, ensure_ascii=False) + '\n')
+                                                     'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
+                                                     'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}, ensure_ascii=False) + '\n')

@@ -209,7 +209,7 @@ def createLogFile(args):
         log_name = args.log_name
     args.log_name = mdhm + '_' + log_name
 
-    args.output_dir = 'result'
+    args.output_dir = os.path.join(args.home, 'result')
     if not os.path.exists(args.output_dir): os.mkdir(args.output_dir)
 
     result_path = os.path.join(args.output_dir, args.base_model.replace('/', '-'))
