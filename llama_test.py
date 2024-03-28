@@ -5,6 +5,8 @@ import sys
 import numpy as np
 import torch
 # import wandb
+from nltk.translate.bleu_score import sentence_bleu
+
 import wandb
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
@@ -50,10 +52,27 @@ class LLaMaEvaluator:
         self.prompter = Prompter(args, prompt_template_name)
 
         self.dataloader = self.prepare_dataloader()
+        self.metric = {'bleu@1': 0, 'bleu@2': 0, 'bleu@3': 0, 'bleu@4': 0,
+                       'dist@1': set(), 'dist@2': set(), 'dist@3': set(), 'dist@4': set(),
+                       'hit@1': 0, 'hit@3': 0, 'hit@5': 0,
+                       'cnt': 0}
         # self.model = self.prepare_model()
 
     def set_dataloader(self, dataloader):
         self.dataloader = dataloader
+
+    def compute_hit(self, pred, label):
+        for j, k in enumerate([1, 3, 5]):
+            output = '| '.join(pred[:k])
+            if label.lower() in output.lower():
+                self.metric[f'hit@{k}'] += 1
+
+    def compute_bleu(self, pred, label):
+        pred, label = pred.split(), [label.split()]
+        for k in range(4):
+            weights = [0] * 4
+            weights[k] = 1
+            self.metric[f'bleu@{k + 1}'] += sentence_bleu(label, pred, weights)
 
     def prepare_model(self,
                       base_model: str = "",
@@ -163,9 +182,6 @@ class LLaMaEvaluator:
         if torch.__version__ >= "2" and sys.platform != "win32":
             model = torch.compile(model)
 
-        hit, mentioned_hit, not_mentioned_hit, cnt, mentioned_cnt, not_mentioned_cnt, gen_mentioned_cnt, gen_not_mentioned_cnt = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-        hits, cnts = [0, 0, 0], [0, 0, 0]
-        idx = 0
         for batch in tqdm(self.dataloader, bar_format=' {percentage:3.0f} % | {bar:23} {r_bar}'):
             generated_results = []
             batched_inputs = self.tokenizer(batch[0], padding=True, return_tensors="pt")
@@ -182,22 +198,19 @@ class LLaMaEvaluator:
             dialogs, labels = batch[0], batch[1]
 
             for dialog, response, label in zip(batch[0], responses, labels):
-                topk_results = []
-                for j, k in enumerate([1, 3, 5]):
-                    output = '| '.join(response[:k])
-                    if label.lower() in output.lower():
-                        # if title == gen_title and year == gen_year:
-                        hits[j] += 1.0
-                    cnts[j] += 1.0
-                    hit_ratio = (hits[j] / cnts[j]) * 100
-                    topk_results.append('%.2f' % hit_ratio)
+                self.metric['cnt'] += 1
+                self.compute_bleu(responses, labels)
+                self.compute_hit(responses, labels)
 
-                generated_results.append(
-                    {'CONTEXT': dialog, 'GEN': output, 'ANSWER': label, 'AVG_HIT': ', '.join(topk_results)})
+                bleu1 = self.metric['bleu1'] / self.metric['cnt']
+                bleu2 = self.metric['bleu2'] / self.metric['cnt']
+                bleu3 = self.metric['bleu3'] / self.metric['cnt']
+                bleu4 = self.metric['bleu4'] / self.metric['cnt']
 
-            for i in generated_results:
-                self.args.log_file.write(json.dumps(i, ensure_ascii=False) + '\n')
+                hit1 = self.metric['hit1'] / self.metric['cnt']
+                hit3 = self.metric['hit3'] / self.metric['cnt']
+                hit5 = self.metric['hit5'] / self.metric['cnt']
 
-            if cnt % 100 == 0 and cnt != 0:
-                wandb.log({"hit_ratio": (hit / cnt)})
-                print("%.4f" % (hit / cnt))
+                self.args.log_file.write(json.dumps({'CONTEXT': dialog, 'GEN': ' | '.join(response), 'ANSWER': label,
+                                                     'hit_scores': '|'.join([hit1, hit3, hit5]),
+                                                     'bleu_scores': '|'.join([bleu1, bleu2, bleu3, bleu4])}, ensure_ascii=False) + '\n')

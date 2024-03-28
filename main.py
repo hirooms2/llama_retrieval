@@ -17,7 +17,7 @@ if __name__ == "__main__":
     train_raw_dataset, test_raw_dataset = load_dataset(args)
 
     train_know_dataset = merge_dataset_passages(args, train_raw_dataset, mode='train')
-    test_know_dataset = merge_dataset_passages(args, train_raw_dataset, mode='test')
+    test_know_dataset = merge_dataset_passages(args, test_raw_dataset, mode='test')
 
     train_know_dataset, train_labels = prepare_dataset(args, tokenizer, train_know_dataset)
     test_know_dataset, test_labels = prepare_dataset(args, tokenizer, test_know_dataset)
