@@ -141,7 +141,7 @@ def parse_args():
     parser.add_argument('--debug', type=bool, default=False)
     parser.add_argument('--peft', type=str, default="lora")
     parser.add_argument('--mode', type=str, default="test")
-    parser.add_argument('--prompt', type=str, default="D2P")
+    parser.add_argument('--prompt', type=str, default="D2P", choices=['D2P', 'DP2R'])
     parser.add_argument('--train_know_file', type=str, default="espresso")
     parser.add_argument('--test_know_file', type=str, default="espresso")
 
@@ -159,6 +159,8 @@ def parse_args():
 
     parser.add_argument('--max_new_tokens', type=int, default=50)
     parser.add_argument('--num_beams', type=int, default=5)
+
+    parser.add_argument('--device', '--gpu', default='0', type=str, help='GPU Device')
 
     args = parser.parse_args()
     args.num_device = torch.cuda.device_count()
@@ -190,9 +192,14 @@ def dir_init(default_args):
         pass  # HJ local
     else:
         raise Exception("Check Your Platform Setting (Linux-Server or Windows)")
-
+    
+    # Check path
     return args
 
+
+def checkPath(*args) -> None:
+    for path in args:
+        if not os.path.exists(path): os.makedirs(path)
 
 def createLogFile(args):
     mdhm = str(datetime.now(timezone('Asia/Seoul')).strftime('%m%d%H%M%S'))
@@ -215,7 +222,7 @@ def createLogFile(args):
     saved_model_path = os.path.join(args.home, 'saved_model')
     args.saved_model_path = saved_model_path
 
-    if not os.path.exists(saved_model_path): os.mkdir(saved_model_path)
+    checkPath(args.saved_model_path)
     if args.peft_weights != '':
         args.peft_weights = os.path.join(saved_model_path, args.peft_weights)
 
