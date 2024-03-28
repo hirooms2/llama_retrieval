@@ -1,25 +1,13 @@
-import argparse
-import json
-import math
 import os
-import pickle
 import sys
-from datetime import datetime
 from typing import List
 
-import numpy as np
 import pandas as pd
 import torch
 import transformers
 from datasets import Dataset
-from loguru import logger
-from pytz import timezone
-from tqdm import tqdm
 from transformers import Trainer, TrainingArguments, TrainerState, TrainerControl
-import wandb
-from peft import PeftModel
 
-# from peft import IA3Config
 
 """
 Unused imports:
@@ -35,8 +23,6 @@ from peft import (
     set_peft_model_state_dict,
 )
 from transformers import LlamaForCausalLM, LlamaTokenizer, BitsAndBytesConfig, TrainerCallback
-
-from llama_util import Prompter, parse_args, dir_init, createLogFile, prepare_dataset, cutoffInstruction, load_dataset
 
 
 class QueryEvalCallback(TrainerCallback):
@@ -127,8 +113,6 @@ def llama_finetune(
         base_model
     ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
     # gradient_accumulation_steps = batch_size // micro_batch_size
-
-    prompter = Prompter(args, prompt_template_name)
 
     device_map = "auto"
 

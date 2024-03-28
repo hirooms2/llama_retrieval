@@ -2,81 +2,12 @@ import argparse
 from datetime import datetime
 import json
 import pickle
-from typing import Union
 import os
 
 import torch
 from loguru import logger
 from pytz import timezone
 from tqdm import tqdm
-
-
-class Prompter(object):
-    __slots__ = ("template", "_verbose", "args")
-
-    def __init__(self, args, template_name: str = "", verbose: bool = False):
-        self._verbose = verbose
-        self.args = args
-        if not template_name:
-            # Enforce the default here, so the constructor can be called with '' and will not break.
-            if args.stage == "crs":
-                template_name = "withoutCoT"
-            elif args.stage == "quiz":
-                template_name = "alpaca_legacy"
-        file_name = os.path.join(args.home, "templates", f"{template_name}.json")
-        # if not osp.exists(file_name):
-        #     raise ValueError(f"Can't read {file_name}")
-        with open(file_name) as fp:
-            self.template = json.load(fp)
-        if self._verbose:
-            print(
-                f"Using prompt template {template_name}: {self.template['description']}"
-            )
-
-    def generate_instructions(self,
-                              mode,
-                              know_dataset: list):
-
-        if self.args.prompt == 'UD2I':
-            instructions = [self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], label=data['topic'], mode=mode) for data in know_dataset]
-        elif self.args.prompt == 'DP2R':
-            # instructions = [self.generate_prompt(instruction=data['dialog'], input=, label=data['response'], mode=mode) for data in know_dataset]
-            instructions = []
-            for data in know_dataset:
-                predicted_know = data['predicted_know'][:self.args.n_docs]
-                predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
-                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=data['response'], mode=mode))
-
-        # else:
-        #     instructions = [self.generate_prompt(instruction=dialog, label=label, mode=mode) for data in know_dataset]
-
-        return instructions
-
-    def generate_prompt(
-            self,
-            instruction: str,
-            input: Union[None, str] = None,
-            input2: Union[None, str] = None,
-            label: Union[None, str] = None,
-            mode: str = 'test') -> str:
-        # returns the full prompt from instruction and optional input
-        # if a label (=response, =output) is provided, it's also appended.
-        if input:
-            res = self.template["prompt_input"].format(
-                instruction=instruction, input=input
-            )
-        else:
-            res = self.template["prompt_no_input"].format(
-                instruction=instruction
-            )
-        if mode == 'train':
-            res = f"{res}{label}"
-        if self._verbose:
-            print(res)
-        return res
-
-    def get_response(self, output: str) -> str:
-        return output.split(self.template["response_split"])[-1].strip()
 
 
 def load_dataset(args):
@@ -129,6 +60,8 @@ def prepare_dataset(args, tokenizer, dataset):
             labels.append(data['response'])
         elif args.prompt.split('2')[-1] == 'P':
             labels.append(data['target_knowledge'])
+        elif args.prompt == 'pretrain':
+            labels.append('')
 
     return dataset, labels
 
@@ -141,7 +74,7 @@ def parse_args():
     parser.add_argument('--debug', type=bool, default=False)
     parser.add_argument('--peft', type=str, default="lora")
     parser.add_argument('--mode', type=str, default="test")
-    parser.add_argument('--prompt', type=str, default="D2P", choices=['D2P', 'DP2R'])
+    parser.add_argument('--prompt', type=str, default="D2P", choices=['D2P', 'DP2R', 'UDP2I', 'pretrain'])
     parser.add_argument('--train_know_file', type=str, default="espresso")
     parser.add_argument('--test_know_file', type=str, default="espresso")
 
@@ -192,7 +125,7 @@ def dir_init(default_args):
         pass  # HJ local
     else:
         raise Exception("Check Your Platform Setting (Linux-Server or Windows)")
-    
+
     # Check path
     return args
 
@@ -200,6 +133,7 @@ def dir_init(default_args):
 def checkPath(*args) -> None:
     for path in args:
         if not os.path.exists(path): os.makedirs(path)
+
 
 def createLogFile(args):
     mdhm = str(datetime.now(timezone('Asia/Seoul')).strftime('%m%d%H%M%S'))
