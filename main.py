@@ -1,11 +1,10 @@
-import os
-
 from transformers import LlamaTokenizer
 
 from llama_test import LLaMaEvaluator
 from llama_train import llama_finetune
-from prompt import Prompter
-from utils import parse_args, dir_init, createLogFile, load_dataset, prepare_dataset, cutoffInstruction, merge_dataset_passages
+from parser import parse_args
+from prompter import Prompter
+from utils import dir_init, createLogFile, load_dataset, prepare_dataset, merge_dataset_passages
 
 if __name__ == "__main__":
     # fire.Fire(llama_finetune)
@@ -27,7 +26,11 @@ if __name__ == "__main__":
     train_instructions = prompter.generate_instructions('train', train_know_dataset, train_labels)
     test_instructions = prompter.generate_instructions('test', test_know_dataset, test_labels)
 
-    if 'train' in args.mode:
+    if args.mode == 'train':
         llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, labels=train_labels, num_epochs=args.epoch)
-    if 'test' in args.mode:
+    elif args.mode == 'test':
         evaluator = LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, prompt_template_name=args.prompt).test()
+    elif args.mode == 'train_test':
+        llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, labels=train_labels, num_epochs=args.epoch)
+        for e in range(args.epoch):
+            evaluator = LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, prompt_template_name=args.prompt).test(epoch=e)

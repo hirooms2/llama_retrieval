@@ -13,7 +13,7 @@ from tqdm import tqdm
 from transformers import GenerationConfig, LlamaForCausalLM, LlamaTokenizer
 from peft import PeftModel
 
-from prompt import Prompter
+from prompter import Prompter
 
 if torch.cuda.is_available():
     device = "cuda"
@@ -167,9 +167,8 @@ class LLaMaEvaluator:
         output = self.tokenizer.batch_decode(s, skip_special_tokens=True)
         return [self.prompter.get_response(i) for i in output]  # , scores.to('cpu').numpy()
 
-    def test(self, model=None, epoch=None):
-        if model is None:
-            model = self.prepare_model()
+    def test(self, epoch=None):
+        model = self.prepare_model()
         if epoch is not None:
             log_file = open(os.path.join(self.args.result_path, f'{self.args.log_name}_E{int(epoch)}.json'), 'a',
                             buffering=1, encoding='UTF-8')
@@ -207,6 +206,11 @@ class LLaMaEvaluator:
                 hit3 = self.metric['hit3'] / self.metric['cnt']
                 hit5 = self.metric['hit5'] / self.metric['cnt']
 
-                self.args.log_file.write(json.dumps({'CONTEXT': dialog, 'GEN': ' | '.join(response), 'ANSWER': label,
-                                                     'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
-                                                     'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}, ensure_ascii=False) + '\n')
+                if self.args.write:
+                    self.args.log_file.write(json.dumps({'CONTEXT': dialog, 'GEN': ' | '.join(response), 'ANSWER': label,
+                                                         'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
+                                                         'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}, ensure_ascii=False) + '\n')
+
+        self.args.output_file.write(f'---Accuracy results for {self.args.log_name} at epoch {epoch}---\n')
+        self.args.output_file.write(json.dumps({'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
+                                                'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}) + '\n')
