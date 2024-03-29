@@ -1,6 +1,6 @@
 import json
 import os
-from random import random
+import random
 from typing import Union
 
 
