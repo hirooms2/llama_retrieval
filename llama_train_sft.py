@@ -5,8 +5,9 @@ from typing import List
 import pandas as pd
 import torch
 import transformers
-from datasets import Dataset
+from datasets import Dataset, load_dataset
 from transformers import Trainer, TrainingArguments, TrainerState, TrainerControl, LlamaConfig
+from trl import SFTTrainer
 
 """
 Unused imports:
@@ -164,7 +165,7 @@ def llama_finetune(
 
     data = []
     for inst, lab in zip(instructions, labels):
-        data.append({"instruction": inst, "input": "", "output": lab})
+        data.append({"text": inst, "label": lab})
 
     first_sample = Dataset.from_pandas(pd.DataFrame([data[0]]))
     data = Dataset.from_pandas(pd.DataFrame(data))
@@ -180,8 +181,8 @@ def llama_finetune(
             train_val["test"].shuffle().map(generate_and_tokenize_prompt)
         )
     else:
-        generate_and_tokenize_prompt(first_sample[0])
-        train_data = data.shuffle().map(generate_and_tokenize_prompt)
+        # generate_and_tokenize_prompt(first_sample[0])
+        train_data = data.shuffle()  # .map(generate_and_tokenize_prompt)
         val_data = None
 
     if args.debug:
@@ -202,7 +203,7 @@ def llama_finetune(
 
     model = prepare_model_for_int8_training(model)
 
-    config = LoraConfig(
+    peft_config = LoraConfig(
         r=lora_r,
         lora_alpha=lora_alpha,
         target_modules=lora_target_modules,
@@ -211,7 +212,7 @@ def llama_finetune(
         task_type="CAUSAL_LM",
     )
 
-    model = get_peft_model(model, config)
+    # model = get_peft_model(model, peft_config)
 
     if resume_from_checkpoint != "":
         # Check the available weights and load them
@@ -234,17 +235,19 @@ def llama_finetune(
             print(f"Checkpoint {checkpoint_name} not found")
     else:
         resume_from_checkpoint = None
-    model.print_trainable_parameters()  # Be more transparent about the % of trainable params.
+    # model.print_trainable_parameters()  # Be more transparent about the % of trainable params.
 
     if not ddp and torch.cuda.device_count() > 1:
         # keeps Trainer from trying its own DataParallelism when more than 1 gpu is available
         model.is_parallelizable = True
         model.model_parallel = True
 
-    trainer = Trainer(
+    trainer = SFTTrainer(
         model=model,
         train_dataset=train_data,
-        eval_dataset=val_data,
+        peft_config=peft_config,
+        dataset_text_field="text",
+        tokenizer=tokenizer,
         args=transformers.TrainingArguments(
             per_device_train_batch_size=per_device_train_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
@@ -266,11 +269,38 @@ def llama_finetune(
             report_to="wandb" if use_wandb else None,
             # run_name=args.wandb_run_name if use_wandb else None,
         ),
-        data_collator=transformers.DataCollatorForSeq2Seq(
-            tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
-        ),
-        callbacks=[QueryEvalCallback(args)]
+        callbacks=[QueryEvalCallback(args)],
     )
+    # trainer = Trainer(
+    #     model=model,
+    #     train_dataset=train_data,
+    #     eval_dataset=val_data,
+    #     args=transformers.TrainingArguments(
+    #         per_device_train_batch_size=per_device_train_batch_size,
+    #         gradient_accumulation_steps=gradient_accumulation_steps,
+    #         warmup_steps=warmup_steps,
+    #         num_train_epochs=num_epochs,
+    #         learning_rate=learning_rate,
+    #         fp16=True,
+    #         logging_steps=10,
+    #         optim="adamw_torch",
+    #         evaluation_strategy="steps" if val_set_size > 0 else "no",
+    #         save_strategy="steps",
+    #         eval_steps=5 if val_set_size > 0 else None,
+    #         save_steps=200,
+    #         output_dir=output_dir,
+    #         save_total_limit=3,
+    #         load_best_model_at_end=True if val_set_size > 0 else False,
+    #         ddp_find_unused_parameters=False if ddp else None,
+    #         group_by_length=group_by_length,
+    #         report_to="wandb" if use_wandb else None,
+    #         # run_name=args.wandb_run_name if use_wandb else None,
+    #     ),
+    #     data_collator=transformers.DataCollatorForSeq2Seq(
+    #         tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
+    #     ),
+    #     callbacks=[QueryEvalCallback(args)]
+    # )
     model.config.use_cache = False
 
     old_state_dict = model.state_dict

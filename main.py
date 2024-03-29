@@ -2,11 +2,13 @@ from transformers import LlamaTokenizer
 
 from llama_test import LLaMaEvaluator
 from llama_train import llama_finetune
-from parser import parse_args
-from prompter import Prompter
-from utils import dir_init, createLogFile, load_dataset, prepare_dataset, merge_dataset_passages
+# from llama_train_sft import llama_finetune
+from utils.parser import parse_args
+from utils.prompter import Prompter
+from utils.utils import dir_init, createLogFile, load_dataset, prepare_dataset, merge_dataset_passages
 
 if __name__ == "__main__":
+
     # fire.Fire(llama_finetune)
     args = parse_args()
     args = dir_init(args)

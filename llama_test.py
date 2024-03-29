@@ -7,13 +7,12 @@ import torch
 # import wandb
 from nltk.translate.bleu_score import sentence_bleu
 
-import wandb
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
-from transformers import GenerationConfig, LlamaForCausalLM, LlamaTokenizer
+from transformers import GenerationConfig, LlamaForCausalLM
 from peft import PeftModel
 
-from prompter import Prompter
+from utils.prompter import Prompter
 
 if torch.cuda.is_available():
     device = "cuda"

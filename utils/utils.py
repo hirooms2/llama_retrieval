@@ -96,7 +96,7 @@ def createLogFile(args):
         log_name = args.log_name
     args.log_name = mdhm + '_' + log_name
 
-    args.output_dir = os.path.join(args.home, 'result')
+    args.output_dir = os.path.join(args.home, '../result')
     if not os.path.exists(args.output_dir): os.mkdir(args.output_dir)
 
     result_path = os.path.join(args.output_dir, args.base_model.replace('/', '-'))
@@ -109,7 +109,7 @@ def createLogFile(args):
     output_file = open(os.path.join(args.result_path, log_name + "_output.json"), 'a', buffering=1, encoding='UTF-8')
     args.output_file = output_file
 
-    saved_model_path = os.path.join(args.home, 'saved_model')
+    saved_model_path = os.path.join(args.home, '../saved_model')
     args.saved_model_path = saved_model_path
 
     checkPath(args.saved_model_path)
