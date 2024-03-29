@@ -1,5 +1,6 @@
 import json
 import os
+from random import random
 from typing import Union
 
 
@@ -34,6 +35,8 @@ class Prompter(object):
         for data, label in zip(dataset_input, dataset_output):
             if 'predicted_know' in data:
                 predicted_know = data['predicted_know'][:self.args.n_docs]
+                if mode == 'train':
+                    random.shuffle(predicted_know)
                 predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
 
             if self.args.prompt == 'UD2I':
