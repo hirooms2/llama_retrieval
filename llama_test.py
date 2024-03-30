@@ -103,7 +103,7 @@ class LLaMaEvaluator:
             ).to("cuda")
 
             # todo: For evaluating the PEFT model
-            if self.args.peft_weights != "":
+            if peft_weights != "":
                 model = PeftModel.from_pretrained(
                     model,
                     peft_weights,

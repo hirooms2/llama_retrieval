@@ -1,3 +1,5 @@
+import os
+
 from transformers import LlamaTokenizer
 
 from llama_test import LLaMaEvaluator
@@ -35,4 +37,5 @@ if __name__ == "__main__":
     elif args.mode == 'train_test':
         llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, labels=train_labels, num_epochs=args.epoch)
         for e in range(args.epoch):
+            args.peft_weights = os.path.join(args.saved_model_path, args.log_name + '_E' + str(int(e + 1)))
             evaluator = LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, prompt_template_name=args.prompt).test(epoch=e)
