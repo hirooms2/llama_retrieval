@@ -54,7 +54,11 @@ def prepare_dataset(args, tokenizer, dataset):
         if args.prompt.split('2')[-1] == 'I':
             labels.append(data['topic'])
         elif args.prompt.split('2')[-1] == 'R':
-            labels.append(data['response'])
+            # Only BLEU option
+            # labels.append(data['response'])
+            # Hitgen + BLEU option
+            label = str(data['topic'] + ' | ' + data['response'])
+            labels.append(label)
         elif args.prompt.split('2')[-1] == 'P':
             labels.append(data['target_knowledge'])
         elif args.prompt == 'pretrain':

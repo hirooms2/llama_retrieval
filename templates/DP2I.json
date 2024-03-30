@@ -1,6 +1,0 @@
-{
-  "description": "CRS recommendation template.",
-  "prompt_input": "I will provide a dialog between the above user and a system.\n\n{instruction}\n\nI will then provide relevant passages that can be used to generate a response to the given dialog.\n\n{input}\n\nBased on the dialog and relevant passages, guess which entity should be mentioned in the response being generated.\n\n### Response:",
-  "prompt_no_input": "I will provide you a dialog between a user and a system.\n\n{instruction}\n\nGuess which keyword should be mentioned in the response being generated.\n\n### Response:",
-  "response_split": "### Response:"
-}

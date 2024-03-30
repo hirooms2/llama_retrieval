@@ -53,6 +53,7 @@ class LLaMaEvaluator:
         self.dataloader = self.prepare_dataloader()
         self.metric = {'bleu1': 0, 'bleu2': 0, 'bleu3': 0, 'bleu4': 0,
                        'dist1': set(), 'dist2': set(), 'dist3': set(), 'dist4': set(),
+                       'gen_hit1': 0, 'gen_hit3': 0, 'gen_hit5': 0,
                        'hit1': 0, 'hit3': 0, 'hit5': 0,
                        'cnt': 0}
         # self.model = self.prepare_model()
@@ -60,10 +61,16 @@ class LLaMaEvaluator:
     def set_dataloader(self, dataloader):
         self.dataloader = dataloader
 
-    def compute_hit(self, pred, label):
+    def compute_gen_hit(self, pred, label):
         for j, k in enumerate([1, 3, 5]):
             output = '| '.join(pred[:k])
             if label.lower() in output.lower():
+                self.metric[f'gen_hit{k}'] += 1
+
+    def compute_hit(self, pred, topic):
+        for j, k in enumerate([1, 3, 5]):
+            output = '| '.join(pred[:k])
+            if topic.lower() in output.lower():
                 self.metric[f'hit{k}'] += 1
 
     def compute_bleu(self, pred, label):
@@ -192,24 +199,34 @@ class LLaMaEvaluator:
             dialogs, labels = batch[0], batch[1]
 
             for dialog, response, label in zip(batch[0], responses, labels):
+                topic = label.split('|')[0]
+                label = label.split('|')[-1]
+
                 self.metric['cnt'] += 1
                 self.compute_bleu(response[0], label)
-                self.compute_hit(response, label)
+                self.compute_gen_hit(response, label)
+                self.compute_hit(response, topic)
 
                 bleu1 = self.metric['bleu1'] / self.metric['cnt']
                 bleu2 = self.metric['bleu2'] / self.metric['cnt']
                 bleu3 = self.metric['bleu3'] / self.metric['cnt']
                 bleu4 = self.metric['bleu4'] / self.metric['cnt']
 
+                gen_hit1 = self.metric['gen_hit1'] / self.metric['cnt']
+                gen_hit3 = self.metric['gen_hit3'] / self.metric['cnt']
+                gen_hit5 = self.metric['gen_hit5'] / self.metric['cnt']
+                
                 hit1 = self.metric['hit1'] / self.metric['cnt']
                 hit3 = self.metric['hit3'] / self.metric['cnt']
                 hit5 = self.metric['hit5'] / self.metric['cnt']
 
                 if self.args.write:
                     self.args.log_file.write(json.dumps({'CONTEXT': dialog, 'GEN': ' | '.join(response), 'ANSWER': label,
+                                                         'gen_scores': '|'.join(['%.4f' % i for i in [gen_hit1, gen_hit3, gen_hit5]]),
                                                          'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
                                                          'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}, ensure_ascii=False) + '\n')
 
         self.args.output_file.write(f'---Accuracy results for {self.args.log_name} at epoch {epoch}---\n')
-        self.args.output_file.write(json.dumps({'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
+        self.args.output_file.write(json.dumps({'gen_scores': '|'.join(['%.4f' % i for i in [gen_hit1, gen_hit3, gen_hit5]]),
+                                                'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
                                                 'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}) + '\n')

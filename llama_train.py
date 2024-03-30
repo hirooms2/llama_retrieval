@@ -164,6 +164,7 @@ def llama_finetune(
 
     data = []
     for inst, lab in zip(instructions, labels):
+        lab = lab.split('|')[-1]
         data.append({"instruction": inst, "input": "", "output": lab})
 
     first_sample = Dataset.from_pandas(pd.DataFrame([data[0]]))
