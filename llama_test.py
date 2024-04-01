@@ -201,9 +201,13 @@ class LLaMaEvaluator:
             for dialog, response, label in zip(batch[0], responses, labels):
                 topic = label.split('|')[0]
                 label = label.split('|')[-1]
+                gen_response = response[0]
+                # In case "Topic" is generated
+                if '|' in response[0]:
+                    gen_response = response[0].split('|')[-1]
 
                 self.metric['cnt'] += 1
-                self.compute_bleu(response[0], label)
+                self.compute_bleu(gen_response, label)
                 self.compute_gen_hit(response, label)
                 self.compute_hit(response, topic)
 
