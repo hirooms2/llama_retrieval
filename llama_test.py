@@ -51,7 +51,7 @@ class LLaMaEvaluator:
         self.dataloader = self.prepare_dataloader()
         self.metric = {'bleu1': 0, 'bleu2': 0, 'bleu3': 0, 'bleu4': 0,
                        'dist1': set(), 'dist2': set(), 'dist3': set(), 'dist4': set(),
-                       'hit_gen': 0,
+                       'hitgen': 0,
                        'hit1': 0, 'hit3': 0, 'hit5': 0,
                        'cnt': 0}
         # self.model = self.prepare_model()
@@ -67,7 +67,7 @@ class LLaMaEvaluator:
 
     def compute_hitgen(self, pred, topic):
         if topic.lower() in pred.lower():
-            self.metric[f'hit_gen'] += 1
+            self.metric[f'hitgen'] += 1
 
     def compute_bleu(self, pred, label):
         pred, label = pred.split(), [label.split()]
