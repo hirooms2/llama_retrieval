@@ -1,6 +1,0 @@
-{
-  "description": "CRS recommendation template.",
-  "prompt_input": "I will provide you a profile of a user.\n\n{instruction}.\n\nI will provide a dialog between the above user and a system.\n\n{input}\n\nGuess which keyword should be mentioned in the response being generated.\n\n### Response:",
-  "prompt_no_input": "I will provide you with a dialog between a user and a system.\n\n{instruction}\n\nGuess which keyword should be mentioned in the response being generated.\n\n### Response:",
-  "response_split": "### Response:"
-}

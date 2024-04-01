@@ -35,7 +35,7 @@ def merge_dataset_passages(args, dataset, mode='train'):
 
 
 def prepare_dataset(args, tokenizer, dataset):
-    labels = []
+    labels, topics = [], []
 
     if args.debug:
         dataset = dataset[:100]
@@ -50,21 +50,18 @@ def prepare_dataset(args, tokenizer, dataset):
         data['user_profile'] = user_profile
 
         data['response'] = data['response'].replace('[SEP]', '')
+        topics.append(data['topic'])
 
         if args.prompt.split('2')[-1] == 'I':
             labels.append(data['topic'])
         elif args.prompt.split('2')[-1] == 'R':
-            # Only BLEU option
-            # labels.append(data['response'])
-            # Hitgen + BLEU option
-            label = str(data['topic'] + ' | ' + data['response'])
-            labels.append(label)
+            labels.append(data['response'])
         elif args.prompt.split('2')[-1] == 'P':
             labels.append(data['target_knowledge'])
         elif args.prompt == 'pretrain':
             labels.append('')
 
-    return dataset, labels
+    return dataset, labels, topics
 
 
 def dir_init(default_args):

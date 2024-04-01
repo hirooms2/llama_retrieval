@@ -21,30 +21,28 @@ else:
 
 
 class Textdataset(Dataset):
-    def __init__(self, args, instructions, labels, tokenizer):
+    def __init__(self, args, instructions, labels, topics, tokenizer):
         self.args = args
         self.instructions = instructions
         self.labels = labels
+        self.topics = topics
         self.tokenizer = tokenizer
 
     def __getitem__(self, idx):
-        # tokenizer.padding_side = 'left'
-        # inputs = self.tokenizer(self.data_samples[idx], padding=True, return_tensors="pt", max_length=args.max_input_length, truncation=True)
-        # input_ids = inputs["input_ids"].to(self.args.device_id)
-        return self.instructions[idx], self.labels[idx]
+        return self.instructions[idx], self.labels[idx], self.topics[idx]
 
     def __len__(self):
         return len(self.instructions)
 
 
 class LLaMaEvaluator:
-    def __init__(self, args, tokenizer, insturctions, labels, explanation=[], prompt_template_name: str = ""):
+    def __init__(self, args, tokenizer, insturctions, labels, topics, prompt_template_name: str = ""):
         self.args = args
         # self.dataset = dataset
         self.instructions = insturctions  # [i['context_tokens'] for i in dataset]
         self.labels = labels  # [i['item'] for i in dataset]
         # self.negItems = dataset['negItems']
-        self.explanations = explanation  # [i['explanation'] for i in dataset]
+        self.topics = topics  # [i['explanation'] for i in dataset]
         self.tokenizer = tokenizer  # , LlamaTokenizer.from_pretrained(self.args.base_model)
 
         # self.candidate_scores = candidate_scores
@@ -53,7 +51,7 @@ class LLaMaEvaluator:
         self.dataloader = self.prepare_dataloader()
         self.metric = {'bleu1': 0, 'bleu2': 0, 'bleu3': 0, 'bleu4': 0,
                        'dist1': set(), 'dist2': set(), 'dist3': set(), 'dist4': set(),
-                       'gen_hit1': 0, 'gen_hit3': 0, 'gen_hit5': 0,
+                       'hit_gen': 0,
                        'hit1': 0, 'hit3': 0, 'hit5': 0,
                        'cnt': 0}
         # self.model = self.prepare_model()
@@ -61,17 +59,15 @@ class LLaMaEvaluator:
     def set_dataloader(self, dataloader):
         self.dataloader = dataloader
 
-    def compute_gen_hit(self, pred, label):
+    def compute_hit(self, pred, label):
         for j, k in enumerate([1, 3, 5]):
             output = '| '.join(pred[:k])
             if label.lower() in output.lower():
-                self.metric[f'gen_hit{k}'] += 1
-
-    def compute_hit(self, pred, topic):
-        for j, k in enumerate([1, 3, 5]):
-            output = '| '.join(pred[:k])
-            if topic.lower() in output.lower():
                 self.metric[f'hit{k}'] += 1
+
+    def compute_hitgen(self, pred, topic):
+        if topic.lower() in pred.lower():
+            self.metric[f'hit_gen'] += 1
 
     def compute_bleu(self, pred, label):
         pred, label = pred.split(), [label.split()]
@@ -132,9 +128,7 @@ class LLaMaEvaluator:
     def prepare_dataloader(self):
         self.tokenizer.padding_side = 'left'
 
-        instructions = self.instructions  # [self.prompter.generate_prompt(instruction=instruction) for instruction in self.instructions]
-        labels = self.labels
-        instruction_dataset = Textdataset(self.args, instructions, labels, self.tokenizer)
+        instruction_dataset = Textdataset(self.args, self.instructions, self.labels, self.topics, self.tokenizer)
         dataloader = DataLoader(instruction_dataset, batch_size=self.args.eval_batch_size, shuffle=False)
 
         return dataloader
@@ -196,37 +190,32 @@ class LLaMaEvaluator:
                                       num_beams=self.args.num_beams)
             responses = np.reshape(responses, (-1, self.args.num_beams)).tolist()  # [B, beam]
 
-            dialogs, labels = batch[0], batch[1]
+            dialogs, labels, topics = batch[0], batch[1], batch[2]
 
-            for dialog, response, label in zip(batch[0], responses, labels):
-                topic = label.split('|')[0]
-                label = label.split('|')[-1]
-
+            for dialog, response, label, topic in zip(batch[0], responses, labels, topics):
                 self.metric['cnt'] += 1
-                self.compute_bleu(response[0], label)
-                self.compute_gen_hit(response, label)
-                self.compute_hit(response, topic)
+                self.compute_bleu(response[0], label)  # output type이 response일때
+                self.compute_hitgen(response[0], topic)  # output type이 response일때
+                self.compute_hit(response, label)  # output type이 topic or passage 일때
 
                 bleu1 = self.metric['bleu1'] / self.metric['cnt']
                 bleu2 = self.metric['bleu2'] / self.metric['cnt']
                 bleu3 = self.metric['bleu3'] / self.metric['cnt']
                 bleu4 = self.metric['bleu4'] / self.metric['cnt']
 
-                gen_hit1 = self.metric['gen_hit1'] / self.metric['cnt']
-                gen_hit3 = self.metric['gen_hit3'] / self.metric['cnt']
-                gen_hit5 = self.metric['gen_hit5'] / self.metric['cnt']
-                
+                hitgen = self.metric['hitgen'] / self.metric['cnt']
+
                 hit1 = self.metric['hit1'] / self.metric['cnt']
                 hit3 = self.metric['hit3'] / self.metric['cnt']
                 hit5 = self.metric['hit5'] / self.metric['cnt']
 
                 if self.args.write:
                     self.args.log_file.write(json.dumps({'CONTEXT': dialog, 'GEN': ' | '.join(response), 'ANSWER': label,
-                                                         'gen_scores': '|'.join(['%.4f' % i for i in [gen_hit1, gen_hit3, gen_hit5]]),
+                                                         'hitgen': '%.4f' % hitgen,
                                                          'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
                                                          'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}, ensure_ascii=False) + '\n')
 
         self.args.output_file.write(f'---Accuracy results for {self.args.log_name} at epoch {epoch}---\n')
-        self.args.output_file.write(json.dumps({'gen_scores': '|'.join(['%.4f' % i for i in [gen_hit1, gen_hit3, gen_hit5]]),
+        self.args.output_file.write(json.dumps({'hitgen': '%.4f' % hitgen,
                                                 'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
                                                 'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}) + '\n')

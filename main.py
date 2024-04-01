@@ -23,8 +23,8 @@ if __name__ == "__main__":
     train_know_dataset = merge_dataset_passages(args, train_raw_dataset, mode='train')
     test_know_dataset = merge_dataset_passages(args, test_raw_dataset, mode='test')
 
-    train_know_dataset, train_labels = prepare_dataset(args, tokenizer, train_know_dataset)
-    test_know_dataset, test_labels = prepare_dataset(args, tokenizer, test_know_dataset)
+    train_know_dataset, train_labels, train_topics = prepare_dataset(args, tokenizer, train_know_dataset)
+    test_know_dataset, test_labels, test_topics = prepare_dataset(args, tokenizer, test_know_dataset)
 
     prompter = Prompter(args, args.prompt)
     train_instructions = prompter.generate_instructions('train', train_know_dataset, train_labels)
@@ -33,9 +33,9 @@ if __name__ == "__main__":
     if args.mode == 'train':
         llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, labels=train_labels, num_epochs=args.epoch)
     elif args.mode == 'test':
-        evaluator = LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, prompt_template_name=args.prompt).test()
+        evaluator = LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, topics=test_topics, prompt_template_name=args.prompt).test()
     elif args.mode == 'train_test':
         llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, labels=train_labels, num_epochs=args.epoch)
         for e in range(args.epoch):
             args.peft_weights = os.path.join(args.saved_model_path, args.log_name + '_E' + str(int(e + 1)))
-            evaluator = LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, prompt_template_name=args.prompt).test(epoch=e)
+            evaluator = LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, topics=test_topics, prompt_template_name=args.prompt).test(epoch=e)
