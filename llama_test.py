@@ -209,7 +209,7 @@ class LLaMaEvaluator:
                 hit3 = self.metric['hit3'] / self.metric['cnt']
                 hit5 = self.metric['hit5'] / self.metric['cnt']
 
-                if self.args.write:
+                if self.args.write or self.metric['cnt'] <= 100:
                     self.args.log_file.write(json.dumps({'CONTEXT': dialog, 'GEN': ' | '.join(response), 'ANSWER': label,
                                                          'hitgen': '%.4f' % hitgen,
                                                          'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
