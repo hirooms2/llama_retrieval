@@ -11,7 +11,7 @@ def parse_args():
     parser.add_argument('--write', type=bool, default=False)
     parser.add_argument('--peft', type=str, default="lora")
     parser.add_argument('--mode', type=str, default="test")
-    parser.add_argument('--prompt', type=str, default="D2P", choices=['D2P', 'DP2R', 'UDP2I', 'pretrain'])
+    parser.add_argument('--prompt', type=str, default="D2P", choices=['D2P', 'DP2R', 'UDP2I', 'pretrain', 'DP2R_new'])
     parser.add_argument('--train_know_file', type=str, default="espresso")
     parser.add_argument('--test_know_file', type=str, default="espresso")
 
@@ -34,11 +34,11 @@ def parse_args():
 
     args = parser.parse_args()
     args.num_device = torch.cuda.device_count()
-    if args.prompt.split('2')[-1] == 'I':
+    if 'I' in args.prompt.split('2')[-1]:
         args.task = 'topic'
-    elif args.prompt.split('2')[-1] == 'P':
+    elif 'P' in args.prompt.split('2')[-1]:
         args.task = 'know'
-    elif args.prompt.split('2')[-1] == 'R':
+    elif 'R' in args.prompt.split('2')[-1]:
         args.task = 'resp'
     elif args.prompt == 'pretrain':
         args.task = 'pretrain'

@@ -33,13 +33,13 @@ class Prompter(object):
                     random.shuffle(predicted_know)
                 predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
 
-            if self.args.prompt == 'UD2I':
+            if 'UD2I' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], label=label, mode=mode))
-            elif self.args.prompt == 'DP2R':
+            elif 'DP2R' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
-            elif self.args.prompt == 'DP2I':
+            elif 'DP2I' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
-            elif self.args.prompt == 'UDP2I':
+            elif 'UDP2I' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], input2=predicted_know, label=label, mode=mode))
             elif self.args.prompt == 'pretrain':
                 instructions.append(self.generate_prompt(instruction=data['dialog'], label=label, mode=mode))

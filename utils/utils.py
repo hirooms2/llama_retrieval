@@ -52,14 +52,16 @@ def prepare_dataset(args, tokenizer, dataset):
         data['response'] = data['response'].replace('[SEP]', '')
         topics.append(data['topic'])
 
-        if args.prompt.split('2')[-1] == 'I':
+        if 'I' in args.prompt.split('2')[-1]:
             labels.append(data['topic'])
-        elif args.prompt.split('2')[-1] == 'R':
+        elif 'R' in args.prompt.split('2')[-1]:
             labels.append(data['response'])
-        elif args.prompt.split('2')[-1] == 'P':
+        elif 'P' in args.prompt.split('2')[-1]:
             labels.append(data['target_knowledge'])
         elif args.prompt == 'pretrain':
             labels.append('')
+        else:
+            raise ValueError
 
     return dataset, labels, topics
 
