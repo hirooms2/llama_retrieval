@@ -253,12 +253,15 @@ def llama_finetune_sft(
         model.is_parallelizable = True
         model.model_parallel = True
 
+    tokenizer.pad_token = tokenizer.eos_token
+    torch.cuda.empty_cache()
+    print(f"Train_data input_ids[0] contents \n{tokenizer.decode(train_data['input_ids'][0])}\n")
     trainer = SFTTrainer(
         model=model,
+        tokenizer=tokenizer,
         train_dataset=train_data,
         dataset_text_field="text",
-        tokenizer=tokenizer,
-        max_seq_length=600,
+        peft_config=peft_config,
         args=transformers.TrainingArguments(
             per_device_train_batch_size=per_device_train_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
@@ -282,7 +285,9 @@ def llama_finetune_sft(
             # run_name=args.wandb_run_name if use_wandb else None,
         ),
         callbacks=[QueryEvalCallback(args)],
+        data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
     )
+
     # trainer = Trainer(
     #     model=model,
     #     train_dataset=train_data,
