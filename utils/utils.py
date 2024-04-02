@@ -38,7 +38,7 @@ def prepare_dataset(args, tokenizer, dataset):
     labels, topics = [], []
 
     if args.debug:
-        dataset = dataset[:11000]
+        dataset = dataset[:15000]
 
     for data in tqdm(dataset):
         dialog = data['dialog'].replace('[SEP]', '\n')[:-1]
