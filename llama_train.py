@@ -116,7 +116,6 @@ def llama_finetune(
     # device_map = "auto"
     device_map = "cuda"
 
-
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     print("world_size: %d" % world_size)
     ddp = world_size != 1
@@ -162,7 +161,13 @@ def llama_finetune(
         tokenized_full_prompt = tokenize(full_prompt)
         return tokenized_full_prompt
 
-    quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
+    # quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
+    quantization_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.bfloat16
+    )
 
     data = []
     for inst, lab in zip(instructions, labels):
