@@ -114,7 +114,7 @@ def llama_finetune_sft(
     ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
     # gradient_accumulation_steps = batch_size // micro_batch_size
 
-    device_map = "cuda"
+    device_map = "auto"
 
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     print("world_size: %d" % world_size)
@@ -135,31 +135,31 @@ def llama_finetune_sft(
     if len(wandb_log_model) > 0:
         os.environ["WANDB_LOG_MODEL"] = wandb_log_model
 
-    def tokenize(prompt, add_eos_token=True):
-        # there's probably a way to do this with the tokenizer settings
-        # but again, gotta move fast
-        result = tokenizer(
-            prompt,
-            truncation=True,
-            padding=False,
-            return_tensors=None,
-        )
-        if (
-                result["input_ids"][-1] != tokenizer.eos_token_id
-                # and len(result["input_ids"]) < cutoff_len
-                and add_eos_token
-        ):
-            result["input_ids"].append(tokenizer.eos_token_id)
-            result["attention_mask"].append(1)
-
-        result["labels"] = result["input_ids"].copy()
-
-        return result
-
-    def generate_and_tokenize_prompt(data_point):
-        full_prompt = data_point['instruction']
-        tokenized_full_prompt = tokenize(full_prompt)
-        return tokenized_full_prompt
+    # def tokenize(prompt, add_eos_token=True):
+    #     # there's probably a way to do this with the tokenizer settings
+    #     # but again, gotta move fast
+    #     result = tokenizer(
+    #         prompt,
+    #         truncation=True,
+    #         padding=False,
+    #         return_tensors=None,
+    #     )
+    #     if (
+    #             result["input_ids"][-1] != tokenizer.eos_token_id
+    #             # and len(result["input_ids"]) < cutoff_len
+    #             and add_eos_token
+    #     ):
+    #         result["input_ids"].append(tokenizer.eos_token_id)
+    #         result["attention_mask"].append(1)
+    #
+    #     result["labels"] = result["input_ids"].copy()
+    #
+    #     return result
+    #
+    # def generate_and_tokenize_prompt(data_point):
+    #     full_prompt = data_point['instruction']
+    #     tokenized_full_prompt = tokenize(full_prompt)
+    #     return tokenized_full_prompt
 
     quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
     # compute_dtype = getattr(torch, 'float16')
@@ -203,7 +203,7 @@ def llama_finetune_sft(
         base_model,
         device_map=device_map,
         quantization_config=quantization_config,
-    ) # .to('cuda')
+    )  # .to('cuda')
 
     tokenizer.pad_token_id = (
         0  # unk. we want this to be different from the eos token
@@ -263,30 +263,58 @@ def llama_finetune_sft(
         dataset_text_field="text",
         peft_config=peft_config,
         args=transformers.TrainingArguments(
-            per_device_train_batch_size=per_device_train_batch_size,
-            gradient_accumulation_steps=gradient_accumulation_steps,
+            num_train_epochs=args.epoch,
+            per_device_train_batch_size=args.batch_size,
+            gradient_accumulation_steps=4,
             warmup_steps=warmup_steps,
-            num_train_epochs=num_epochs,
-            learning_rate=learning_rate,
-            fp16=False,
-            bf16=False,
-            logging_steps=10,
-            optim="paged_adamw_32bit",
-            evaluation_strategy="steps" if val_set_size > 0 else "no",
-            save_strategy="steps",
-            eval_steps=5 if val_set_size > 0 else None,
-            save_steps=200,
+            # max_steps = 100,
+            learning_rate=args.learning_rate,
+            logging_steps=4,
             output_dir=output_dir,
-            save_total_limit=3,
-            load_best_model_at_end=True if val_set_size > 0 else False,
-            ddp_find_unused_parameters=False if ddp else None,
-            group_by_length=group_by_length,
-            report_to="wandb" if use_wandb else None,
-            # run_name=args.wandb_run_name if use_wandb else None,
+            optim="paged_adamw_8bit",
+            save_strategy="epoch", evaluation_strategy="epoch",
+            save_total_limit=3, load_best_model_at_end=True,
+            report_to="none",
+            # compute_metrics = compute_metrics_gen, compute_met
+            gradient_checkpointing=True,  # Leads to reduction in memory at slighly decrease in speed
+            gradient_checkpointing_kwargs={"use_reentrant": False},
         ),
-        callbacks=[QueryEvalCallback(args)],
         data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
+
     )
+    model.config.use_cache = False  # silence the warnings. Please re-enable for inference!
+    trainer.train()
+    # trainer = SFTTrainer(
+    #     model=model,
+    #     tokenizer=tokenizer,
+    #     train_dataset=train_data,
+    #     dataset_text_field="text",
+    #     peft_config=peft_config,
+    #     args=transformers.TrainingArguments(
+    #         per_device_train_batch_size=per_device_train_batch_size,
+    #         gradient_accumulation_steps=gradient_accumulation_steps,
+    #         warmup_steps=warmup_steps,
+    #         num_train_epochs=num_epochs,
+    #         learning_rate=learning_rate,
+    #         fp16=False,
+    #         bf16=False,
+    #         logging_steps=10,
+    #         optim="paged_adamw_32bit",
+    #         evaluation_strategy="steps" if val_set_size > 0 else "no",
+    #         save_strategy="steps",
+    #         eval_steps=5 if val_set_size > 0 else None,
+    #         save_steps=200,
+    #         output_dir=output_dir,
+    #         save_total_limit=3,
+    #         load_best_model_at_end=True if val_set_size > 0 else False,
+    #         ddp_find_unused_parameters=False if ddp else None,
+    #         group_by_length=group_by_length,
+    #         report_to="wandb" if use_wandb else None,
+    #         # run_name=args.wandb_run_name if use_wandb else None,
+    #     ),
+    #     callbacks=[QueryEvalCallback(args)],
+    #     data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
+    # )
 
     # trainer = Trainer(
     #     model=model,
