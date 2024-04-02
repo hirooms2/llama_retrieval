@@ -161,7 +161,7 @@ def llama_finetune_sft(
         tokenized_full_prompt = tokenize(full_prompt)
         return tokenized_full_prompt
 
-    quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
+    # quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
     # compute_dtype = getattr(torch, 'float16')
     # print(compute_dtype)
     # quantization_config = BitsAndBytesConfig(
@@ -202,7 +202,7 @@ def llama_finetune_sft(
     model = LlamaForCausalLM.from_pretrained(
         base_model,
         # device_map=device_map,
-        quantization_config=quantization_config,
+        # quantization_config=quantization_config,
     ).to('cuda')
 
     tokenizer.pad_token_id = (
