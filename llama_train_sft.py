@@ -263,21 +263,26 @@ def llama_finetune_sft(
         dataset_text_field="text",
         peft_config=peft_config,
         args=transformers.TrainingArguments(
-            num_train_epochs=args.epoch,
-            per_device_train_batch_size=args.batch_size,
-            gradient_accumulation_steps=4,
+            per_device_train_batch_size=per_device_train_batch_size,
+            gradient_accumulation_steps=gradient_accumulation_steps,
             warmup_steps=warmup_steps,
-            # max_steps = 100,
-            learning_rate=args.learning_rate,
-            logging_steps=4,
+            num_train_epochs=num_epochs,
+            learning_rate=learning_rate,
+            fp16=False,
+            bf16=False,
+            logging_steps=10,
+            optim="paged_adamw_32bit",
+            evaluation_strategy="steps" if val_set_size > 0 else "no",
+            save_strategy="steps",
+            eval_steps=5 if val_set_size > 0 else None,
+            save_steps=200,
             output_dir=output_dir,
-            optim="paged_adamw_8bit",
-            save_strategy="epoch", evaluation_strategy="epoch",
-            save_total_limit=3, load_best_model_at_end=True,
-            report_to="none",
-            # compute_metrics = compute_metrics_gen, compute_met
-            gradient_checkpointing=True,  # Leads to reduction in memory at slighly decrease in speed
-            gradient_checkpointing_kwargs={"use_reentrant": False},
+            save_total_limit=3,
+            load_best_model_at_end=True if val_set_size > 0 else False,
+            ddp_find_unused_parameters=False if ddp else None,
+            group_by_length=group_by_length,
+            report_to="wandb" if use_wandb else None,
+            # run_name=args.wandb_run_name if use_wandb else None,
         ),
         data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
         callbacks=[QueryEvalCallback(args)],
@@ -285,6 +290,7 @@ def llama_finetune_sft(
     )
     model.config.use_cache = False  # silence the warnings. Please re-enable for inference!
     trainer.train()
+
     # trainer = SFTTrainer(
     #     model=model,
     #     tokenizer=tokenizer,
