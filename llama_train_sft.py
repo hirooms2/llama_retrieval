@@ -185,16 +185,16 @@ def llama_finetune_sft(
         train_data = data.shuffle()  # .map(generate_and_tokenize_prompt)
         val_data = None
 
-    if args.debug:
-        configuration = LlamaConfig(num_hidden_layers=1)
-        model = LlamaForCausalLM(configuration)
-    else:
-        model = LlamaForCausalLM.from_pretrained(
-            base_model,
-            torch_dtype=torch.float16,
-            device_map=device_map,
-            quantization_config=quantization_config,
-        )
+    # if args.debug:
+    #     configuration = LlamaConfig(num_hidden_layers=1)
+    #     model = LlamaForCausalLM(configuration)
+    # else:
+    model = LlamaForCausalLM.from_pretrained(
+        base_model,
+        torch_dtype=torch.float16,
+        device_map=device_map,
+        quantization_config=quantization_config,
+    )
 
     tokenizer.pad_token_id = (
         0  # unk. we want this to be different from the eos token
