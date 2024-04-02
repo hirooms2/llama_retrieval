@@ -37,7 +37,7 @@ class QueryEvalCallback(TrainerCallback):
         model.save_pretrained(path)
 
 
-def llama_finetune(
+def llama_finetune_sft(
         args,
         tokenizer,
         instructions: list = None,
@@ -201,7 +201,7 @@ def llama_finetune(
     )
     tokenizer.padding_side = "left"  # Allow batched inference
 
-    model = prepare_model_for_int8_training(model)
+    # model = prepare_model_for_int8_training(model)
 
     peft_config = LoraConfig(
         r=lora_r,
