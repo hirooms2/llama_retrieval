@@ -254,6 +254,7 @@ def llama_finetune_sft(
         train_dataset=train_data,
         dataset_text_field="text",
         tokenizer=tokenizer,
+        max_seq_length=1024,
         args=transformers.TrainingArguments(
             per_device_train_batch_size=per_device_train_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
@@ -262,7 +263,7 @@ def llama_finetune_sft(
             learning_rate=learning_rate,
             fp16=True,
             logging_steps=10,
-            optim="adamw_torch",
+            optim="paged_adamw_8bit",
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="steps",
             eval_steps=5 if val_set_size > 0 else None,
