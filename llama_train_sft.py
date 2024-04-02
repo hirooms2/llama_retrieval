@@ -182,12 +182,14 @@ def llama_finetune_sft(
         train_val = data.train_test_split(
             test_size=val_set_size, shuffle=True, seed=42
         )
-        train_data = (
-            train_val["train"].shuffle().map(generate_and_tokenize_prompt)
-        )
-        val_data = (
-            train_val["test"].shuffle().map(generate_and_tokenize_prompt)
-        )
+        # train_data = (
+        #     train_val["train"].shuffle().map(generate_and_tokenize_prompt)
+        # )
+        # val_data = (
+        #     train_val["test"].shuffle().map(generate_and_tokenize_prompt)
+        # )
+        train_data = train_val["train"].shuffle()
+        val_data = train_val["test"].shuffle()
     else:
         # generate_and_tokenize_prompt(first_sample[0])
         train_data = data.shuffle()  # .map(generate_and_tokenize_prompt)
