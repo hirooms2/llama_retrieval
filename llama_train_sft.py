@@ -201,9 +201,9 @@ def llama_finetune_sft(
     # else:
     model = LlamaForCausalLM.from_pretrained(
         base_model,
-        device_map=device_map,
+        # device_map=device_map,
         quantization_config=quantization_config,
-    )
+    ).to('cuda')
 
     tokenizer.pad_token_id = (
         0  # unk. we want this to be different from the eos token
