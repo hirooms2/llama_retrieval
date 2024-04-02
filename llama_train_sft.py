@@ -114,7 +114,7 @@ def llama_finetune_sft(
     ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
     # gradient_accumulation_steps = batch_size // micro_batch_size
 
-    device_map = "auto"
+    device_map = "cuda"
 
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     print("world_size: %d" % world_size)
