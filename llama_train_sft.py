@@ -276,7 +276,7 @@ def llama_finetune_sft(
             save_strategy="steps",
             eval_steps=5 if val_set_size > 0 else None,
             save_steps=200,
-            load_best_model_at_end=True,
+            # load_best_model_at_end=True,
             report_to="none",
             # compute_metrics = compute_metrics_gen, compute_met
             gradient_checkpointing=True,  # Leads to reduction in memory at slighly decrease in speed
