@@ -218,6 +218,8 @@ def llama_finetune_sft(
     )
 
     # model = get_peft_model(model, peft_config)
+    model = get_peft_model(model, peft_config)
+    model.print_trainable_parameters()  # Be more transparent about the % of trainable params.
 
     if resume_from_checkpoint != "":
         # Check the available weights and load them
@@ -250,7 +252,6 @@ def llama_finetune_sft(
     trainer = SFTTrainer(
         model=model,
         train_dataset=train_data,
-        peft_config=peft_config,
         dataset_text_field="text",
         tokenizer=tokenizer,
         args=transformers.TrainingArguments(
