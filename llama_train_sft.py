@@ -256,6 +256,8 @@ def llama_finetune_sft(
     tokenizer.pad_token = tokenizer.eos_token
     torch.cuda.empty_cache()
     print(f"Train_data input_ids[0] contents \n{train_data[0]}\n")
+    print(per_device_train_batch_size)
+    print(gradient_accumulation_steps)
     trainer = SFTTrainer(
         model=model,
         tokenizer=tokenizer,
