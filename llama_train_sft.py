@@ -285,7 +285,7 @@ def llama_finetune_sft(
             # run_name=args.wandb_run_name if use_wandb else None,
         ),
         callbacks=[QueryEvalCallback(args)],
-        data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
+        # data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
     )
 
     # trainer = Trainer(
