@@ -162,11 +162,13 @@ def llama_finetune_sft(
         return tokenized_full_prompt
 
     # quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
+    compute_dtype = getattr(torch, 'float16')
+    print(compute_dtype)
     quantization_config = BitsAndBytesConfig(
         load_in_4bit=True,
-        bnb_4bit_use_double_quant=True,
+        bnb_4bit_use_double_quant=False,
         bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16
+        bnb_4bit_compute_dtype=compute_dtype
     )
 
     data = []
@@ -254,16 +256,17 @@ def llama_finetune_sft(
         train_dataset=train_data,
         dataset_text_field="text",
         tokenizer=tokenizer,
-        max_seq_length=1024,
+        max_seq_length=600,
         args=transformers.TrainingArguments(
             per_device_train_batch_size=per_device_train_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
             warmup_steps=warmup_steps,
             num_train_epochs=num_epochs,
             learning_rate=learning_rate,
-            fp16=True,
+            fp16=False,
+            bf16=False,
             logging_steps=10,
-            optim="paged_adamw_8bit",
+            optim="paged_adamw_32bit",
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="steps",
             eval_steps=5 if val_set_size > 0 else None,
