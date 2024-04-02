@@ -280,6 +280,7 @@ def llama_finetune_sft(
             gradient_checkpointing_kwargs={"use_reentrant": False},
         ),
         data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
+        callbacks=[QueryEvalCallback(args)],
 
     )
     model.config.use_cache = False  # silence the warnings. Please re-enable for inference!
