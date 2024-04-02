@@ -199,7 +199,7 @@ def llama_finetune_sft(
     tokenizer.pad_token_id = (
         0  # unk. we want this to be different from the eos token
     )
-    tokenizer.padding_side = "left"  # Allow batched inference
+    tokenizer.padding_side = "right"  # Allow batched inference
 
     # model = prepare_model_for_int8_training(model)
 
