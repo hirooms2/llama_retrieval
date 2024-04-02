@@ -197,7 +197,6 @@ def llama_finetune_sft(
     # else:
     model = LlamaForCausalLM.from_pretrained(
         base_model,
-        torch_dtype=torch.float16,
         device_map=device_map,
         quantization_config=quantization_config,
     )
