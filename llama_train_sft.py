@@ -281,8 +281,8 @@ def llama_finetune_sft(
             # load_best_model_at_end=True,
             report_to="none",
             # compute_metrics = compute_metrics_gen, compute_met
-            gradient_checkpointing=True,  # Leads to reduction in memory at slighly decrease in speed
-            gradient_checkpointing_kwargs={"use_reentrant": False},
+            # gradient_checkpointing=True,  # Leads to reduction in memory at slighly decrease in speed
+            # gradient_checkpointing_kwargs={"use_reentrant": False},
         ),
         data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
         callbacks=[QueryEvalCallback(args)],
