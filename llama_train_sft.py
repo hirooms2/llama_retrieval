@@ -161,15 +161,15 @@ def llama_finetune_sft(
         tokenized_full_prompt = tokenize(full_prompt)
         return tokenized_full_prompt
 
-    # quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
-    compute_dtype = getattr(torch, 'float16')
-    print(compute_dtype)
-    quantization_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_use_double_quant=False,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=compute_dtype
-    )
+    quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
+    # compute_dtype = getattr(torch, 'float16')
+    # print(compute_dtype)
+    # quantization_config = BitsAndBytesConfig(
+    #     load_in_4bit=True,
+    #     bnb_4bit_use_double_quant=False,
+    #     bnb_4bit_quant_type="nf4",
+    #     bnb_4bit_compute_dtype=compute_dtype
+    # )
 
     data = []
     for inst, lab in zip(instructions, labels):
@@ -330,8 +330,8 @@ def llama_finetune_sft(
     # if torch.__version__ >= "2" and sys.platform != "win32":
     #     model = torch.compile(model)
 
-    # trainer.train(resume_from_checkpoint=resume_from_checkpoint)
-    trainer.train()
+    trainer.train(resume_from_checkpoint=resume_from_checkpoint)
+    # trainer.train()
 
     # model.save_pretrained(output_dir)
 
