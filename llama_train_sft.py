@@ -291,7 +291,7 @@ def llama_finetune_sft(
             gradient_checkpointing=True,  # Leads to reduction in memory at slighly decrease in speed
             gradient_checkpointing_kwargs={"use_reentrant": False},
         ),
-        # data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
+        data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, pad_to_multiple_of=8, mlm=False),
         # data_collator=transformers.DataCollatorForSeq2Seq(
         #     tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
         # ),
