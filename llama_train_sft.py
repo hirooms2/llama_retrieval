@@ -137,18 +137,19 @@ def llama_finetune_sft(
 
     # quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
     compute_dtype = getattr(torch, 'float16')
-    if compute_dtype == torch.float16: #  and use_4bit:
+    if compute_dtype == torch.float16:  # and use_4bit:
         major, _ = torch.cuda.get_device_capability()
         if major >= 8:
-            print("=" * 80)
+            print("=" * 80)  # 만일 아래 메세지가 뜨면 bf16을 쓰고, 아니면 fp16을 쓰는게 좋을 듯 -> 밑에 SFTTrainer에 fp16, bf16 중 하나 True해야할 듯 -> 안해도 돌아가긴 하는데, 해야 맞을듯
             print("Your GPU supports bfloat16: accelerate training with bf16=True")
             print("=" * 80)
-            
+
+    # quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # 몇 비트 연산을 할 것인가에 대한 것인데, 최근에는 아래 4비트로 연산하는 듯. 오히려 8비트가 에러가 존재하는 듯? -> 실제적인 메모리 사용량 차이는 크게 안나는 듯
     quantization_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_use_double_quant=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16 # torch.bfloat16, # torch.float 이 조금 더 빠름. 정확도 차이는 모르겠음 (실험 필요)
+        bnb_4bit_quant_type="nf4",  # nomalized 라 하던데, 그냥 default 로 쓰는 것인듯
+        bnb_4bit_compute_dtype=torch.bfloat16  # torch.bfloat16, # torch.float 이 조금 더 빠름. 설명상으로는 bfloat16이 조금 더 정교한 방법이라 함. 실제적인 정확도 차이는 모르겠음 (실험 필요)
     )
 
     data = []
@@ -163,23 +164,17 @@ def llama_finetune_sft(
             test_size=val_set_size, shuffle=True, seed=42
         )
         train_data = (
-            train_val["train"].shuffle() #.map(generate_and_tokenize_prompt)
+            train_val["train"].shuffle()  # .map(generate_and_tokenize_prompt)
         )
         val_data = (
-            train_val["test"].shuffle() #.map(generate_and_tokenize_prompt)
+            train_val["test"].shuffle()  # .map(generate_and_tokenize_prompt)
         )
-        # train_data = train_val["train"].shuffle()
-        # val_data = train_val["test"].shuffle()
+        train_data = train_val["train"].shuffle()
+        val_data = train_val["test"].shuffle()
     else:
         # generate_and_tokenize_prompt(first_sample[0])
-        train_data = data.shuffle() # .map(generate_and_tokenize_prompt)
+        train_data = data.shuffle()  # .map(generate_and_tokenize_prompt)
         val_data = None
-
-    # model = LlamaForCausalLM.from_pretrained(
-    #     base_model,
-    #     device_map=device_map,
-    #     quantization_config=quantization_config,
-    # )  # .to('cuda')
 
     # if args.debug:
     #     configuration = LlamaConfig(num_hidden_layers=1)
@@ -193,18 +188,18 @@ def llama_finetune_sft(
         quantization_config=quantization_config,
     )
 
-    tokenizer.pad_token_id = ( ## CHECK
+    tokenizer.pad_token_id = (
         0  # unk. we want this to be different from the eos token
     )
-    tokenizer.padding_side = "right"  # Allow batched inference
-    
+    tokenizer.padding_side = "right"  # Allow batched inference + SFT 쓰면 무조건 얘 하라고 메세지 뜸
+
     model.gradient_checkpointing_enable()
-    model = prepare_model_for_kbit_training(model) # 얘 하면 시간 더 오래 걸리는데, 어떤 역할을 하는지 모르겠음
+    model = prepare_model_for_kbit_training(model)  # 얘 하면 시간 더 오래 걸리는데, 어떤 역할을 하는지 모르겠음 -> 어떨때는 또 오래 안걸림
 
     peft_config = LoraConfig(
         r=lora_r,
         lora_alpha=lora_alpha,
-        target_modules=lora_target_modules, # 'all-linear'로 할 시 학습 파라미터 수 증가 -> 시간/메모리 더 오래 걸림 & 근데 아마 정확도는 더 오를 듯
+        target_modules=lora_target_modules,  # 'all-linear'로 할 시 학습 파라미터 수 증가 -> 시간/메모리 더 오래 걸림 & 근데 아마 정확도는 더 오를 듯
         lora_dropout=lora_dropout,
         bias="none",
         task_type="CAUSAL_LM",
@@ -235,16 +230,15 @@ def llama_finetune_sft(
             print(f"Checkpoint {checkpoint_name} not found")
     else:
         resume_from_checkpoint = None
-    # model.print_trainable_parameters()  # Be more transparent about the % of trainable params.
 
     if not ddp and torch.cuda.device_count() > 1:
         # keeps Trainer from trying its own DataParallelism when more than 1 gpu is available
         model.is_parallelizable = True
         model.model_parallel = True
 
-    # tokenizer.pad_token = tokenizer.eos_token
-    tokenizer.add_eos_token = True
-    torch.cuda.empty_cache()
+    # tokenizer.pad_token = tokenizer.eos_token # 많은 코드들이 이렇게 하는데, 이러면 EOS 학습이 안되지 않나?
+    tokenizer.add_eos_token = True  # 이렇게 했을 때, 마지막에 eos 붙는거 확인.. 위치는 SFTtrainer 안에 _prepare_dataset() 내에서 진행.
+    torch.cuda.empty_cache()  # 이거 쓰면 좋을게 있는지 모르겠는데, 일단 사용
     print(f"Train_data input_ids[0] contents \n{train_data[0]}\n")
     print(per_device_train_batch_size)
     print(gradient_accumulation_steps)
@@ -252,7 +246,7 @@ def llama_finetune_sft(
         model=model,
         tokenizer=tokenizer,
         train_dataset=train_data,
-        dataset_text_field="instruction",
+        dataset_text_field="instruction",  # 사실상 얘가 tokenize 돼서, input이자 labels가 됨
         peft_config=peft_config,
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
@@ -263,106 +257,24 @@ def llama_finetune_sft(
             learning_rate=learning_rate,
             logging_steps=10,
             output_dir=output_dir,
-            optim="paged_adamw_8bit",
+            optim="paged_adamw_8bit",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 8bit 연산을 함 
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="steps",
             bf16=True,
             eval_steps=5 if val_set_size > 0 else None,
             save_steps=200,
-            # load_best_model_at_end=True,
             report_to="none",
-            # compute_metrics = compute_metrics_gen, compute_met
-            gradient_checkpointing=True,  # Leads to reduction in memory at slighly decrease in speed
-            gradient_checkpointing_kwargs={"use_reentrant": False},
+            gradient_checkpointing=True,  # 이거 없으면 메모리 엄청 먹음.
+            gradient_checkpointing_kwargs={"use_reentrant": False},  # 얘는 위에거랑 세트
         ),
-        data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, pad_to_multiple_of=8, mlm=False),
-        # data_collator=transformers.DataCollatorForSeq2Seq(
-        #     tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
-        # ),
+        data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, pad_to_multiple_of=8, mlm=False),  # pad_to_multiple_of=8은 텐서를 8의 배수의 크기로 맞춘다는 것인데, 메모리 (혹은 연산속도) 상 이점이 있다 함
         callbacks=[QueryEvalCallback(args)],
 
     )
-    model.config.use_cache = False  # silence the warnings. Please re-enable for inference!
+    model.config.use_cache = False  # silence the warnings. Please re-enable for inference! -> 필요한지 잘 모르겠음. 대세엔 영향 없어보이긴 함
     trainer.train()
 
-    # trainer = SFTTrainer(
-    #     model=model,
-    #     tokenizer=tokenizer,
-    #     train_dataset=train_data,
-    #     dataset_text_field="text",
-    #     peft_config=peft_config,
-    #     args=transformers.TrainingArguments(
-    #         num_train_epochs=num_epochs,
-    #         per_device_train_batch_size=per_device_train_batch_size,
-    #         gradient_accumulation_steps=gradient_accumulation_steps,
-    #         warmup_steps=warmup_steps,
-    #         learning_rate=learning_rate,
-    #         fp16=False,
-    #         bf16=False,
-    #         logging_steps=10,
-    #         optim="paged_adamw_32bit",
-    #         evaluation_strategy="steps" if val_set_size > 0 else "no",
-    #         save_strategy="steps",
-    #         eval_steps=5 if val_set_size > 0 else None,
-    #         save_steps=200,
-    #         output_dir=output_dir,
-    #         save_total_limit=3,
-    #         load_best_model_at_end=True if val_set_size > 0 else False,
-    #         ddp_find_unused_parameters=False if ddp else None,
-    #         group_by_length=group_by_length,
-    #         report_to="wandb" if use_wandb else None,
-    #         # run_name=args.wandb_run_name if use_wandb else None,
-    #     ),
-    #     callbacks=[QueryEvalCallback(args)],
-    #     data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
-    # )
-
-    # trainer = Trainer(
-    #     model=model,
-    #     train_dataset=train_data,
-    #     eval_dataset=val_data,
-    #     args=transformers.TrainingArguments(
-    #         per_device_train_batch_size=per_device_train_batch_size,
-    #         gradient_accumulation_steps=gradient_accumulation_steps,
-    #         warmup_steps=warmup_steps,
-    #         num_train_epochs=num_epochs,
-    #         learning_rate=learning_rate,
-    #         fp16=True,
-    #         logging_steps=10,
-    #         optim="adamw_torch",
-    #         evaluation_strategy="steps" if val_set_size > 0 else "no",
-    #         save_strategy="steps",
-    #         eval_steps=5 if val_set_size > 0 else None,
-    #         save_steps=200,
-    #         output_dir=output_dir,
-    #         save_total_limit=3,
-    #         load_best_model_at_end=True if val_set_size > 0 else False,
-    #         ddp_find_unused_parameters=False if ddp else None,
-    #         group_by_length=group_by_length,
-    #         report_to="wandb" if use_wandb else None,
-    #         # run_name=args.wandb_run_name if use_wandb else None,
-    #     ),
-    #     data_collator=transformers.DataCollatorForSeq2Seq(
-    #         tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
-    #     ),
-    #     callbacks=[QueryEvalCallback(args)]
-    # )
-    model.config.use_cache = False
-
-    # old_state_dict = model.state_dict
-    # model.state_dict = (
-    #     lambda self, *_, **__: get_peft_model_state_dict(
-    #         self, old_state_dict()
-    #     )
-    # ).__get__(model, type(model))
-    #
-    # if torch.__version__ >= "2" and sys.platform != "win32":
-    #     model = torch.compile(model)
-
     trainer.train(resume_from_checkpoint=resume_from_checkpoint)
-    # trainer.train()
-
-    # model.save_pretrained(output_dir)
 
     print(
         "\n If there's a warning about missing keys above, please disregard :)"
