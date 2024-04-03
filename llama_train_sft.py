@@ -173,7 +173,7 @@ def llama_finetune_sft(
 
     data = []
     for inst, lab in zip(instructions, labels):
-        data.append({"text": inst, "label": lab})
+        data.append({"instruction": inst, "label": lab})
 
     first_sample = Dataset.from_pandas(pd.DataFrame([data[0]]))
     data = Dataset.from_pandas(pd.DataFrame(data))
@@ -269,7 +269,7 @@ def llama_finetune_sft(
         model=model,
         tokenizer=tokenizer,
         train_dataset=train_data,
-        dataset_text_field="text",
+        # dataset_text_field="text",
         peft_config=peft_config,
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
