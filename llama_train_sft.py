@@ -212,7 +212,7 @@ def llama_finetune_sft(
     #         quantization_config=quantization_config,
     #     )
 
-    tokenizer.pad_token_id = (
+    tokenizer.pad_token_id = ( ## CHECK
         0  # unk. we want this to be different from the eos token
     )
     tokenizer.padding_side = "right"  # Allow batched inference
