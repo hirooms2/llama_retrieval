@@ -113,8 +113,6 @@ def llama_finetune_sft(
     ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
     # gradient_accumulation_steps = batch_size // micro_batch_size
 
-    device_map = "auto"
-
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     print("world_size: %d" % world_size)
     ddp = world_size != 1
@@ -134,47 +132,17 @@ def llama_finetune_sft(
     if len(wandb_log_model) > 0:
         os.environ["WANDB_LOG_MODEL"] = wandb_log_model
 
-    def tokenize(prompt, add_eos_token=True):
-        # there's probably a way to do this with the tokenizer settings
-        # but again, gotta move fast
-        result = tokenizer(
-            prompt,
-            truncation=True,
-            padding=False,
-            return_tensors=None,
-        )
-        if (
-                result["input_ids"][-1] != tokenizer.eos_token_id
-                # and len(result["input_ids"]) < cutoff_len
-                and add_eos_token
-        ):
-            result["input_ids"].append(tokenizer.eos_token_id)
-            result["attention_mask"].append(1)
-
-        result["labels"] = result["input_ids"].copy()
-
-        return result
-
-    def generate_and_tokenize_prompt(data_point):
-        full_prompt = data_point['instruction']
-        tokenized_full_prompt = tokenize(full_prompt)
-        return tokenized_full_prompt
-
-    # quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
-    compute_dtype = getattr(torch, 'float16')
-    print(compute_dtype)
     quantization_config = BitsAndBytesConfig(
         load_in_4bit=True,
-        bnb_4bit_use_double_quant=False,
         bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=compute_dtype
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_compute_dtype=torch.bfloat16,
     )
 
     data = []
     for inst, lab in zip(instructions, labels):
         data.append({"instruction": inst, "label": lab})
 
-    first_sample = Dataset.from_pandas(pd.DataFrame([data[0]]))
     data = Dataset.from_pandas(pd.DataFrame(data))
 
     if val_set_size > 0:
@@ -182,21 +150,20 @@ def llama_finetune_sft(
             test_size=val_set_size, shuffle=True, seed=42
         )
         train_data = (
-            train_val["train"].shuffle() #.map(generate_and_tokenize_prompt)
+            train_val["train"].shuffle()  # .map(generate_and_tokenize_prompt)
         )
         val_data = (
-            train_val["test"].shuffle() #.map(generate_and_tokenize_prompt)
+            train_val["test"].shuffle()  # .map(generate_and_tokenize_prompt)
         )
-        # train_data = train_val["train"].shuffle()
-        # val_data = train_val["test"].shuffle()
+        train_data = train_val["train"].shuffle()
+        val_data = train_val["test"].shuffle()
     else:
-        # generate_and_tokenize_prompt(first_sample[0])
-        train_data = data.shuffle() # .map(generate_and_tokenize_prompt)
+        train_data = data.shuffle()
         val_data = None
 
     model = LlamaForCausalLM.from_pretrained(
         base_model,
-        device_map=device_map,
+        device_map='auto',
         quantization_config=quantization_config,
     )
 
@@ -211,12 +178,11 @@ def llama_finetune_sft(
     #         quantization_config=quantization_config,
     #     )
 
-    tokenizer.pad_token_id = ( ## CHECK
+    tokenizer.pad_token_id = (
         0  # unk. we want this to be different from the eos token
     )
     tokenizer.padding_side = "right"  # Allow batched inference
 
-    # model = prepare_model_for_int8_training(model)
     model = prepare_model_for_kbit_training(model)
 
     peft_config = LoraConfig(
@@ -228,7 +194,6 @@ def llama_finetune_sft(
         task_type="CAUSAL_LM",
     )
 
-    # model = get_peft_model(model, peft_config)
     model = get_peft_model(model, peft_config)
     model.print_trainable_parameters()  # Be more transparent about the % of trainable params.
 
