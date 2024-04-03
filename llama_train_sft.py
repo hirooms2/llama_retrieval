@@ -19,8 +19,7 @@ from peft import (
     LoraConfig,
     get_peft_model,
     get_peft_model_state_dict,
-    prepare_model_for_int8_training,
-    set_peft_model_state_dict,
+    set_peft_model_state_dict
 )
 from transformers import LlamaForCausalLM, LlamaTokenizer, BitsAndBytesConfig, TrainerCallback
 
@@ -34,7 +33,7 @@ class QueryEvalCallback(TrainerCallback):
         model = kwargs['model']
         epoch = state.epoch
         path = os.path.join(self.saved_model_path, self.log_name + '_E' + str(int(epoch)))
-        model.save_pretrained(path)
+        model.save_pretrained(path, safe_serialization=False)
 
 
 def llama_finetune_sft(
@@ -183,34 +182,34 @@ def llama_finetune_sft(
             test_size=val_set_size, shuffle=True, seed=42
         )
         train_data = (
-            train_val["train"].shuffle().map(generate_and_tokenize_prompt)
+            train_val["train"].shuffle() #.map(generate_and_tokenize_prompt)
         )
         val_data = (
-            train_val["test"].shuffle().map(generate_and_tokenize_prompt)
+            train_val["test"].shuffle() #.map(generate_and_tokenize_prompt)
         )
         # train_data = train_val["train"].shuffle()
         # val_data = train_val["test"].shuffle()
     else:
         # generate_and_tokenize_prompt(first_sample[0])
-        train_data = data.shuffle().map(generate_and_tokenize_prompt)
+        train_data = data.shuffle() # .map(generate_and_tokenize_prompt)
         val_data = None
 
-    model = LlamaForCausalLM.from_pretrained(
-        base_model,
-        device_map=device_map,
-        quantization_config=quantization_config,
-    )  # .to('cuda')
+    # model = LlamaForCausalLM.from_pretrained(
+    #     base_model,
+    #     device_map=device_map,
+    #     quantization_config=quantization_config,
+    # )  # .to('cuda')
 
     # if args.debug:
     #     configuration = LlamaConfig(num_hidden_layers=1)
     #     model = LlamaForCausalLM(configuration)
     # else:
-    #     model = LlamaForCausalLM.from_pretrained(
-    #         base_model,
-    #         torch_dtype=torch.float16,
-    #         device_map=device_map,
-    #         quantization_config=quantization_config,
-    #     )
+    model = LlamaForCausalLM.from_pretrained(
+        base_model,
+        torch_dtype=torch.float16,
+        device_map=device_map,
+        quantization_config=quantization_config,
+    )
 
     tokenizer.pad_token_id = ( ## CHECK
         0  # unk. we want this to be different from the eos token
@@ -260,7 +259,8 @@ def llama_finetune_sft(
         model.is_parallelizable = True
         model.model_parallel = True
 
-    tokenizer.pad_token = tokenizer.eos_token
+    # tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.add_eos_token = True
     torch.cuda.empty_cache()
     print(f"Train_data input_ids[0] contents \n{train_data[0]}\n")
     print(per_device_train_batch_size)

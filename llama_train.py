@@ -18,7 +18,7 @@ from peft import (
     LoraConfig,
     get_peft_model,
     get_peft_model_state_dict,
-    prepare_model_for_int8_training,
+    # prepare_model_for_int8_training,
     set_peft_model_state_dict,
 )
 from transformers import LlamaForCausalLM, LlamaTokenizer, BitsAndBytesConfig, TrainerCallback
@@ -207,7 +207,7 @@ def llama_finetune(
     )
     tokenizer.padding_side = "left"  # Allow batched inference
 
-    model = prepare_model_for_int8_training(model)
+    # model = prepare_model_for_int8_training(model)
 
     config = LoraConfig(
         r=lora_r,

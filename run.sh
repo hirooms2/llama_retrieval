@@ -16,11 +16,11 @@
 
 ## Train_test 한번에
 ## TODO
-CUDA_VISIBLE_DEVICES=1 python main.py --mode=train_test --log_name=llama_pretest_dp2r_random_original_ndocs=3 --prompt=DP2R_original --train_know_file=espresso --test_know_file=random --batch_size=32 --eval_batch_size=4 --n_docs=3 --peft_weights=0329214427_llama_pretrain_E5 --epoch=7
-CUDA_VISIBLE_DEVICES=1 python main.py --mode=train_test --log_name=llama_pretest_dp2r_random_sametopic_original_ndocs=3 --prompt=DP2R_original --train_know_file=espresso --test_know_file=random_sametopic --batch_size=32 --eval_batch_size=4 --n_docs=3 --peft_weights=0329214427_llama_pretrain_E5 --epoch=7
+CUDA_VISIBLE_DEVICES=0 python main.py --mode=train_test --log_name=llama_pretest_dp2r_random_new_ndocs=3 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random --batch_size=32 --eval_batch_size=4 --n_docs=3 --peft_weights=0329214427_llama_pretrain_E5 --epoch=7
+CUDA_VISIBLE_DEVICES=1 python main.py --mode=train_test --log_name=llama_pretest_dp2r_random_sametopic_new_ndocs=3 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random_sametopic --batch_size=32 --eval_batch_size=4 --n_docs=3 --peft_weights=0329214427_llama_pretrain_E5 --epoch=7
 
 
-CUDA_VISIBLE_DEVICES=0 python main.py --mode=train_test --log_name=llama_pretest_dp2r_random_ndocs=1 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random --batch_size=32 --eval_batch_size=4 --n_docs=1 --peft_weights=0329214427_llama_pretrain_E5
+CUDA_VISIBLE_DEVICES=0 python main.py --mode=train_test --log_name=llama_pretest_dp2r_random_sft_ndocs=1 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random --batch_size=32 --eval_batch_size=4 --n_docs=1 --sft=True --peft_weights=0329214427_llama_pretrain_E5
 CUDA_VISIBLE_DEVICES=1 python main.py --mode=train_test --log_name=llama_pretest_dp2r_random_sametopic_ndocs=1 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random_sametopic --batch_size=32 --eval_batch_size=4 --n_docs=1 --peft_weights=0329214427_llama_pretrain_E5
 
 # 240328 실험 세팅 JP
