@@ -4,7 +4,7 @@ from transformers import LlamaTokenizer
 
 from llama_test import LLaMaEvaluator
 from llama_train import llama_finetune
-# from llama_train_sft import llama_finetune_sft
+from llama_train_sft import llama_finetune_sft
 from utils.parser import parse_args
 from utils.prompter import Prompter
 from utils.utils import dir_init, createLogFile, load_dataset, prepare_dataset, merge_dataset_passages
