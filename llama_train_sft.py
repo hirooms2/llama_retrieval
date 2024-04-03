@@ -19,7 +19,7 @@ from peft import (
     LoraConfig,
     get_peft_model,
     get_peft_model_state_dict,
-    set_peft_model_state_dict
+    set_peft_model_state_dict, prepare_model_for_kbit_training
 )
 from transformers import LlamaForCausalLM, LlamaTokenizer, BitsAndBytesConfig, TrainerCallback
 
@@ -194,22 +194,22 @@ def llama_finetune_sft(
         train_data = data.shuffle() # .map(generate_and_tokenize_prompt)
         val_data = None
 
-    # model = LlamaForCausalLM.from_pretrained(
-    #     base_model,
-    #     device_map=device_map,
-    #     quantization_config=quantization_config,
-    # )  # .to('cuda')
+    model = LlamaForCausalLM.from_pretrained(
+        base_model,
+        device_map=device_map,
+        quantization_config=quantization_config,
+    )
 
     # if args.debug:
     #     configuration = LlamaConfig(num_hidden_layers=1)
     #     model = LlamaForCausalLM(configuration)
     # else:
-    model = LlamaForCausalLM.from_pretrained(
-        base_model,
-        torch_dtype=torch.float16,
-        device_map=device_map,
-        quantization_config=quantization_config,
-    )
+    #     model = LlamaForCausalLM.from_pretrained(
+    #         base_model,
+    #         torch_dtype=torch.float16,
+    #         device_map=device_map,
+    #         quantization_config=quantization_config,
+    #     )
 
     tokenizer.pad_token_id = ( ## CHECK
         0  # unk. we want this to be different from the eos token
@@ -217,11 +217,12 @@ def llama_finetune_sft(
     tokenizer.padding_side = "right"  # Allow batched inference
 
     # model = prepare_model_for_int8_training(model)
+    model = prepare_model_for_kbit_training(model)
 
     peft_config = LoraConfig(
         r=lora_r,
         lora_alpha=lora_alpha,
-        target_modules=lora_target_modules,
+        target_modules='all-linear',
         lora_dropout=lora_dropout,
         bias="none",
         task_type="CAUSAL_LM",
