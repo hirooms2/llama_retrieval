@@ -269,7 +269,7 @@ def llama_finetune_sft(
         model=model,
         tokenizer=tokenizer,
         train_dataset=train_data,
-        # dataset_text_field="instruction",
+        dataset_text_field="instruction",
         peft_config=peft_config,
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
