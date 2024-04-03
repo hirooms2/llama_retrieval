@@ -269,7 +269,7 @@ def llama_finetune_sft(
         model=model,
         tokenizer=tokenizer,
         train_dataset=train_data,
-        dataset_text_field="instruction",
+        # dataset_text_field="instruction",
         peft_config=peft_config,
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
@@ -292,9 +292,9 @@ def llama_finetune_sft(
             gradient_checkpointing_kwargs={"use_reentrant": False},
         ),
         # data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
-        data_collator=transformers.DataCollatorForSeq2Seq(
-            tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
-        ),
+        # data_collator=transformers.DataCollatorForSeq2Seq(
+        #     tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
+        # ),
         callbacks=[QueryEvalCallback(args)],
 
     )
