@@ -19,7 +19,8 @@ from peft import (
     LoraConfig,
     get_peft_model,
     get_peft_model_state_dict,
-    set_peft_model_state_dict, prepare_model_for_kbit_training
+    prepare_model_for_kbit_training,
+    set_peft_model_state_dict
 )
 from transformers import LlamaForCausalLM, LlamaTokenizer, BitsAndBytesConfig, TrainerCallback
 
@@ -113,6 +114,8 @@ def llama_finetune_sft(
     ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
     # gradient_accumulation_steps = batch_size // micro_batch_size
 
+    device_map = "auto"
+
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     print("world_size: %d" % world_size)
     ddp = world_size != 1
@@ -132,17 +135,27 @@ def llama_finetune_sft(
     if len(wandb_log_model) > 0:
         os.environ["WANDB_LOG_MODEL"] = wandb_log_model
 
+    # quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
+    compute_dtype = getattr(torch, 'float16')
+    if compute_dtype == torch.float16: #  and use_4bit:
+        major, _ = torch.cuda.get_device_capability()
+        if major >= 8:
+            print("=" * 80)
+            print("Your GPU supports bfloat16: accelerate training with bf16=True")
+            print("=" * 80)
+            
     quantization_config = BitsAndBytesConfig(
         load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
         bnb_4bit_use_double_quant=True,
-        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.bfloat16 # torch.bfloat16, # torch.float 이 조금 더 빠름. 정확도 차이는 모르겠음 (실험 필요)
     )
 
     data = []
     for inst, lab in zip(instructions, labels):
         data.append({"instruction": inst, "label": lab})
 
+    first_sample = Dataset.from_pandas(pd.DataFrame([data[0]]))
     data = Dataset.from_pandas(pd.DataFrame(data))
 
     if val_set_size > 0:
@@ -150,50 +163,54 @@ def llama_finetune_sft(
             test_size=val_set_size, shuffle=True, seed=42
         )
         train_data = (
-            train_val["train"].shuffle()  # .map(generate_and_tokenize_prompt)
+            train_val["train"].shuffle() #.map(generate_and_tokenize_prompt)
         )
         val_data = (
-            train_val["test"].shuffle()  # .map(generate_and_tokenize_prompt)
+            train_val["test"].shuffle() #.map(generate_and_tokenize_prompt)
         )
-        train_data = train_val["train"].shuffle()
-        val_data = train_val["test"].shuffle()
+        # train_data = train_val["train"].shuffle()
+        # val_data = train_val["test"].shuffle()
     else:
-        train_data = data.shuffle()
+        # generate_and_tokenize_prompt(first_sample[0])
+        train_data = data.shuffle() # .map(generate_and_tokenize_prompt)
         val_data = None
 
-    model = LlamaForCausalLM.from_pretrained(
-        base_model,
-        device_map='auto',
-        quantization_config=quantization_config,
-    )
+    # model = LlamaForCausalLM.from_pretrained(
+    #     base_model,
+    #     device_map=device_map,
+    #     quantization_config=quantization_config,
+    # )  # .to('cuda')
 
     # if args.debug:
     #     configuration = LlamaConfig(num_hidden_layers=1)
     #     model = LlamaForCausalLM(configuration)
     # else:
-    #     model = LlamaForCausalLM.from_pretrained(
-    #         base_model,
-    #         torch_dtype=torch.float16,
-    #         device_map=device_map,
-    #         quantization_config=quantization_config,
-    #     )
 
-    tokenizer.pad_token_id = (
+    model = LlamaForCausalLM.from_pretrained(
+        base_model,
+        # torch_dtype=torch.float16, # 의미 없음 -> 오히려 빨라지는 양상?
+        device_map=device_map,
+        quantization_config=quantization_config,
+    )
+
+    tokenizer.pad_token_id = ( ## CHECK
         0  # unk. we want this to be different from the eos token
     )
     tokenizer.padding_side = "right"  # Allow batched inference
-
-    model = prepare_model_for_kbit_training(model)
+    
+    model.gradient_checkpointing_enable()
+    model = prepare_model_for_kbit_training(model) # 얘 하면 시간 더 오래 걸리는데, 어떤 역할을 하는지 모르겠음
 
     peft_config = LoraConfig(
         r=lora_r,
         lora_alpha=lora_alpha,
-        target_modules='all-linear',
+        target_modules=lora_target_modules, # 'all-linear'로 할 시 학습 파라미터 수 증가 -> 시간/메모리 더 오래 걸림 & 근데 아마 정확도는 더 오를 듯
         lora_dropout=lora_dropout,
         bias="none",
         task_type="CAUSAL_LM",
     )
 
+    # model = get_peft_model(model, peft_config)
     model = get_peft_model(model, peft_config)
     model.print_trainable_parameters()  # Be more transparent about the % of trainable params.
 
@@ -249,6 +266,7 @@ def llama_finetune_sft(
             optim="paged_adamw_8bit",
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="steps",
+            bf16=True,
             eval_steps=5 if val_set_size > 0 else None,
             save_steps=200,
             # load_best_model_at_end=True,
