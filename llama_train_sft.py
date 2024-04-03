@@ -135,31 +135,31 @@ def llama_finetune_sft(
     if len(wandb_log_model) > 0:
         os.environ["WANDB_LOG_MODEL"] = wandb_log_model
 
-    # def tokenize(prompt, add_eos_token=True):
-    #     # there's probably a way to do this with the tokenizer settings
-    #     # but again, gotta move fast
-    #     result = tokenizer(
-    #         prompt,
-    #         truncation=True,
-    #         padding=False,
-    #         return_tensors=None,
-    #     )
-    #     if (
-    #             result["input_ids"][-1] != tokenizer.eos_token_id
-    #             # and len(result["input_ids"]) < cutoff_len
-    #             and add_eos_token
-    #     ):
-    #         result["input_ids"].append(tokenizer.eos_token_id)
-    #         result["attention_mask"].append(1)
-    #
-    #     result["labels"] = result["input_ids"].copy()
-    #
-    #     return result
-    #
-    # def generate_and_tokenize_prompt(data_point):
-    #     full_prompt = data_point['instruction']
-    #     tokenized_full_prompt = tokenize(full_prompt)
-    #     return tokenized_full_prompt
+    def tokenize(prompt, add_eos_token=True):
+        # there's probably a way to do this with the tokenizer settings
+        # but again, gotta move fast
+        result = tokenizer(
+            prompt,
+            truncation=True,
+            padding=False,
+            return_tensors=None,
+        )
+        if (
+                result["input_ids"][-1] != tokenizer.eos_token_id
+                # and len(result["input_ids"]) < cutoff_len
+                and add_eos_token
+        ):
+            result["input_ids"].append(tokenizer.eos_token_id)
+            result["attention_mask"].append(1)
+
+        result["labels"] = result["input_ids"].copy()
+
+        return result
+
+    def generate_and_tokenize_prompt(data_point):
+        full_prompt = data_point['instruction']
+        tokenized_full_prompt = tokenize(full_prompt)
+        return tokenized_full_prompt
 
     quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
     # compute_dtype = getattr(torch, 'float16')
@@ -182,19 +182,18 @@ def llama_finetune_sft(
         train_val = data.train_test_split(
             test_size=val_set_size, shuffle=True, seed=42
         )
-        # train_data = (
-        #     train_val["train"].shuffle().map(generate_and_tokenize_prompt)
-        # )
-        # val_data = (
-        #     train_val["test"].shuffle().map(generate_and_tokenize_prompt)
-        # )
-        train_data = train_val["train"].shuffle()
-        val_data = train_val["test"].shuffle()
+        train_data = (
+            train_val["train"].shuffle().map(generate_and_tokenize_prompt)
+        )
+        val_data = (
+            train_val["test"].shuffle().map(generate_and_tokenize_prompt)
+        )
+        # train_data = train_val["train"].shuffle()
+        # val_data = train_val["test"].shuffle()
     else:
         # generate_and_tokenize_prompt(first_sample[0])
-        train_data = data.shuffle()  # .map(generate_and_tokenize_prompt)
+        train_data = data.shuffle().map(generate_and_tokenize_prompt)
         val_data = None
-
 
     model = LlamaForCausalLM.from_pretrained(
         base_model,
