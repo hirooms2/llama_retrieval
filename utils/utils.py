@@ -38,7 +38,7 @@ def prepare_dataset(args, tokenizer, dataset):
     labels, topics = [], []
 
     if args.debug:
-        dataset = dataset[:500]
+        dataset = dataset[248:248+500]
 
     for data in tqdm(dataset):
         dialog = data['dialog'].replace('[SEP]', '\n')[:-1]
@@ -93,6 +93,8 @@ def checkPath(*args) -> None:
 
 def createLogFile(args):
     mdhm = str(datetime.now(timezone('Asia/Seoul')).strftime('%m%d%H%M%S'))
+    md = str(datetime.now(timezone('Asia/Seoul')).strftime('%m%d'))
+
     if args.log_name == '':
         log_name = 'llama_result'
     else:
@@ -102,15 +104,12 @@ def createLogFile(args):
     args.output_dir = os.path.join(args.home, 'result')
     if not os.path.exists(args.output_dir): os.mkdir(args.output_dir)
 
-    result_path = os.path.join(args.output_dir, args.base_model.replace('/', '-'))
+    result_path = os.path.join(args.output_dir, args.base_model.replace('/', '-'), md)
     args.result_path = result_path  # os.path.join(args.home, result_path)
     if not os.path.exists(args.result_path): os.mkdir(args.result_path)
 
-    log_file = open(os.path.join(args.result_path, log_name + ".json"), 'a', buffering=1, encoding='UTF-8')
+    log_file = open(os.path.join(args.result_path, args.log_name + ".json"), 'a', buffering=1, encoding='UTF-8')
     args.log_file = log_file
-
-    output_file = open(os.path.join(args.result_path, log_name + "_output.json"), 'a', buffering=1, encoding='UTF-8')
-    args.output_file = output_file
 
     saved_model_path = os.path.join(args.home, 'saved_model')
     args.saved_model_path = saved_model_path

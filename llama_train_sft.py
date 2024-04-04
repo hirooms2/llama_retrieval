@@ -140,16 +140,18 @@ def llama_finetune_sft(
     if compute_dtype == torch.float16:  # and use_4bit:
         major, _ = torch.cuda.get_device_capability()
         if major >= 8:
-            print("=" * 80)  # 만일 아래 메세지가 뜨면 bf16을 쓰고, 아니면 fp16을 쓰는게 좋을 듯 -> 밑에 SFTTrainer에 fp16, bf16 중 하나 True해야할 듯 -> 안해도 돌아가긴 하는데, 해야 맞을듯
+            print("=" * 80)  # FP16로 하면 알 수 없는 에러들이 발생함. 아마 표현범위를 넘는 값들이 나타나서 그런듯
             print("Your GPU supports bfloat16: accelerate training with bf16=True")
             print("=" * 80)
 
     # quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # 몇 비트 연산을 할 것인가에 대한 것인데, 최근에는 아래 4비트로 연산하는 듯. 오히려 8비트가 에러가 존재하는 듯? -> 실제적인 메모리 사용량 차이는 크게 안나는 듯
+    # 만약에 8bit로 돌릴거면 밑에서 fp16=True, bf16=False로 해야함
+
     quantization_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_use_double_quant=True,
         bnb_4bit_quant_type="nf4",  # nomalized 라 하던데, 그냥 default 로 쓰는 것인듯
-        bnb_4bit_compute_dtype=torch.bfloat16  # torch.bfloat16, # torch.float 이 조금 더 빠름. 설명상으로는 bfloat16이 조금 더 정교한 방법이라 함. 실제적인 정확도 차이는 모르겠음 (실험 필요)
+        bnb_4bit_compute_dtype=torch.bfloat16  # fp16으로 하면 발산함
     )
 
     data = []
@@ -184,7 +186,7 @@ def llama_finetune_sft(
     model = LlamaForCausalLM.from_pretrained(
         base_model,
         # torch_dtype=torch.float16, # 의미 없음 -> 오히려 빨라지는 양상?
-        device_map=device_map,
+        device_map={"":0}, # 만일 multi-GPU를 'auto',
         quantization_config=quantization_config,
     )
 
@@ -193,7 +195,7 @@ def llama_finetune_sft(
     )
     tokenizer.padding_side = "right"  # Allow batched inference + SFT 쓰면 무조건 얘 하라고 메세지 뜸
 
-    model.gradient_checkpointing_enable()
+    model.gradient_checkpointing_enable() # 있고 없고에 따라, 시간 차이가 생기는지?
     model = prepare_model_for_kbit_training(model)  # 얘 하면 시간 더 오래 걸리는데, 어떤 역할을 하는지 모르겠음 -> 어떨때는 또 오래 안걸림
 
     peft_config = LoraConfig(
@@ -257,12 +259,12 @@ def llama_finetune_sft(
             learning_rate=learning_rate,
             logging_steps=10,
             output_dir=output_dir,
-            optim="paged_adamw_8bit",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 8bit 연산을 함 
+            optim="paged_adamw_32bit",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음.
             evaluation_strategy="steps" if val_set_size > 0 else "no",
-            save_strategy="steps",
+            save_strategy="no",
+            fp16=False,
             bf16=True,
             eval_steps=5 if val_set_size > 0 else None,
-            save_steps=200,
             report_to="none",
             gradient_checkpointing=True,  # 이거 없으면 메모리 엄청 먹음.
             gradient_checkpointing_kwargs={"use_reentrant": False},  # 얘는 위에거랑 세트

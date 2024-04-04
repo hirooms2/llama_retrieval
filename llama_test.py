@@ -94,7 +94,7 @@ class LLaMaEvaluator:
             model = LlamaForCausalLM.from_pretrained(
                 base_model,
                 load_in_8bit=load_8bit,
-                torch_dtype=torch.float16,
+                torch_dtype=torch.bfloat16, #
                 # device_map='auto' # 이거 auto로 하니가 왜 인지 모르는데, 가끔식 GPU 할당이 이상하게 됌. 특정 GPU로 고정 할당하니까 문제 해결된 듯?
             ).to("cuda")
 
@@ -103,7 +103,7 @@ class LLaMaEvaluator:
                 model = PeftModel.from_pretrained(
                     model,
                     peft_weights,
-                    torch_dtype=torch.float16,
+                    torch_dtype=torch.bfloat16,
                 )
         else:
             model = LlamaForCausalLM.from_pretrained(
@@ -121,7 +121,8 @@ class LLaMaEvaluator:
         model.config.eos_token_id = 2
 
         if not load_8bit:
-            model.half()  # seems to fix bugs for some users.
+            # model.half()  # seems to fix bugs for some users. # bfloat16()
+            model.bfloat16()  # bf16로 학습시킨거면, 무조건 이거 써야 함... 근데 애초에 이 코드가 필요한 부분인가? 위에서 설정해주는데??
 
         return model
 
@@ -141,15 +142,15 @@ class LLaMaEvaluator:
                  temperature=0.1,
                  top_p=0.75,
                  top_k=40,
-                 num_beams=5,  # todo: beam 1개로 바꿔보기
+                 num_beams=1,  # todo: beam 1개로 바꿔보기
                  max_new_tokens=50,
                  **kwargs):
         generation_config = GenerationConfig(
             temperature=temperature,
             top_p=top_p,
             top_k=top_k,
-            num_beams=num_beams,
-            num_return_sequences=num_beams,
+            num_beams=self.args.num_beams,
+            num_return_sequences=self.args.num_beams,
             do_sample=True,
             **kwargs,
         )
@@ -174,9 +175,9 @@ class LLaMaEvaluator:
             log_file = open(os.path.join(self.args.result_path, f'{self.args.log_name}_E{int(epoch)}.json'), 'a',
                             buffering=1, encoding='UTF-8')
             self.args.log_file = log_file
-        elif epoch is None:
-            self.args.log_file = open(os.path.join(self.args.result_path, f'{self.args.log_name}.json'), 'a',
-                                      buffering=1, encoding='UTF-8')
+        # elif epoch is None:
+        #     self.args.log_file = open(os.path.join(self.args.result_path, f'{self.args.log_name}.json'), 'a',
+        #                               buffering=1, encoding='UTF-8')
 
         model.eval()
         if torch.__version__ >= "2" and sys.platform != "win32":
@@ -216,7 +217,8 @@ class LLaMaEvaluator:
                                                          'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
                                                          'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}, ensure_ascii=False) + '\n')
 
-        self.args.output_file.write(f'---Accuracy results for {self.args.log_name} at epoch {epoch}---\n')
-        self.args.output_file.write(json.dumps({'hitgen': '%.4f' % hitgen,
-                                                'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
-                                                'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}) + '\n')
+        if not self.args.write:
+            self.args.log_file.write(f'---Accuracy results for {self.args.log_name} at epoch {epoch}---\n')
+            self.args.log_file.write(json.dumps({'hitgen': '%.4f' % hitgen,
+                                                    'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
+                                                    'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}) + '\n')
