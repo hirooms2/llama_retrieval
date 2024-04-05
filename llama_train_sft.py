@@ -238,8 +238,8 @@ def llama_finetune_sft(
         model.is_parallelizable = True
         model.model_parallel = True
 
-    # tokenizer.pad_token = tokenizer.eos_token # 많은 코드들이 이렇게 하는데, 이러면 EOS 학습이 안되지 않나?
-    tokenizer.add_eos_token = True  # 이렇게 했을 때, 마지막에 eos 붙는거 확인.. 위치는 SFTtrainer 안에 _prepare_dataset() 내에서 진행.
+    tokenizer.pad_token = tokenizer.eos_token # 많은 코드들이 이렇게 하는데, 이러면 EOS 학습이 안되지 않나?
+    # tokenizer.add_eos_token = True  # 이렇게 했을 때, 마지막에 eos 붙는거 확인.. 위치는 SFTtrainer 안에 _prepare_dataset() 내에서 진행.
     torch.cuda.empty_cache()  # 이거 쓰면 좋을게 있는지 모르겠는데, 일단 사용
     print(f"Train_data input_ids[0] contents \n{train_data[0]}\n")
     print(per_device_train_batch_size)
@@ -263,7 +263,7 @@ def llama_finetune_sft(
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="no",
             fp16=False,
-            bf16=True,
+            bf16=True,  # BF16으로 하는 거면 True
             eval_steps=5 if val_set_size > 0 else None,
             report_to="none",
             gradient_checkpointing=True,  # 이거 없으면 메모리 엄청 먹음.
@@ -274,7 +274,7 @@ def llama_finetune_sft(
 
     )
     model.config.use_cache = False  # silence the warnings. Please re-enable for inference! -> 필요한지 잘 모르겠음. 대세엔 영향 없어보이긴 함
-    trainer.train()
+    # trainer.train()
 
     trainer.train(resume_from_checkpoint=resume_from_checkpoint)
 

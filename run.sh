@@ -36,6 +36,20 @@ CUDA_VISIBLE_DEVICES=1 python main.py --mode=train_test --log_name=llama_pretest
 CUDA_VISIBLE_DEVICES=0 python main.py --mode=train_test --log_name=llama_pretest_dp2r_random_sft_kbit_ndocs=1 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random --batch_size=16 --eval_batch_size=4 --n_docs=1 --sft=True --peft_weights=0329214427_llama_pretrain_E5
 CUDA_VISIBLE_DEVICES=1 python main.py --mode=train_test --log_name=llama_pretest_dp2r_random_sametopic_ndocs=1 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random_sametopic --batch_size=32 --eval_batch_size=4 --n_docs=1 --peft_weights=0329214427_llama_pretrain_E5
 
+
+### 240404
+# 
+CUDA_VISIBLE_DEVICES=0 python main.py --mode=train_test --log_name=dp2r_random_ndocs5_beam5 --num_beams=5 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random --batch_size=8 --eval_batch_size=4 --n_docs=5 --sft=True --peft_weights=0329214427_llama_pretrain_E5
+CUDA_VISIBLE_DEVICES=1 python main.py --mode=train_test --log_name=dp2r_random_ndocs5_beam5 --num_beams=5 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random --batch_size=8 --eval_batch_size=4 --n_docs=5 --sft=True --peft_weights=0329214427_llama_pretrain_E5 --epoch=1
+CUDA_VISIBLE_DEVICES=1 python main.py --mode=train_test --log_name=dp2r_random_sametopic_ndocs5_beam5 --num_beams=5 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random_sametopic --batch_size=8 --eval_batch_size=4 --n_docs=5 --peft_weights=0329214427_llama_pretrain_E5
+# 
+CUDA_VISIBLE_DEVICES=0 python main.py --mode=train_test --log_name=dp2r_random_ndocs5_beam1 --num_beams=1 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random --batch_size=16 --eval_batch_size=4 --n_docs=5 --sft=True --peft_weights=0329214427_llama_pretrain_E5
+CUDA_VISIBLE_DEVICES=1 python main.py --mode=train_test --log_name=dp2r_random_sametopic_ndocs5_beam1 --num_beams=1 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random_sametopic --batch_size=16 --eval_batch_size=4 --n_docs=5 --peft_weights=0329214427_llama_pretrain_E5
+# 
+CUDA_VISIBLE_DEVICES=0 python main.py --mode=train_test --log_name=dp2r_random_ndocs1_beam5 --num_beams=5 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random --batch_size=16 --eval_batch_size=4 --n_docs=1 --sft=True --peft_weights=0329214427_llama_pretrain_E5
+CUDA_VISIBLE_DEVICES=1 python main.py --mode=train_test --log_name=dp2r_random_sametopic_ndocs1_beam1 --num_beams=1 --prompt=DP2R_new --train_know_file=espresso --test_know_file=random_sametopic --batch_size=16 --eval_batch_size=4 --n_docs=1 --peft_weights=0329214427_llama_pretrain_E5
+# 
+
 # 240328 실험 세팅 JP
 ### Test
 ## candidate list에 top1과 random sample을 넣는 variation

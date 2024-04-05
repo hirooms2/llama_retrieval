@@ -106,23 +106,24 @@ class LLaMaEvaluator:
                     torch_dtype=torch.bfloat16,
                 )
         else:
-            model = LlamaForCausalLM.from_pretrained(
-                base_model, device_map={"": device}, low_cpu_mem_usage=True
-            )
-            if self.args.lora_weights != "lora-alpaca":
-                model = PeftModel.from_pretrained(
-                    model,
-                    lora_weights,
-                    device_map={"": device},
-                )
+            raise ValueError
+            # model = LlamaForCausalLM.from_pretrained(
+            #     base_model, device_map={"": device}, low_cpu_mem_usage=True
+            # )
+            # if self.args.lora_weights != "lora-alpaca":
+            #     model = PeftModel.from_pretrained(
+            #         model,
+            #         lora_weights,
+            #         device_map={"": device},
+            #     )
         # unwind broken decapoda-research config
         model.config.pad_token_id = self.tokenizer.pad_token_id = 0  # unk
         model.config.bos_token_id = 1
         model.config.eos_token_id = 2
 
-        if not load_8bit:
-            # model.half()  # seems to fix bugs for some users. # bfloat16()
-            model.bfloat16()  # bf16로 학습시킨거면, 무조건 이거 써야 함... 근데 애초에 이 코드가 필요한 부분인가? 위에서 설정해주는데??
+        # if not load_8bit:
+        #     # model.half()  # seems to fix bugs for some users. # bfloat16()
+        #     model.bfloat16()  # bf16로 학습시킨거면, 무조건 이거 써야 함... 근데 애초에 이 코드가 필요한 부분인가? 위에서 설정해주는데??
 
         return model
 
@@ -218,7 +219,7 @@ class LLaMaEvaluator:
                                                          'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}, ensure_ascii=False) + '\n')
 
         if not self.args.write:
-            self.args.log_file.write(f'---Accuracy results for {self.args.log_name} at epoch {epoch}---\n')
+            self.args.log_file.write(f'\n---Accuracy results for {self.args.log_name} at epoch {epoch}---\n')
             self.args.log_file.write(json.dumps({'hitgen': '%.4f' % hitgen,
                                                     'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
                                                     'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}) + '\n')
