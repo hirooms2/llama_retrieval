@@ -1,0 +1,6 @@
+{
+    "description": "CRS recommendation template.",
+    "prompt_input": "I will provide a dialog between the above user and a system.\n\n{instruction}\n\nI will then provide relevant passages retrieved from external sources.\n\n{input}\n\nBased on the given dialog and the information from the retrieved passages, formulate a response that the system should give. You should refer to the keywords from the given passages.\n\n### Response:",
+    "prompt_no_input": "",
+    "response_split": "### Response:"
+  }

@@ -140,9 +140,18 @@ def llama_finetune_sft(
     if compute_dtype == torch.float16:  # and use_4bit:
         major, _ = torch.cuda.get_device_capability()
         if major >= 8:
-            print("=" * 80)  # FP16로 하면 알 수 없는 에러들이 발생함. 아마 표현범위를 넘는 값들이 나타나서 그런듯
+            print("=" * 80)
             print("Your GPU supports bfloat16: accelerate training with bf16=True")
             print("=" * 80)
+
+    """
+    FP16로 하면 알 수 없는 에러들이 발생함 (학습시 발산하거나, 추론 시 토큰에 대한 확률값이 inf가 나오든가)
+    FP16은 FP32에 비해 표현 범위가 한참 작음. 만일 이 범위를 벗어나는 값이 계산되었을 때, 에러가 발생하는 것 같음.
+    예상 에러 지점은 generation 시, softmax 할 때 특정 토큰에 대한 로직값이 매우 크거나 매우 작을 때, NaN 이 나오는 것 같음.
+    (어떤 사람들이 temperature를 조절하면서 해결했다는 것을 보면, 로직값 크기 범위가 문제가 되는 것이 맞는 것으로 보임).
+    (batch size가 1일 때는 문제가 발생하지 않는 것으로 보아, 문제의 원인은 pad_token 때문인거 같은데, 이게 왜 영향을 미치는지는 미지수임. 왜냐하면 attention_mask로 다 처리되는거 같기 때문)
+    BF16은 FP32와 표현 범위는 같음. 그러나 표현 정밀도가 낮음. 따라서, 만일 문제의 원인이 너무 큰(작은) 값때문이 맞다면, BF16으로는 해결돼야 할 것으로 보임.
+    """
 
     # quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # 몇 비트 연산을 할 것인가에 대한 것인데, 최근에는 아래 4비트로 연산하는 듯. 오히려 8비트가 에러가 존재하는 듯? -> 실제적인 메모리 사용량 차이는 크게 안나는 듯
     # 만약에 8bit로 돌릴거면 밑에서 fp16=True, bf16=False로 해야함
