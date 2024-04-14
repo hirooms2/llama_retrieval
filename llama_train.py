@@ -19,7 +19,7 @@ from peft import (
     get_peft_model,
     get_peft_model_state_dict,
     # prepare_model_for_int8_training,
-    set_peft_model_state_dict,
+    set_peft_model_state_dict, prepare_model_for_kbit_training,
 )
 from transformers import LlamaForCausalLM, LlamaTokenizer, BitsAndBytesConfig, TrainerCallback
 
@@ -161,13 +161,13 @@ def llama_finetune(
         tokenized_full_prompt = tokenize(full_prompt)
         return tokenized_full_prompt
 
-    quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
-    # quantization_config = BitsAndBytesConfig(
-    #     load_in_4bit=True,
-    #     bnb_4bit_use_double_quant=True,
-    #     bnb_4bit_quant_type="nf4",
-    #     bnb_4bit_compute_dtype=torch.bfloat16
-    # )
+    # quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
+    quantization_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",  # nomalized 라 하던데, 그냥 default 로 쓰는 것인듯
+        bnb_4bit_compute_dtype=torch.bfloat16  # fp16으로 하면 발산함
+    )  # 240414 추가
 
     data = []
     for inst, lab in zip(instructions, labels):
@@ -197,17 +197,19 @@ def llama_finetune(
     else:
         model = LlamaForCausalLM.from_pretrained(
             base_model,
-            torch_dtype=torch.float16,
-            device_map=device_map,
-            quantization_config=quantization_config,
+            # torch_dtype=torch.float16, # 의미 없음 -> 오히려 빨라지는 양상?
+            device_map={"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
+            quantization_config=quantization_config,  # 240414 추가
         )
 
     tokenizer.pad_token_id = (
         0  # unk. we want this to be different from the eos token
     )
-    tokenizer.padding_side = "left"  # Allow batched inference
+    tokenizer.padding_side = "right"  # "left"  # Allow batched inference
+    tokenizer.add_eos_token = True  # 이렇게 했을 때, 마지막에 eos 붙는거 확인.. 위치는 SFTtrainer 안에 _prepare_dataset() 내에서 진행. 240414 추가
 
     # model = prepare_model_for_int8_training(model)
+    model = prepare_model_for_kbit_training(model)  # 얘 하면 시간 더 오래 걸리는데, 어떤 역할을 하는지 모르겠음 -> 어떨때는 또 오래 안걸림
 
     config = LoraConfig(
         r=lora_r,
@@ -219,6 +221,7 @@ def llama_finetune(
     )
 
     model = get_peft_model(model, config)
+    model.print_trainable_parameters()  # Be more transparent about the % of trainable params.
 
     if resume_from_checkpoint != "":
         # Check the available weights and load them
@@ -241,37 +244,55 @@ def llama_finetune(
             print(f"Checkpoint {checkpoint_name} not found")
     else:
         resume_from_checkpoint = None
-    model.print_trainable_parameters()  # Be more transparent about the % of trainable params.
 
     if not ddp and torch.cuda.device_count() > 1:
         # keeps Trainer from trying its own DataParallelism when more than 1 gpu is available
         model.is_parallelizable = True
         model.model_parallel = True
 
+    # train_args = transformers.TrainingArguments(
+    #     per_device_train_batch_size=per_device_train_batch_size,
+    #     gradient_accumulation_steps=gradient_accumulation_steps,
+    #     warmup_steps=warmup_steps,
+    #     num_train_epochs=num_epochs,
+    #     learning_rate=learning_rate,
+    #     fp16=True,
+    #     logging_steps=10,
+    #     optim="adamw_torch",
+    #     evaluation_strategy="steps" if val_set_size > 0 else "no",
+    #     save_strategy="steps",
+    #     eval_steps=5 if val_set_size > 0 else None,
+    #     save_steps=200,
+    #     output_dir=output_dir,
+    #     save_total_limit=3,
+    #     load_best_model_at_end=True if val_set_size > 0 else False,
+    #     ddp_find_unused_parameters=False if ddp else None,
+    #     group_by_length=group_by_length,
+    #     report_to="wandb" if use_wandb else None,
+    #     # run_name=args.wandb_run_name if use_wandb else None,
+    # ),
     trainer = Trainer(
         model=model,
         train_dataset=train_data,
-        eval_dataset=val_data,
+        # eval_dataset=val_data,
         args=transformers.TrainingArguments(
+            num_train_epochs=num_epochs,
             per_device_train_batch_size=per_device_train_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
             warmup_steps=warmup_steps,
-            num_train_epochs=num_epochs,
+            # max_steps = 100,
             learning_rate=learning_rate,
-            fp16=True,
             logging_steps=10,
-            optim="adamw_torch",
-            evaluation_strategy="steps" if val_set_size > 0 else "no",
-            save_strategy="steps",
-            eval_steps=5 if val_set_size > 0 else None,
-            save_steps=200,
             output_dir=output_dir,
-            save_total_limit=3,
-            load_best_model_at_end=True if val_set_size > 0 else False,
-            ddp_find_unused_parameters=False if ddp else None,
-            group_by_length=group_by_length,
-            report_to="wandb" if use_wandb else None,
-            # run_name=args.wandb_run_name if use_wandb else None,
+            optim="paged_adamw_32bit",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음.
+            evaluation_strategy="steps" if val_set_size > 0 else "no",
+            save_strategy="no",
+            fp16=False,
+            bf16=True,  # BF16으로 하는 거면 True
+            eval_steps=5 if val_set_size > 0 else None,
+            report_to="none",
+            gradient_checkpointing=True,  # 이거 없으면 메모리 엄청 먹음.
+            gradient_checkpointing_kwargs={"use_reentrant": False},  # 얘는 위에거랑 세트
         ),
         data_collator=transformers.DataCollatorForSeq2Seq(
             tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
