@@ -200,7 +200,7 @@ def llama_finetune(
     else:
         model = LlamaForCausalLM.from_pretrained(
             base_model,
-            # torch_dtype=torch.float16, # 의미 없음 -> 오히려 빨라지는 양상?
+            torch_dtype=torch.float16,  # 의미 없음 -> 오히려 빨라지는 양상?
             device_map={"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
             quantization_config=quantization_config,  # 240414 추가
         )
@@ -287,7 +287,7 @@ def llama_finetune(
             learning_rate=learning_rate,
             logging_steps=10,
             output_dir=output_dir,
-            optim="paged_adamw_32bit",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음.
+            optim="adamw_torch",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음.
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="no",
             fp16=True,
