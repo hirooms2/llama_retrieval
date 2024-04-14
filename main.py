@@ -15,7 +15,7 @@ if __name__ == "__main__":
     args = parse_args()
     args = dir_init(args)
     args = createLogFile(args)
-    print(args.sft)
+    print(args)
 
     tokenizer = LlamaTokenizer.from_pretrained(args.base_model)
 
