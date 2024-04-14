@@ -3,8 +3,7 @@ import os
 from transformers import LlamaTokenizer
 
 from llama_test import LLaMaEvaluator
-from llama_train import llama_finetune
-# from llama_train_sft import llama_finetune_sft
+# from llama_train import llama_finetune
 from utils.parser import parse_args
 from utils.prompter import Prompter
 from utils.utils import dir_init, createLogFile, load_dataset, prepare_dataset, merge_dataset_passages
@@ -37,8 +36,10 @@ if __name__ == "__main__":
         LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, topics=test_topics, prompt_template_name=args.prompt).test()
     elif args.mode == 'train_test':
         if args.sft:
+            from llama_train_sft import llama_finetune_sft
             llama_finetune_sft(args, tokenizer=tokenizer, instructions=train_instructions, labels=train_labels, num_epochs=args.epoch)
         else:
+            from llama_train import llama_finetune
             llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, labels=train_labels, num_epochs=args.epoch)
         for e in range(args.epoch):
             args.peft_weights = os.path.join(args.saved_model_path, args.log_name + '_E' + str(int(e + 1)))
