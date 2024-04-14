@@ -33,7 +33,7 @@ class QueryEvalCallback(TrainerCallback):
         model = kwargs['model']
         epoch = state.epoch
         path = os.path.join(self.saved_model_path, self.log_name + '_E' + str(int(epoch)))
-        model.save_pretrained(path, safe_serialization=True)
+        model.save_pretrained(path)
 
 
 def llama_finetune(
@@ -208,7 +208,7 @@ def llama_finetune(
     tokenizer.pad_token_id = (
         0  # unk. we want this to be different from the eos token
     )
-    tokenizer.padding_side = "left"  # "left"  # Allow batched inference
+    tokenizer.padding_side = "left"  # "left" 이거 right로 하면 학습안됨?"" # Allow batched inference
     tokenizer.add_eos_token = True  # 이렇게 했을 때, 마지막에 eos 붙는거 확인.. 위치는 SFTtrainer 안에 _prepare_dataset() 내에서 진행. 240414 추가
 
     model = prepare_model_for_int8_training(model)
