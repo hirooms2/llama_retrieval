@@ -317,7 +317,7 @@ def llama_finetune(
     trainer.train(resume_from_checkpoint=resume_from_checkpoint)
 
     output_dir = os.path.join(args.saved_model_path, args.log_name + '_final')
-    model.save_pretrained(output_dir)
+    model.save_pretrained(output_dir, safe_serialization=True)
 
     print(
         "\n If there's a warning about missing keys above, please disregard :)"
