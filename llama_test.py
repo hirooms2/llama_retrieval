@@ -90,11 +90,16 @@ class LLaMaEvaluator:
             base_model
         ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
 
+        if self.args.sft:
+            dtype = torch.bfloat16
+        else:
+            dtype = torch.float16
+
         if device == "cuda":
             model = LlamaForCausalLM.from_pretrained(
                 base_model,
                 load_in_8bit=load_8bit,
-                torch_dtype=torch.bfloat16, #
+                torch_dtype=dtype,  #
                 # device_map='auto' # 이거 auto로 하니가 왜 인지 모르는데, 가끔식 GPU 할당이 이상하게 됌. 특정 GPU로 고정 할당하니까 문제 해결된 듯?
             ).to("cuda")
 
@@ -120,10 +125,10 @@ class LLaMaEvaluator:
         model.config.pad_token_id = self.tokenizer.pad_token_id = 0  # unk
         model.config.bos_token_id = 1
         model.config.eos_token_id = 2
-        self.tokenizer.add_eos_token = False 
-        # if not load_8bit:
-        #     # model.half()  # seems to fix bugs for some users. # bfloat16()
-        #     model.bfloat16()  # bf16로 학습시킨거면, 무조건 이거 써야 함... 근데 애초에 이 코드가 필요한 부분인가? 위에서 설정해주는데??
+        self.tokenizer.add_eos_token = False
+        if not load_8bit and not self.args.sft:
+            model.half()  # seems to fix bugs for some users. # bfloat16()
+            # model.bfloat16()  # bf16로 학습시킨거면, 무조건 이거 써야 함... 근데 애초에 이 코드가 필요한 부분인가? 위에서 설정해주는데??
 
         return model
 
@@ -221,5 +226,5 @@ class LLaMaEvaluator:
         if not self.args.write:
             self.args.log_file.write(f'\n---Accuracy results for {self.args.log_name} at epoch {epoch}---\n')
             self.args.log_file.write(json.dumps({'hitgen': '%.4f' % hitgen,
-                                                    'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
-                                                    'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}) + '\n')
+                                                 'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
+                                                 'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}) + '\n')
