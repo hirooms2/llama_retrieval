@@ -13,9 +13,7 @@ if __name__ == "__main__":
 
     # fire.Fire(llama_finetune)
     args = parse_args()
-    print(args)
     args = dir_init(args)
-    print(args)
     args = createLogFile(args)
     print(args)
 

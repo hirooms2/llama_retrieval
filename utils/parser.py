@@ -38,7 +38,7 @@ def parse_args():
 
     args = parser.parse_args()
     args.num_device = torch.cuda.device_count()
-
+    print(args.sft)
     if 'I' in args.prompt.split('2')[-1]:
         args.task = 'topic'
     elif 'P' in args.prompt.split('2')[-1]:
