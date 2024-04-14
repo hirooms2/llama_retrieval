@@ -194,16 +194,16 @@ def llama_finetune(
         train_data = data.shuffle().map(generate_and_tokenize_prompt)
         val_data = None
 
-    if args.debug:
-        configuration = LlamaConfig(num_hidden_layers=1)
-        model = LlamaForCausalLM(configuration)
-    else:
-        model = LlamaForCausalLM.from_pretrained(
-            base_model,
-            torch_dtype=torch.float16,  # 의미 없음 -> 오히려 빨라지는 양상?
-            device_map={"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
-            quantization_config=quantization_config,  # 240414 추가
-        )
+    # if args.debug:
+    #     configuration = LlamaConfig(num_hidden_layers=1)
+    #     model = LlamaForCausalLM(configuration)
+    # else:
+    model = LlamaForCausalLM.from_pretrained(
+        base_model,
+        torch_dtype=torch.float16,  # 의미 없음 -> 오히려 빨라지는 양상?
+        device_map={"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
+        quantization_config=quantization_config,  # 240414 추가
+    )
 
     tokenizer.pad_token_id = (
         0  # unk. we want this to be different from the eos token
