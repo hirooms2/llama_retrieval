@@ -7,7 +7,7 @@ import torch
 import transformers
 from datasets import Dataset, load_dataset
 from transformers import Trainer, TrainingArguments, TrainerState, TrainerControl, LlamaConfig
-from trl import SFTTrainer
+# from trl import SFTTrainer
 
 """
 Unused imports:
