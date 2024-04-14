@@ -294,8 +294,8 @@ def llama_finetune(
             bf16=False,  # BF16으로 하는 거면 True
             eval_steps=5 if val_set_size > 0 else None,
             report_to="none",
-            gradient_checkpointing=True,  # 이거 없으면 메모리 엄청 먹음.
-            gradient_checkpointing_kwargs={"use_reentrant": False},  # 얘는 위에거랑 세트
+            # gradient_checkpointing=True,  # 이거 없으면 메모리 엄청 먹음.
+            # gradient_checkpointing_kwargs={"use_reentrant": False},  # 얘는 위에거랑 세트
         ),
         data_collator=transformers.DataCollatorForSeq2Seq(
             tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
