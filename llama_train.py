@@ -32,7 +32,7 @@ class QueryEvalCallback(TrainerCallback):
     def on_epoch_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         model = kwargs['model']
         epoch = state.epoch
-        path = os.path.join(self.saved_model_path, 'adapter_model' , self.log_name + '_E' + str(int(epoch)))
+        path = os.path.join(self.saved_model_path, self.log_name + '_E' + str(int(epoch)))
         model.save_pretrained(path, safe_serialization=True)
 
 
@@ -316,7 +316,8 @@ def llama_finetune(
 
     trainer.train(resume_from_checkpoint=resume_from_checkpoint)
 
-    # model.save_pretrained(output_dir)
+    output_dir = os.path.join(args.saved_model_path, args.log_name + '_final')
+    model.save_pretrained(output_dir)
 
     print(
         "\n If there's a warning about missing keys above, please disregard :)"
