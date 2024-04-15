@@ -294,7 +294,7 @@ def llama_finetune(
             learning_rate=learning_rate,
             logging_steps=10,
             output_dir=output_dir,
-            optim="adamw_torch",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음.
+            optim="adamw_torch",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음. paged_adamw_32bit???
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="no",
             fp16=fp16,
@@ -311,6 +311,7 @@ def llama_finetune(
     )
     model.config.use_cache = False
 
+    # 이거 켜놓으면 절대 안됨
     # old_state_dict = model.state_dict
     # model.state_dict = (
     #     lambda self, *_, **__: get_peft_model_state_dict(

@@ -31,6 +31,7 @@ if __name__ == "__main__":
     test_instructions = prompter.generate_instructions('test', test_know_dataset, test_labels)
 
     if args.mode == 'train':
+        from llama_train import llama_finetune
         llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, labels=train_labels, num_epochs=args.epoch)
     elif args.mode == 'test':
         LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, topics=test_topics, prompt_template_name=args.prompt).test()
