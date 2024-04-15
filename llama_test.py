@@ -108,7 +108,7 @@ class LLaMaEvaluator:
                 model = PeftModel.from_pretrained(
                     model,
                     peft_weights,
-                    torch_dtype=torch.bfloat16,
+                    torch_dtype=dtype,
                 )
         else:
             raise ValueError
