@@ -90,7 +90,7 @@ class LLaMaEvaluator:
             base_model
         ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
 
-        if self.args.sft:
+        if self.args.bf:
             dtype = torch.bfloat16
         else:
             dtype = torch.float16
@@ -126,9 +126,9 @@ class LLaMaEvaluator:
         model.config.bos_token_id = 1
         model.config.eos_token_id = 2
         self.tokenizer.add_eos_token = False
-        if not load_8bit and not self.args.sft:
-            model.half()  # seems to fix bugs for some users. # bfloat16()
-            # model.bfloat16()  # bf16로 학습시킨거면, 무조건 이거 써야 함... 근데 애초에 이 코드가 필요한 부분인가? 위에서 설정해주는데??
+        # if not load_8bit and not self.args.sft:
+        #     model.half()  # seems to fix bugs for some users. # bfloat16()
+        #     # model.bfloat16()  # bf16로 학습시킨거면, 무조건 이거 써야 함... 근데 애초에 이 코드가 필요한 부분인가? 위에서 설정해주는데??
 
         return model
 

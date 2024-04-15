@@ -18,8 +18,8 @@ from peft import (
     LoraConfig,
     get_peft_model,
     get_peft_model_state_dict,
-    prepare_model_for_int8_training,
-    set_peft_model_state_dict,
+    # prepare_model_for_int8_training,
+    set_peft_model_state_dict, prepare_model_for_kbit_training,
 )
 from transformers import LlamaForCausalLM, LlamaTokenizer, BitsAndBytesConfig, TrainerCallback
 
@@ -165,13 +165,19 @@ def llama_finetune(
         tokenized_full_prompt = tokenize(full_prompt)
         return tokenized_full_prompt
 
-    quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
-    # quantization_config = BitsAndBytesConfig(
-    #     load_in_4bit=True,
-    #     bnb_4bit_use_double_quant=True,
-    #     bnb_4bit_quant_type="nf4",  # nomalized 라 하던데, 그냥 default 로 쓰는 것인듯
-    #     bnb_4bit_compute_dtype=torch.bfloat16  # fp16으로 하면 발산함
-    # )  # 240414 추가
+    if args.bf:
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4",  # nomalized 라 하던데, 그냥 default 로 쓰는 것인듯
+            bnb_4bit_compute_dtype=torch.bfloat16  # fp16으로 하면 발산함
+        )  # 240414 추가
+        fp16 = False
+        bf16 = True
+    else:
+        quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
+        fp16 = True
+        bf16 = False
 
     data = []
     for inst, lab in zip(instructions, labels):
@@ -212,8 +218,8 @@ def llama_finetune(
     tokenizer.padding_side = "left"  # "left" 이거 right로 하면 학습안됨?"" # Allow batched inference
     # tokenizer.add_eos_token = True  # 이렇게 했을 때, 마지막에 eos 붙는거 확인.. 위치는 SFTtrainer 안에 _prepare_dataset() 내에서 진행. 240414 추가
 
-    model = prepare_model_for_int8_training(model)
-    # model = prepare_model_for_kbit_training(model)  # 얘 하면 시간 더 오래 걸리는데, 어떤 역할을 하는지 모르겠음 -> 어떨때는 또 오래 안걸림
+    # model = prepare_model_for_int8_training(model)
+    model = prepare_model_for_kbit_training(model)  # 얘 하면 시간 더 오래 걸리는데, 어떤 역할을 하는지 모르겠음 -> 어떨때는 또 오래 안걸림
 
     config = LoraConfig(
         r=lora_r,
@@ -291,8 +297,8 @@ def llama_finetune(
             optim="adamw_torch",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음.
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="no",
-            fp16=True,
-            bf16=False,  # BF16으로 하는 거면 True
+            fp16=fp16,
+            bf16=bf16,  # BF16으로 하는 거면 True
             eval_steps=5 if val_set_size > 0 else None,
             report_to="none",
             # gradient_checkpointing=True,  # 이거 없으면 메모리 엄청 먹음.
