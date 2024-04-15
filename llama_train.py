@@ -71,9 +71,9 @@ def llama_finetune(
         resume_from_checkpoint: str = None,  # either training checkpoint or final adapter
         prompt_template_name: str = "alpaca_legacy",  # The prompt template to use, will default to alpaca.
 ):
-    print('#' * 32)
-    print('I\'M TRAINER!!!!!!!!!!!!!!!!!!!!!!')
-    print('#' * 32)
+    print('#' * 64)
+    print('I\'M TRAINER####################')
+    print('#' * 64)
 
     base_model = args.base_model
     batch_size = args.batch_size
@@ -210,7 +210,7 @@ def llama_finetune(
         0  # unk. we want this to be different from the eos token
     )
     tokenizer.padding_side = "left"  # "left" 이거 right로 하면 학습안됨?"" # Allow batched inference
-    tokenizer.add_eos_token = True  # 이렇게 했을 때, 마지막에 eos 붙는거 확인.. 위치는 SFTtrainer 안에 _prepare_dataset() 내에서 진행. 240414 추가
+    # tokenizer.add_eos_token = True  # 이렇게 했을 때, 마지막에 eos 붙는거 확인.. 위치는 SFTtrainer 안에 _prepare_dataset() 내에서 진행. 240414 추가
 
     model = prepare_model_for_int8_training(model)
     # model = prepare_model_for_kbit_training(model)  # 얘 하면 시간 더 오래 걸리는데, 어떤 역할을 하는지 모르겠음 -> 어떨때는 또 오래 안걸림
