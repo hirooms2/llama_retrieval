@@ -166,18 +166,23 @@ def llama_finetune(
         return tokenized_full_prompt
 
     if args.bf:
+        fp16 = False
+        bf16 = True
+        dtype = torch.bfloat16
+    else:
+        fp16 = True
+        bf16 = False
+        dtype = torch.float16
+
+    if args.quantization == '4bit':
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_use_double_quant=True,
             bnb_4bit_quant_type="nf4",  # nomalized 라 하던데, 그냥 default 로 쓰는 것인듯
             bnb_4bit_compute_dtype=torch.bfloat16  # fp16으로 하면 발산함
         )  # 240414 추가
-        fp16 = False
-        bf16 = True
     else:
         quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
-        fp16 = True
-        bf16 = False
 
     data = []
     for inst, lab in zip(instructions, labels):
@@ -207,7 +212,7 @@ def llama_finetune(
     # else:
     model = LlamaForCausalLM.from_pretrained(
         base_model,
-        torch_dtype=torch.float16,  # 의미 없음 -> 오히려 빨라지는 양상? 이거 BF16으로 한번 해보기?
+        torch_dtype=dtype,  # 의미 없음 -> 오히려 빨라지는 양상? 이거 BF16으로 한번 해보기?
         device_map={"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
         quantization_config=quantization_config,  # 240414 추가
     )
