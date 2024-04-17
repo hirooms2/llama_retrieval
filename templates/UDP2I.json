@@ -1,6 +1,6 @@
 {
   "description": "CRS recommendation template.",
-  "prompt_input": "I will provide you a profile of a user.\n\n{input}.\n\nI will provide a dialog between the above user and a system.\n\n{instruction}\n\nI will then provide relevant passages that can be used to generate a response to the given dialog.\n\n{input2}\n\nBased on the user profile, the dialog and the relevant passages, guess which topic (item or entity) should be mentioned in the response being generated.\n\n### Response:",
+  "prompt_input": "Pretend you are a movie recommender system. I will provide user profile, relevant passages retrieved from external sources and a dialog between the above user and a system.\n\nHere is the user profile:\n{input2}\n\nHere is the dialog:\n{instruction}\n\nHere is the relevant passages:\n{input}\n\nBased on the user profile, the dialog and the relevant passages, guess which topic (item or entity) should be mentioned in the response being generated.\n\n### Response:",
   "prompt_no_input": "I will provide you a dialog between a user and a system.\n\n{instruction}\n\nGuess which keyword should be mentioned in the response being generated.\n\n### Response:",
   "response_split": "### Response:"
 }
