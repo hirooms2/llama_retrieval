@@ -207,7 +207,7 @@ def llama_finetune(
     # else:
     model = LlamaForCausalLM.from_pretrained(
         base_model,
-        torch_dtype=torch.float16,  # 의미 없음 -> 오히려 빨라지는 양상?
+        torch_dtype=torch.float16,  # 의미 없음 -> 오히려 빨라지는 양상? 이거 BF16으로 한번 해보기?
         device_map={"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
         quantization_config=quantization_config,  # 240414 추가
     )
