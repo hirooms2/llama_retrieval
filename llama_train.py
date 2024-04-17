@@ -169,10 +169,16 @@ def llama_finetune(
         fp16 = False
         bf16 = True
         dtype = torch.bfloat16
+        print('#' * 64)
+        print('bf16')
+        print('#' * 64)
     else:
         fp16 = True
         bf16 = False
         dtype = torch.float16
+        print('#' * 64)
+        print('fp16')
+        print('#' * 64)
 
     if args.quantization == '4bit':
         quantization_config = BitsAndBytesConfig(
@@ -181,8 +187,14 @@ def llama_finetune(
             bnb_4bit_quant_type="nf4",  # nomalized 라 하던데, 그냥 default 로 쓰는 것인듯
             bnb_4bit_compute_dtype=torch.bfloat16  # fp16으로 하면 발산함
         )  # 240414 추가
+        print('#' * 64)
+        print('4 bit')
+        print('#' * 64)
     else:
         quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
+        print('#' * 64)
+        print('8 bit')
+        print('#' * 64)
 
     data = []
     for inst, lab in zip(instructions, labels):
