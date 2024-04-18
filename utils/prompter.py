@@ -30,6 +30,8 @@ class Prompter(object):
             if 'predicted_know' in data:
                 predicted_know = data['predicted_know'][:self.args.n_docs]
                 if mode == 'train':
+                    if label not in predicted_know and 'D2P' in self.args.prompt:
+                        predicted_know = [label] + predicted_know[:-1]
                     random.shuffle(predicted_know)
                 predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
 
