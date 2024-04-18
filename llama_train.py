@@ -192,7 +192,7 @@ def llama_finetune(
         print('#' * 64)
     else:
         quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # , llm_int8_enable_fp32_cpu_offload=True)
-        print('#' * 64)
+        # print('#' * 64)
         print('8 bit')
         print('#' * 64)
 

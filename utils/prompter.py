@@ -43,6 +43,8 @@ class Prompter(object):
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], input2=predicted_know, label=label, mode=mode))
             elif self.args.prompt == 'pretrain':
                 instructions.append(self.generate_prompt(instruction=data['dialog'], label=label, mode=mode))
+            elif 'D2P' in self.args.prompt:
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
 
         return instructions
 
