@@ -30,13 +30,15 @@ class Prompter(object):
             if 'predicted_know' in data:
                 predicted_know = data['predicted_know'][:self.args.n_docs]
                 if mode == 'train':
-                    if label not in predicted_know and 'D2P' in self.args.prompt:
-                        predicted_know = [label] + predicted_know[:-1]
+                    if 'D2P' in self.args.prompt:
+                        if label not in predicted_know:
+                            predicted_know = [label] + predicted_know[:-1]
                     random.shuffle(predicted_know)
-                relevant_idx = predicted_know.index(label)
+                    if "D2P" in self.args.prompt:
+                        relevant_idx = predicted_know.index(label)
+                        label = f"{relevant_idx + 1}. {label}"
                 predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
-                if "D2P" in self.args.prompt:
-                    label = f"{relevant_idx + 1}. {label}"
+
 
             if 'UD2I' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], label=label, mode=mode))
