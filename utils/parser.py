@@ -25,6 +25,8 @@ def parse_args():
     parser.add_argument('--batch_size', type=int, default=2)
     parser.add_argument('--eval_batch_size', type=int, default=1)
     parser.add_argument('--n_docs', type=int, default=2)
+    parser.add_argument('--n_pseudo', type=int, default=2)
+
     parser.add_argument('--cutoff', type=int, default=256)
     parser.add_argument('--epoch', type=int, default=5)
     parser.add_argument('--learning_rate', type=float, default=3e-4)
