@@ -277,27 +277,14 @@ def llama_finetune(
         model.is_parallelizable = True
         model.model_parallel = True
 
-    # train_args = transformers.TrainingArguments(
-    #     per_device_train_batch_size=per_device_train_batch_size,
-    #     gradient_accumulation_steps=gradient_accumulation_steps,
-    #     warmup_steps=warmup_steps,
-    #     num_train_epochs=num_epochs,
-    #     learning_rate=learning_rate,
-    #     fp16=True,
-    #     logging_steps=10,
-    #     optim="adamw_torch",
-    #     evaluation_strategy="steps" if val_set_size > 0 else "no",
-    #     save_strategy="steps",
-    #     eval_steps=5 if val_set_size > 0 else None,
-    #     save_steps=200,
-    #     output_dir=output_dir,
-    #     save_total_limit=3,
-    #     load_best_model_at_end=True if val_set_size > 0 else False,
-    #     ddp_find_unused_parameters=False if ddp else None,
-    #     group_by_length=group_by_length,
-    #     report_to="wandb" if use_wandb else None,
-    #     # run_name=args.wandb_run_name if use_wandb else None,
-    # ),
+    def collate_function(examples):
+        # input_ids = torch.stack([example["input_ids"] for example in examples])
+        # labels = torch.stack([example["input_ids"] for example in examples])
+
+        seq2seq_data_collator = transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True)
+        wtf = seq2seq_data_collator(examples)
+        return wtf
+
     trainer = Trainer(
         model=model,
         train_dataset=train_data,
@@ -321,9 +308,7 @@ def llama_finetune(
             # gradient_checkpointing=True,  # 이거 없으면 메모리 엄청 먹음.
             # gradient_checkpointing_kwargs={"use_reentrant": False},  # 얘는 위에거랑 세트
         ),
-        data_collator=transformers.DataCollatorForSeq2Seq(
-            tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
-        ),
+        data_collator=collate_function,  # transformers.DataCollatorForSeq2Seq(            tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True        ),
         callbacks=[QueryEvalCallback(args)]
     )
     model.config.use_cache = False
