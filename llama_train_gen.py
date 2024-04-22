@@ -1,6 +1,5 @@
 import os
 import sys
-import random
 from typing import List
 
 import pandas as pd
@@ -8,7 +7,6 @@ import torch
 import transformers
 from datasets import Dataset
 from transformers import Trainer, TrainingArguments, TrainerState, TrainerControl, LlamaConfig
-from utils.prompter import Prompter
 
 """
 Unused imports:
@@ -200,8 +198,8 @@ def llama_finetune(
         print('#' * 64)
 
     data = []
-    for inst, lab in zip(train_know_dataset, labels):
-        data.append({"dialog": inst['dialog'], "predicted_know": inst['predicted_know'], "output": lab})
+    for inst, lab in zip(instructions, labels):
+        data.append({"instruction": inst, "input": "", "output": lab})
 
     first_sample = Dataset.from_pandas(pd.DataFrame([data[0]]))
     data = Dataset.from_pandas(pd.DataFrame(data))
@@ -217,8 +215,8 @@ def llama_finetune(
             train_val["test"].shuffle().map(generate_and_tokenize_prompt)
         )
     else:
-        # generate_and_tokenize_prompt(first_sample[0])
-        train_data = data.shuffle() # .map(generate_and_tokenize_prompt)
+        generate_and_tokenize_prompt(first_sample[0])
+        train_data = data.shuffle().map(generate_and_tokenize_prompt)
         val_data = None
 
     # if args.debug:
@@ -280,43 +278,30 @@ def llama_finetune(
         model.is_parallelizable = True
         model.model_parallel = True
 
-    class D2PDataset(torch.utils.data.Dataset):
-        def __init__(self, tokenizer, dataset):
-            self.tokenizer = tokenizer
-            self.dataset = dataset
-            self.prompter = Prompter(args, args.prompt)
-
-        def __getitem__(self, idx):
-            data = self.dataset[idx]
-
-            predicted_know = []
-            
-            target_knowledge = random.choice(data['predicted_know'][:args.n_docs])
-            predicted_know.append(target_knowledge)
-            hard_negative_candidates = data['predicted_know'][args.n_docs:]
-            while len(predicted_know) < 5:
-                selected = random.choice(hard_negative_candidates)
-                if selected not in predicted_know:
-                    predicted_know.append(selected)
-        
-            random.shuffle(predicted_know)
-            relevant_idx = predicted_know.index(target_knowledge)
-
-            predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
-            label = f"{relevant_idx + 1}. {data['output']}"
-
-            full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode='train')
-            tokenized_full_prompt = tokenize(full_prompt)
-            # item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
-            # item['labels'] = torch.tensor(self.labels[idx])
-            return tokenized_full_prompt
-
-        def __len__(self):
-            return len(self.dataset)
-
+    # train_args = transformers.TrainingArguments(
+    #     per_device_train_batch_size=per_device_train_batch_size,
+    #     gradient_accumulation_steps=gradient_accumulation_steps,
+    #     warmup_steps=warmup_steps,
+    #     num_train_epochs=num_epochs,
+    #     learning_rate=learning_rate,
+    #     fp16=True,
+    #     logging_steps=10,
+    #     optim="adamw_torch",
+    #     evaluation_strategy="steps" if val_set_size > 0 else "no",
+    #     save_strategy="steps",
+    #     eval_steps=5 if val_set_size > 0 else None,
+    #     save_steps=200,
+    #     output_dir=output_dir,
+    #     save_total_limit=3,
+    #     load_best_model_at_end=True if val_set_size > 0 else False,
+    #     ddp_find_unused_parameters=False if ddp else None,
+    #     group_by_length=group_by_length,
+    #     report_to="wandb" if use_wandb else None,
+    #     # run_name=args.wandb_run_name if use_wandb else None,
+    # ),
     trainer = Trainer(
         model=model,
-        train_dataset=D2PDataset(tokenizer, train_data),
+        train_dataset=train_data,
         # eval_dataset=val_data,
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
@@ -334,8 +319,12 @@ def llama_finetune(
             bf16=bf16,  # BF16으로 하는 거면 True
             eval_steps=5 if val_set_size > 0 else None,
             report_to="none",
+            # gradient_checkpointing=True,  # 이거 없으면 메모리 엄청 먹음.
+            # gradient_checkpointing_kwargs={"use_reentrant": False},  # 얘는 위에거랑 세트
         ),
-        data_collator=transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True),
+        data_collator=transformers.DataCollatorForSeq2Seq(
+            tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
+        ),
         callbacks=[QueryEvalCallback(args)]
     )
     model.config.use_cache = False
