@@ -223,6 +223,7 @@ class LLaMaEvaluator:
                                                          'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
                                                          'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]]),
                                                          'contain': response[0] in dialog,
+                                                         'llama_hit': label == response[0],
                                                          'espresso_hit': label in dialog}, ensure_ascii=False) + '\n')
 
         if not self.args.write:
