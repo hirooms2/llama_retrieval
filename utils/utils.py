@@ -28,9 +28,13 @@ def merge_dataset_passages(args, dataset, mode='train'):
     know_file_path = os.path.join(args.home, f'data/know/en_{mode}_know_{know_file_path}.json')
     know_dataset = json.load(open(know_file_path, 'r', encoding='utf-8'))
 
+    ## Duplicate raw dataset in case knowledge dataset size is bigger
+    if len(dataset) != len(know_dataset):
+        dataset = [data for data in dataset for _ in range(int(len(know_dataset)/len(dataset)))]
+    
     for idx, know_data in enumerate(know_dataset):
         dataset[idx]['predicted_know'] = know_data['predicted_know']
-
+    
     return dataset
 
 
