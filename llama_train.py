@@ -215,7 +215,7 @@ def llama_finetune(
         )
     else:
         generate_and_tokenize_prompt(first_sample[0])
-        train_data = data.shuffle() # .map(generate_and_tokenize_prompt)
+        train_data = data.shuffle().map(generate_and_tokenize_prompt)
         val_data = None
 
     # if args.debug:
