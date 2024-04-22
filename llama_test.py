@@ -222,7 +222,8 @@ class LLaMaEvaluator:
                                                          'hitgen': '%.4f' % hitgen,
                                                          'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
                                                          'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]]),
-                                                         'contain': response[0] in dialog}, ensure_ascii=False) + '\n')
+                                                         'contain': response[0] in dialog,
+                                                         'espresso_hit': label in dialog}, ensure_ascii=False) + '\n')
 
         if not self.args.write:
             self.args.log_file.write(f'\n---Accuracy results for {self.args.log_name} at epoch {epoch}---\n')

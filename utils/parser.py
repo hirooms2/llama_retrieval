@@ -33,7 +33,7 @@ def parse_args():
     # parser.add_argument('--prompt_template_name', type=str, default='D2P')
 
     # For generation config
-    parser.add_argument('--max_new_tokens', type=int, default=50)
+    parser.add_argument('--max_new_tokens', type=int, default=100)
     parser.add_argument('--num_beams', type=int, default=5)
     parser.add_argument('--temperature', type=float, default=0.1)
 
