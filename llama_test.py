@@ -62,7 +62,7 @@ class LLaMaEvaluator:
     def compute_hit(self, pred, label):
         for j, k in enumerate([1, 3, 5]):
             output = '| '.join(pred[:k])
-            if label.lower() in output.lower():
+            if label.strip().lower() in output.strip().lower():
                 self.metric[f'hit{k}'] += 1
 
     def compute_hitgen(self, pred, topic):
