@@ -40,6 +40,7 @@ def llama_finetune(
         args,
         tokenizer,
         instructions: list = None,
+        inputs: list = None,
         labels: list = None,
         # model/data params
         base_model: str = "",  # the only required argument
@@ -198,7 +199,7 @@ def llama_finetune(
 
     data = []
     for inst, lab in zip(instructions, labels):
-        data.append({"instruction": inst, "input": "", "output": lab})
+        data.append({"instruction": inst['dialog'], "input": inst['predicted_know'], "output": lab})
 
     first_sample = Dataset.from_pandas(pd.DataFrame([data[0]]))
     data = Dataset.from_pandas(pd.DataFrame(data))
@@ -215,7 +216,7 @@ def llama_finetune(
         )
     else:
         generate_and_tokenize_prompt(first_sample[0])
-        train_data = data.shuffle().map(generate_and_tokenize_prompt)
+        train_data = data.shuffle()  # .map(generate_and_tokenize_prompt)
         val_data = None
 
     # if args.debug:
@@ -320,10 +321,8 @@ def llama_finetune(
             bf16=bf16,  # BF16으로 하는 거면 True
             eval_steps=5 if val_set_size > 0 else None,
             report_to="none",
-            # gradient_checkpointing=True,  # 이거 없으면 메모리 엄청 먹음.
-            # gradient_checkpointing_kwargs={"use_reentrant": False},  # 얘는 위에거랑 세트
         ),
-        data_collator=collate_function,  # transformers.DataCollatorForSeq2Seq(            tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True        ),
+        data_collator=transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True),
         callbacks=[QueryEvalCallback(args)]
     )
     model.config.use_cache = False
