@@ -285,9 +285,24 @@ def llama_finetune(
         wtf = seq2seq_data_collator(examples)
         return wtf
 
+    class D2PDataset(torch.utils.data.Dataset):
+        def __init__(self, tokenizer, dataset):
+            self.tokenizer = tokenizer
+            self.dataset = dataset
+
+        def __getitem__(self, idx):
+            data = self.dataset[idx]
+
+            # item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
+            # item['labels'] = torch.tensor(self.labels[idx])
+            return data
+
+        def __len__(self):
+            return len(self.dataset)
+
     trainer = Trainer(
         model=model,
-        train_dataset=train_data,
+        train_dataset=D2PDataset(tokenizer, train_data),
         # eval_dataset=val_data,
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
