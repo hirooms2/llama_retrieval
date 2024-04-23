@@ -28,6 +28,8 @@ def parse_args():
     parser.add_argument('--n_pseudo', type=int, default=2)
 
     parser.add_argument('--cutoff', type=int, default=256)
+    parser.add_argument('--passage_cutoff', type=int, default=128)
+
     parser.add_argument('--epoch', type=int, default=5)
     parser.add_argument('--learning_rate', type=float, default=3e-4)
     parser.add_argument('--base_model', type=str, default='meta-llama/Llama-2-7b-chat-hf')

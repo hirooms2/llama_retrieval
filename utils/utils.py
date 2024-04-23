@@ -28,7 +28,7 @@ def merge_dataset_passages(args, dataset, mode='train'):
     know_file_path = os.path.join(args.home, f'data/know/en_{mode}_know_{know_file_path}.json')
     know_dataset = json.load(open(know_file_path, 'r', encoding='utf-8'))
 
-    ## Duplicate raw dataset in case knowledge dataset size is bigger
+    ## Duplicate the raw dataset in case the size of the knowledge dataset is larger.
     if len(dataset) != len(know_dataset):
         dataset = [data for data in dataset for _ in range(int(len(know_dataset)/len(dataset)))]
     
@@ -56,12 +56,15 @@ def prepare_dataset(args, tokenizer, dataset):
         data['response'] = data['response'].replace('[SEP]', '')
         topics.append(data['topic'])
 
+        for idx, passage in enumerate(data['predicted_know']):
+            data['predicted_know'][idx] = tokenizer.decode(tokenizer(passage).input_ids[1:][:args.passage_cutoff]).strip()
+
         if 'I' in args.prompt.split('2')[-1]:
             labels.append(data['topic'])
         elif 'R' in args.prompt.split('2')[-1]:
             labels.append(data['response'])
         elif 'P' in args.prompt.split('2')[-1]:
-            labels.append(data['target_knowledge'])
+            labels.append(tokenizer.decode(tokenizer(data['target_knowledge']).input_ids[1:][:args.passage_cutoff]).strip())
         elif args.prompt == 'pretrain':
             labels.append('')
         else:
