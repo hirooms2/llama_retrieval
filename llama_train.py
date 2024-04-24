@@ -290,8 +290,10 @@ def llama_finetune(
             data = self.dataset[idx]
 
             predicted_know = []
-            
-            target_knowledge = random.choice(data['predicted_know'][:args.n_pseudo])
+            if args.only_pseudo:
+                target_knowledge = data['predicted_know'][args.n_pseudo-1]
+            else:
+                target_knowledge = random.choice(data['predicted_know'][:args.n_pseudo])
             predicted_know.append(target_knowledge)
             hard_negative_candidates = data['predicted_know'][args.n_pseudo:]
             while len(predicted_know) < 5:
