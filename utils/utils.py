@@ -1,3 +1,4 @@
+from copy import deepcopy
 from datetime import datetime
 import json
 import pickle
@@ -17,6 +18,18 @@ def load_dataset(args):
     with open(file=test_file_path, mode='rb') as f:
         test_dataset = pickle.load(f)
     return train_dataset, test_dataset
+
+
+def augment_dataset(know_dataset, labels, topics):
+    new_know_dataset, new_labels, new_topics = [], [], []
+    for i, j, k in zip(know_dataset, labels, topics):
+        tmp_dataset = deepcopy(i)
+        for m in i['candidate_knowledges_gpt']:
+            tmp_dataset['candidate_knowledges_gpt'] = [m]
+            new_know_dataset.append(tmp_dataset)
+            new_labels.append(j)
+            new_topics.append(k)
+    return new_know_dataset, new_labels, new_topics
 
 
 def merge_dataset_passages(args, dataset, mode='train'):

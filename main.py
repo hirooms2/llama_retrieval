@@ -1,3 +1,4 @@
+import json
 import os
 
 from transformers import LlamaTokenizer
@@ -6,7 +7,8 @@ from llama_test import LLaMaEvaluator
 # from llama_train import llama_finetune
 from utils.parser import parse_args
 from utils.prompter import Prompter
-from utils.utils import dir_init, createLogFile, load_dataset, prepare_dataset, merge_dataset_passages
+from utils.utils import dir_init, createLogFile, load_dataset, prepare_dataset, merge_dataset_passages, augment_dataset
+import pickle
 
 if __name__ == "__main__":
 
@@ -25,6 +27,10 @@ if __name__ == "__main__":
 
     train_know_dataset, train_labels, train_topics = prepare_dataset(args, tokenizer, train_know_dataset)
     test_know_dataset, test_labels, test_topics = prepare_dataset(args, tokenizer, test_know_dataset)
+
+    if 'D2P' in args.prompt:
+        train_know_dataset, train_labels, train_topics = augment_dataset(train_know_dataset, train_labels, train_topics)
+        test_know_dataset, test_labels, test_topics = augment_dataset(test_know_dataset, test_labels, test_topics)
 
     prompter = Prompter(args, args.prompt)
     train_instructions = prompter.generate_instructions('train', train_know_dataset, train_labels)

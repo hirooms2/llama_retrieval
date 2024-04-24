@@ -290,8 +290,11 @@ def llama_finetune(
             data = self.dataset[idx]
 
             predicted_know = []
-            if args.only_pseudo:
+            if args.positive == 'only_pseudo':
                 target_knowledge = data['predicted_know'][args.n_pseudo-1]
+            elif args.positive == 'highly_relevant':
+                target_knowledge = data['candidate_knowledges_gpt'][0]
+                args.n_pseudo = 0
             else:
                 target_knowledge = random.choice(data['predicted_know'][:args.n_pseudo])
             predicted_know.append(target_knowledge)
