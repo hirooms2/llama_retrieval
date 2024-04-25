@@ -26,7 +26,9 @@ def parse_args():
     parser.add_argument('--eval_batch_size', type=int, default=1)
     parser.add_argument('--n_docs', type=int, default=2)
     parser.add_argument('--n_pseudo', type=int, default=2)
+    parser.add_argument('--n_hard_negative', type=int, default=10)
     parser.add_argument('--positive', type=str, default='pseudo', choices=['only_pseudo', 'pseudo', 'highly_relevant'])
+
 
     parser.add_argument('--cutoff', type=int, default=256)
     parser.add_argument('--passage_cutoff', type=int, default=128)

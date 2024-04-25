@@ -298,7 +298,7 @@ def llama_finetune(
             else:
                 target_knowledge = random.choice(data['predicted_know'][:args.n_pseudo])
             predicted_know.append(target_knowledge)
-            hard_negative_candidates = data['predicted_know'][args.n_pseudo:]
+            hard_negative_candidates = data['predicted_know'][args.n_pseudo:args.n_hard_negative]
             while len(predicted_know) < 5:
                 selected = random.choice(hard_negative_candidates)
                 if selected not in predicted_know:
