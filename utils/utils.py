@@ -10,11 +10,11 @@ from tqdm import tqdm
 
 def load_dataset(args):
     print('LLAMA_DATASET')
-    train_file_path = os.path.join(args.home, 'data/train_pred_aug_dataset.pkl')
+    train_file_path = os.path.join(args.home, 'data/train_pred_aug_dataset_new.pkl')
     with open(file=train_file_path, mode='rb') as f:
         train_dataset = pickle.load(f)
 
-    test_file_path = os.path.join(args.home, 'data/test_pred_aug_dataset.pkl')
+    test_file_path = os.path.join(args.home, 'data/test_pred_aug_dataset_new.pkl')
     with open(file=test_file_path, mode='rb') as f:
         test_dataset = pickle.load(f)
     return train_dataset, test_dataset
@@ -78,6 +78,8 @@ def prepare_dataset(args, tokenizer, dataset):
             labels.append(data['response'])
         elif 'P' in args.prompt.split('2')[-1]:
             labels.append(tokenizer.decode(tokenizer(data['target_knowledge']).input_ids[1:][:args.passage_cutoff]).strip())
+        elif 'V' in args.prompt.split('2')[-1]:
+            labels.append(data['chatgpt_result'])
         elif args.prompt == 'pretrain':
             labels.append('')
         else:
