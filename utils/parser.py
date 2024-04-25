@@ -16,7 +16,7 @@ def parse_args():
     parser.add_argument('--quantization', type=str, default="8bit")
 
     parser.add_argument('--peft', type=str, default="lora")
-    parser.add_argument('--prompt', type=str, default="D2P", choices=['D2P', 'DP2R', 'UDP2I', 'pretrain', 'DP2R_original', 'DP2R_new', 'DP2R_v4', 'DP2R_v3', 'DP2R_v5'])
+    parser.add_argument('--prompt', type=str, default="D2P", choices=['D2P', 'DP2R', 'UDP2I', 'pretrain', 'DP2R_original', 'DP2R_new', 'DP2R_v4', 'DP2R_v3', 'DP2R_v5', 'D2V'])
     parser.add_argument('--train_know_file', type=str, default="espresso")
     parser.add_argument('--test_know_file', type=str, default="espresso")
     parser.add_argument('--peft_weights', type=str, default="")
