@@ -28,7 +28,7 @@ if __name__ == "__main__":
     train_know_dataset, train_labels, train_topics = prepare_dataset(args, tokenizer, train_know_dataset)
     test_know_dataset, test_labels, test_topics = prepare_dataset(args, tokenizer, test_know_dataset)
 
-    if 'D2P' in args.prompt:
+    if 'D2P' in args.prompt and args.positive == 'highly_relevant':
         train_know_dataset, train_labels, train_topics = augment_dataset(train_know_dataset, train_labels, train_topics)
         test_know_dataset, test_labels, test_topics = augment_dataset(test_know_dataset, test_labels, test_topics)
 
