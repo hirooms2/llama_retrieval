@@ -20,7 +20,8 @@ def parse_args():
     parser.add_argument('--train_know_file', type=str, default="espresso")
     parser.add_argument('--test_know_file', type=str, default="espresso")
     parser.add_argument('--peft_weights', type=str, default="")
-
+    parser.add_argument('--local_rank', type=int, default=-1)
+    
     # For training config
     parser.add_argument('--batch_size', type=int, default=2)
     parser.add_argument('--eval_batch_size', type=int, default=1)

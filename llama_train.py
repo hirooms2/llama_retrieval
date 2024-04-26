@@ -85,7 +85,6 @@ def llama_finetune(
     per_device_train_batch_size = batch_size // args.num_device
     resume_from_checkpoint = args.peft_weights
     prompt_template_name = args.prompt
-    deepspeed_config = None
 
     # if args.warmup != 0:
     #     max_train_steps = num_epochs * math.ceil(math.ceil(len(instructions) / batch_size) / gradient_accumulation_steps)
@@ -229,7 +228,7 @@ def llama_finetune(
     model = LlamaForCausalLM.from_pretrained(
         base_model,
         torch_dtype=dtype,  # 의미 없음 -> 오히려 빨라지는 양상? 이거 BF16으로 한번 해보기?
-        device_map={"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
+        device_map='auto', # {"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
         quantization_config=quantization_config,  # 240414 추가
     )
 
@@ -320,9 +319,6 @@ def llama_finetune(
         def __len__(self):
             return len(self.dataset)
 
-    if args.deepspeed != '':
-        deepspeed_config = args.deepspeed
-
     trainer = Trainer(
         model=model,
         train_dataset=D2PDataset(tokenizer, train_data),
@@ -343,7 +339,6 @@ def llama_finetune(
             bf16=bf16,  # BF16으로 하는 거면 True
             eval_steps=5 if val_set_size > 0 else None,
             report_to="none",
-            deepspeed=deepspeed_config
         ),
         data_collator=transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True),
         callbacks=[QueryEvalCallback(args)]
