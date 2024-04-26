@@ -228,7 +228,7 @@ def llama_finetune(
     model = LlamaForCausalLM.from_pretrained(
         base_model,
         torch_dtype=dtype,  # 의미 없음 -> 오히려 빨라지는 양상? 이거 BF16으로 한번 해보기?
-        device_map='auto', # {"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
+        device_map=device_map, # {"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
         quantization_config=quantization_config,  # 240414 추가
     )
 
@@ -325,6 +325,7 @@ def llama_finetune(
         # eval_dataset=val_data,
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
+            deepspeed = args.deepspeed if args.deepspeed != '' else None,
             per_device_train_batch_size=per_device_train_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
             warmup_steps=warmup_steps,
