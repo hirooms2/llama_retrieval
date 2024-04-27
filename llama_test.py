@@ -100,8 +100,8 @@ class LLaMaEvaluator:
                 base_model,
                 load_in_8bit=load_8bit,
                 torch_dtype=dtype,  #
-                # device_map='auto' # 이거 auto로 하니가 왜 인지 모르는데, 가끔식 GPU 할당이 이상하게 됌. 특정 GPU로 고정 할당하니까 문제 해결된 듯?
-            ).to("cuda")
+                device_map='auto' # 이거 auto로 하니가 왜 인지 모르는데, 가끔식 GPU 할당이 이상하게 됌. 특정 GPU로 고정 할당하니까 문제 해결된 듯?
+            ) # .to("cuda") # MultiGPU 써보려고
 
             # todo: For evaluating the PEFT model
             if peft_weights != "":

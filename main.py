@@ -36,8 +36,10 @@ if __name__ == "__main__":
     train_instructions = prompter.generate_instructions('train', train_know_dataset, train_labels)
     test_instructions = prompter.generate_instructions('test', test_know_dataset, test_labels)
 
+    prompt_list = ["D2P", "DI2P"]
+
     if args.mode == 'train':
-        if "D2P" in args.prompt: from llama_train import llama_finetune
+        if args.prompt in prompt_list: from llama_train import llama_finetune
         else: from llama_train_gen import llama_finetune
         llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, train_know_dataset=train_know_dataset, labels=train_labels, num_epochs=args.epoch)
     elif args.mode == 'test':
@@ -47,7 +49,7 @@ if __name__ == "__main__":
             from llama_train_sft import llama_finetune_sft
             llama_finetune_sft(args, tokenizer=tokenizer, instructions=train_instructions, labels=train_labels, num_epochs=args.epoch)
         else:
-            if "D2P" in args.prompt: from llama_train import llama_finetune
+            if args.prompt in prompt_list: from llama_train import llama_finetune
             else: from llama_train_gen import llama_finetune
             llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, train_know_dataset=train_know_dataset, labels=train_labels, num_epochs=args.epoch)
 

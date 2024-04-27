@@ -201,7 +201,9 @@ def llama_finetune(
 
     data = []
     for inst, lab in zip(train_know_dataset, labels):
-        data.append({"dialog": inst['dialog'], "predicted_know": inst['predicted_know'], "candidate_knowledges_gpt": inst['candidate_knowledges_gpt'], "output": lab})
+        inst['output'] = lab
+        data.append(inst)
+        # data.append({"dialog": inst['dialog'], "topic": inst['topic'], "predicted_know": inst['predicted_know'], "candidate_knowledges_gpt": inst['candidate_knowledges_gpt'], "output": lab})
 
     first_sample = Dataset.from_pandas(pd.DataFrame([data[0]]))
     data = Dataset.from_pandas(pd.DataFrame(data))
@@ -310,7 +312,11 @@ def llama_finetune(
             predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
             label = f"{relevant_idx + 1}. {data['output']}"
 
-            full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode='train')
+            if 'D2P' in args.prompt:
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode='train')
+            if 'DI2P' in args.prompt:
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=data['topic'], label=label, mode='train')
+
             tokenized_full_prompt = tokenize(full_prompt)
             # item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
             # item['labels'] = torch.tensor(self.labels[idx])
