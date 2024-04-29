@@ -81,7 +81,7 @@ def llama_finetune(
     base_model = args.base_model
     batch_size = args.batch_size
     learning_rate = args.learning_rate
-    gradient_accumulation_steps = args.num_device  # update the model's weights once every gradient_accumulation_steps batches instead of updating the weights after every batch.
+    gradient_accumulation_steps = (128 // batch_size)  # args.num_device  # update the model's weights once every gradient_accumulation_steps batches instead of updating the weights after every batch.
     per_device_train_batch_size = batch_size // args.num_device
     resume_from_checkpoint = args.peft_weights
     prompt_template_name = args.prompt
@@ -125,9 +125,9 @@ def llama_finetune(
 
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     print("world_size: %d" % world_size)
-    ddp = world_size != 1
-    if ddp:
-        device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
+    # ddp = world_size != 1
+    if world_size != 1:
+        # device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
         gradient_accumulation_steps = gradient_accumulation_steps // world_size
 
     # Check if parameter passed or if set within environ
@@ -277,10 +277,10 @@ def llama_finetune(
     else:
         resume_from_checkpoint = None
 
-    if not ddp and torch.cuda.device_count() > 1:
-        # keeps Trainer from trying its own DataParallelism when more than 1 gpu is available
-        model.is_parallelizable = True
-        model.model_parallel = True
+    # if not ddp and torch.cuda.device_count() > 1:
+    #     # keeps Trainer from trying its own DataParallelism when more than 1 gpu is available
+    #     model.is_parallelizable = True
+    #     model.model_parallel = True
 
     class D2PDataset(torch.utils.data.Dataset):
         def __init__(self, tokenizer, dataset):
