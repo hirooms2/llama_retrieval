@@ -24,6 +24,7 @@ def parse_args():
     
     # For training config
     parser.add_argument('--batch_size', type=int, default=2)
+    parser.add_argument('--global_batch_size', type=int, default=128)
     parser.add_argument('--eval_batch_size', type=int, default=1)
     parser.add_argument('--n_docs', type=int, default=2)
     parser.add_argument('--n_pseudo', type=int, default=2)

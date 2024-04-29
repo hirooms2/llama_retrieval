@@ -75,14 +75,18 @@ def llama_finetune(
         prompt_template_name: str = "alpaca_legacy",  # The prompt template to use, will default to alpaca.
 ):
     print('#' * 64)
-    print('I\'M TRAINER####################')
+    print('I\'M TRAINER for Sampling')
     print('#' * 64)
 
     base_model = args.base_model
+
+    # global_batch_size = per_device_batch_size * gradient_accumulation_steps * num_gpus
     batch_size = args.batch_size
+    global_batch_size = args.global_batch_size
+    global_batch_size = global_batch_size if global_batch_size > batch_size else batch_size
+    gradient_accumulation_steps = global_batch_size // batch_size
+
     learning_rate = args.learning_rate
-    gradient_accumulation_steps = (128 // batch_size) // args.num_device  # args.num_device  # update the model's weights once every gradient_accumulation_steps batches instead of updating the weights after every batch.
-    # per_device_train_batch_size = batch_size // args.num_device
     resume_from_checkpoint = args.peft_weights
     prompt_template_name = args.prompt
 
@@ -120,15 +124,15 @@ def llama_finetune(
     ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
     # gradient_accumulation_steps = batch_size // micro_batch_size
 
-    device_map = "auto"
+    # device_map = "auto"
     # device_map = "cuda"
 
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     print("world_size: %d" % world_size)
-    ddp = world_size != 1
-    if ddp:
-        device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
-        gradient_accumulation_steps = gradient_accumulation_steps // world_size
+    # ddp = world_size != 1
+    # if world_size != 1:
+    #     device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
+        # gradient_accumulation_steps = gradient_accumulation_steps // world_size
 
     # Check if parameter passed or if set within environ
     use_wandb = len(wandb_project) > 0 or (
@@ -230,7 +234,7 @@ def llama_finetune(
     model = LlamaForCausalLM.from_pretrained(
         base_model,
         torch_dtype=dtype,  # 의미 없음 -> 오히려 빨라지는 양상? 이거 BF16으로 한번 해보기?
-        device_map=device_map,  # {"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
+        device_map={"": 0},  # device_map,  # {"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
         quantization_config=quantization_config,  # 240414 추가
     )
 
