@@ -220,7 +220,7 @@ def llama_finetune(
         )
     else:
         # generate_and_tokenize_prompt(first_sample[0])
-        train_data = data.shuffle() # .map(generate_and_tokenize_prompt)
+        train_data = data.shuffle()  # .map(generate_and_tokenize_prompt)
         val_data = None
 
     # if args.debug:
@@ -230,7 +230,7 @@ def llama_finetune(
     model = LlamaForCausalLM.from_pretrained(
         base_model,
         torch_dtype=dtype,  # 의미 없음 -> 오히려 빨라지는 양상? 이거 BF16으로 한번 해보기?
-        device_map=device_map, # {"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
+        device_map=device_map,  # {"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
         quantization_config=quantization_config,  # 240414 추가
     )
 
@@ -293,7 +293,7 @@ def llama_finetune(
 
             predicted_know = []
             if args.positive == 'only_pseudo':
-                target_knowledge = data['predicted_know'][args.n_pseudo-1]
+                target_knowledge = data['predicted_know'][args.n_pseudo - 1]
             elif args.positive == 'highly_relevant':
                 target_knowledge = data['candidate_knowledges_gpt'][0]
                 args.n_pseudo = 0
@@ -305,7 +305,7 @@ def llama_finetune(
                 selected = random.choice(hard_negative_candidates)
                 if selected not in predicted_know:
                     predicted_know.append(selected)
-        
+
             random.shuffle(predicted_know)
             relevant_idx = predicted_know.index(target_knowledge)
 
@@ -313,9 +313,14 @@ def llama_finetune(
             label = f"{relevant_idx + 1}. {data['output']}"
 
             if 'D2P' in args.prompt:
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode='train')
-            if 'DI2P' in args.prompt:
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=data['topic'], label=label, mode='train')
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
+                                                            label=label, mode='train')
+            elif 'DI2P' in args.prompt:
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
+                                                            input2=data['topic'], label=label, mode='train')
+            elif 'DP2I' == args.prompt:
+                full_prompt = self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label,
+                                                   mode='train')
 
             tokenized_full_prompt = tokenize(full_prompt)
             # item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
@@ -331,7 +336,7 @@ def llama_finetune(
         # eval_dataset=val_data,
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
-            deepspeed = args.deepspeed if args.deepspeed != '' else None,
+            deepspeed=args.deepspeed if args.deepspeed != '' else None,
             per_device_train_batch_size=per_device_train_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
             warmup_steps=warmup_steps,
@@ -339,7 +344,8 @@ def llama_finetune(
             learning_rate=learning_rate,
             logging_steps=10,
             output_dir=output_dir,
-            optim="adamw_torch",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음. paged_adamw_32bit???
+            optim="adamw_torch",
+            # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음. paged_adamw_32bit???
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="no",
             fp16=False,
@@ -347,7 +353,8 @@ def llama_finetune(
             eval_steps=5 if val_set_size > 0 else None,
             report_to="none",
         ),
-        data_collator=transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True),
+        data_collator=transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt",
+                                                          padding=True),
         callbacks=[QueryEvalCallback(args)]
     )
     model.config.use_cache = False

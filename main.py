@@ -36,7 +36,7 @@ if __name__ == "__main__":
     train_instructions = prompter.generate_instructions('train', train_know_dataset, train_labels)
     test_instructions = prompter.generate_instructions('test', test_know_dataset, test_labels)
 
-    prompt_list = ["D2P", "DI2P"]
+    prompt_list = ["D2P", "DI2P", "DP2I", "UDP2I"]
 
     if args.mode == 'train':
         if args.prompt in prompt_list: from llama_train import llama_finetune
