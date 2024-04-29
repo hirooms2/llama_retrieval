@@ -315,7 +315,7 @@ def llama_finetune(
             optim="adamw_torch",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음. paged_adamw_32bit???
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="no",
-            fp16=fp16,
+            fp16=fp16, # 이거 true vs. false 영향이있나?
             bf16=bf16,  # BF16으로 하는 거면 True
             eval_steps=5 if val_set_size > 0 else None,
             report_to="none",
