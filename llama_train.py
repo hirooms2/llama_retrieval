@@ -125,7 +125,7 @@ def llama_finetune(
     # gradient_accumulation_steps = batch_size // micro_batch_size
 
     # device_map = "auto"
-    # device_map = "cuda"
+    device_map = "cuda"
 
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     print("world_size: %d" % world_size)
@@ -234,7 +234,7 @@ def llama_finetune(
     model = LlamaForCausalLM.from_pretrained(
         base_model,
         torch_dtype=dtype,  # 의미 없음 -> 오히려 빨라지는 양상? 이거 BF16으로 한번 해보기?
-        device_map={"": 0},  # device_map,  # {"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
+        device_map=device_map,  #{"": 0},  # device_map,  # {"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
         quantization_config=quantization_config,  # 240414 추가
     )
 
@@ -354,7 +354,7 @@ def llama_finetune(
             # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음. paged_adamw_32bit???
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="no",
-            fp16=args.fp16_trainarg,
+            fp16=fp16, # args.fp16_trainarg,
             bf16=bf16,  # BF16으로 하는 거면 True
             eval_steps=5 if val_set_size > 0 else None,
             report_to="none",
