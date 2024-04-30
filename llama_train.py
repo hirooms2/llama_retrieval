@@ -314,7 +314,7 @@ def llama_finetune(
             relevant_idx = predicted_know.index(target_knowledge)
 
             predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
-            label = f"{relevant_idx + 1}. {data['output']}"
+            label = f"{relevant_idx + 1}. {target_knowledge}"
 
             if 'D2P' in args.prompt:
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
