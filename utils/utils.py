@@ -128,6 +128,8 @@ def createLogFile(args):
     else:
         log_name = args.log_name
     args.log_name = mdhm + '_' + log_name
+    args. log_dir = os.path.join(args.home, 'logs')
+    if not os.path.exists(args.log_dir): os.mkdir(args.log_dir)
 
     args.output_dir = os.path.join(args.home, 'result')
     if not os.path.exists(args.output_dir): os.mkdir(args.output_dir)

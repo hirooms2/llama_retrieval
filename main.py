@@ -1,6 +1,6 @@
 import json
 import os
-
+import sys 
 from transformers import LlamaTokenizer
 
 from llama_test import LLaMaEvaluator
@@ -9,6 +9,22 @@ from utils.parser import parse_args
 from utils.prompter import Prompter
 from utils.utils import dir_init, createLogFile, load_dataset, prepare_dataset, merge_dataset_passages, augment_dataset
 import pickle
+from loguru import logger
+
+def initLogging(args):
+    try: import git  ## pip install gitpython
+    except: pass
+    filename = args.log_name  # f'{args.time}_{"DEBUG" if args.debug else args.log_name}_{args.model_name.replace("/", "_")}_log.txt'
+    filename = os.path.join(args.log_dir, filename)
+    logger.remove()
+    fmt = "<green>{time:YYMMDD_HH:mm:ss}</green> | {message}"
+    if not args.debug: logger.add(filename, format=fmt, encoding='utf-8')
+    logger.add(sys.stdout, format=fmt, level="INFO", colorize=True)
+    logger.info(f"FILENAME: {filename}")
+    try: logger.info(f"Git commit massages: {git.Repo(search_parent_directories=True).head.object.hexsha[:7]}")
+    except: pass
+    logger.info('Commend: {}'.format(', '.join(map(str, sys.argv))))
+    return logger
 
 if __name__ == "__main__":
 
@@ -17,6 +33,8 @@ if __name__ == "__main__":
     args = dir_init(args)
     args = createLogFile(args)
     print(args)
+
+    initLogging(args)
 
     tokenizer = LlamaTokenizer.from_pretrained(args.base_model)
 

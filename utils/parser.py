@@ -8,6 +8,7 @@ def parse_args():
     parser.add_argument('--cnt', type=int, default=0)
 
     parser.add_argument('--log_name', type=str, default="")
+    parser.add_argument('--log_dir', default='logs', type=str, help="logging file directory")
     parser.add_argument('--debug', type=bool, default=False)
     parser.add_argument('--write', type=bool, default=True)
     parser.add_argument('--sft', type=bool, default=False)
