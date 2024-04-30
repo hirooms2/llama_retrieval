@@ -81,10 +81,10 @@ def llama_finetune(
     base_model = args.base_model
 
     # global_batch_size = per_device_batch_size * gradient_accumulation_steps * num_gpus
-    batch_size = args.batch_size
+    per_device_batch_size = args.batch_size // args.num_device
     global_batch_size = args.global_batch_size
     global_batch_size = global_batch_size if global_batch_size > batch_size else batch_size
-    gradient_accumulation_steps = global_batch_size // batch_size
+    gradient_accumulation_steps = global_batch_size // (per_device_batch_size * args.num_device)
 
     learning_rate = args.learning_rate
     resume_from_checkpoint = args.peft_weights
