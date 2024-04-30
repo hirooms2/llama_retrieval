@@ -15,7 +15,7 @@ Unused imports:
 import torch.nn as nn
 import bitsandbytes as bnb
 """
-#JP
+# JP
 from peft import (
     LoraConfig,
     get_peft_model,
@@ -236,7 +236,7 @@ def llama_finetune(
     model = LlamaForCausalLM.from_pretrained(
         base_model,
         torch_dtype=dtype,  # 의미 없음 -> 오히려 빨라지는 양상? 이거 BF16으로 한번 해보기?
-        device_map=device_map,  #{"": 0},  # device_map,  # {"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
+        device_map=device_map,  # {"": 0},  # device_map,  # {"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
         quantization_config=quantization_config,  # 240414 추가
     )
 
@@ -338,6 +338,13 @@ def llama_finetune(
         def __len__(self):
             return len(self.dataset)
 
+    """ adamw_bnb_8bit adamw_8bit paged_adamw_32bit paged_adamw_8bit
+    ['adamw_hf', 'adamw_torch', 'adamw_torch_fused',
+     'adamw_torch_xla', 'adamw_torch_npu_fused', 'adamw_apex_fused',
+      'adafactor', 'adamw_anyprecision', 'sgd', 'adagrad',
+       'adamw_bnb_8bit', 'adamw_8bit', 'lion_8bit', 'lion_32bit',
+        'paged_adamw_32bit', 'paged_adamw_8bit', 'paged_lion_32bit', 'paged_lion_8bit', 'rmsprop', 'rmsprop_bnb', 'rmsprop_bnb_8bit', 'rmsprop_bnb_32bit']
+    """
     trainer = Trainer(
         model=model,
         train_dataset=D2PDataset(tokenizer, train_data),
