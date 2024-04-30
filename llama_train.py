@@ -49,7 +49,7 @@ def llama_finetune(
         data_path: str = "yahma/alpaca-cleaned",
         output_dir: str = "./lora-alpaca",
         # training hyperparams
-        batch_size: int = 128,
+        batch_size: int = 2,
         num_epochs: int = 3,
         learning_rate: float = 3e-4,
         warmup_steps=100,
@@ -81,7 +81,8 @@ def llama_finetune(
     base_model = args.base_model
 
     # global_batch_size = per_device_batch_size * gradient_accumulation_steps * num_gpus
-    per_device_batch_size = args.batch_size // args.num_device
+    batch_size = args.batch_size
+    per_device_batch_size = batch_size // args.num_device
     global_batch_size = args.global_batch_size
     global_batch_size = global_batch_size if global_batch_size > batch_size else batch_size
     gradient_accumulation_steps = global_batch_size // (per_device_batch_size * args.num_device)
