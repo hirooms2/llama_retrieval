@@ -86,7 +86,9 @@ def llama_finetune(
     global_batch_size = args.global_batch_size
     global_batch_size = global_batch_size if global_batch_size > batch_size else batch_size
     gradient_accumulation_steps = global_batch_size // (per_device_batch_size * args.num_device)
-
+    print(f"per_device_batch_size: {per_device_batch_size}\n"
+          f"global_batch_size: {global_batch_size}\n"
+          f"per_device_batch_size: {per_device_batch_size}\n")
     learning_rate = args.learning_rate
     resume_from_checkpoint = args.peft_weights
     prompt_template_name = args.prompt
@@ -352,7 +354,7 @@ def llama_finetune(
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
             deepspeed=args.deepspeed if args.deepspeed != '' else None,
-            per_device_train_batch_size=batch_size,
+            per_device_train_batch_size=per_device_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
             warmup_steps=warmup_steps,
             # max_steps = 100,
