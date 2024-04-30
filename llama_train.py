@@ -130,8 +130,9 @@ def llama_finetune(
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     print("world_size: %d" % world_size)
     # ddp = world_size != 1
-    # if world_size != 1:
-    #     device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
+    if world_size != 1:
+        device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
+        print(device_map)
         # gradient_accumulation_steps = gradient_accumulation_steps // world_size
 
     # Check if parameter passed or if set within environ
