@@ -6,6 +6,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--access_token', type=str, default="")
     parser.add_argument('--cnt', type=int, default=0)
+    parser.add_argument('--test_continue', type=int, default=0)
 
     parser.add_argument('--log_name', type=str, default="")
     parser.add_argument('--log_dir', default='logs', type=str, help="logging file directory")
@@ -24,7 +25,7 @@ def parse_args():
     parser.add_argument('--test_know_file', type=str, default="espresso")
     parser.add_argument('--peft_weights', type=str, default="")
     parser.add_argument('--local_rank', type=int, default=-1)
-    
+
     # For training config
     parser.add_argument('--batch_size', type=int, default=2)
     parser.add_argument('--global_batch_size', type=int, default=0)
@@ -33,7 +34,6 @@ def parse_args():
     parser.add_argument('--n_pseudo', type=int, default=2)
     parser.add_argument('--n_hard_negative', type=int, default=10)
     parser.add_argument('--positive', type=str, default='pseudo', choices=['only_pseudo', 'pseudo', 'highly_relevant'])
-
 
     parser.add_argument('--cutoff', type=int, default=256)
     parser.add_argument('--passage_cutoff', type=int, default=128)

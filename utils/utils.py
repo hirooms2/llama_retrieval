@@ -67,6 +67,9 @@ def prepare_dataset(args, tokenizer, dataset):
     if args.debug:
         dataset = dataset[:100]
 
+    if args.test_continue != 0:
+        dataset = dataset[args.test_continue:]
+
     for data in tqdm(dataset):
         dialog = data['dialog'].replace('[SEP]', '\n')[:-1]
         dialog = tokenizer.decode(tokenizer(dialog).input_ids[1:][-args.cutoff:])
