@@ -125,7 +125,7 @@ def llama_finetune(
     # gradient_accumulation_steps = batch_size // micro_batch_size
 
     # device_map = "auto"
-    device_map = "auto"
+    device_map = {"": 0}
 
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     print("world_size: %d" % world_size)

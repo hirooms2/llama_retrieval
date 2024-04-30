@@ -25,16 +25,20 @@ def augment_dataset(know_dataset, labels, topics):
     for i, j, k in zip(know_dataset, labels, topics):
         tmp_dataset = deepcopy(i)
         for m in i['chatgpt_result'].split('\n'):
-            if m[0] == '1':
-                tmp_dataset['candidate_knowledges_gpt'] = i['candidate_knowledges'][0]
+            if 'highly relevant' in m.lower():
                 new_know_dataset.append(tmp_dataset)
                 new_labels.append(j)
                 new_topics.append(k)
-            elif 'highly relevant' in m.lower() and m[0] == '2':
-                tmp_dataset['candidate_knowledges_gpt'] = i['candidate_knowledges'][int(m[0])-1]
-                new_know_dataset.append(tmp_dataset)
-                new_labels.append(j)
-                new_topics.append(k)
+            # if m[0] == '1':
+            #     tmp_dataset['candidate_knowledges_gpt'] = i['candidate_knowledges'][0]
+            #     new_know_dataset.append(tmp_dataset)
+            #     new_labels.append(j)
+            #     new_topics.append(k)
+            # elif 'highly relevant' in m.lower() and m[0] == '2':
+            #     tmp_dataset['candidate_knowledges_gpt'] = i['candidate_knowledges'][int(m[0])-1]
+            #     new_know_dataset.append(tmp_dataset)
+            #     new_labels.append(j)
+            #     new_topics.append(k)
     return new_know_dataset, new_labels, new_topics
 
 
