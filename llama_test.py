@@ -152,7 +152,7 @@ class LLaMaEvaluator:
                  max_new_tokens=128,
                  **kwargs):
         generation_config = GenerationConfig(
-            temperature=temperature,
+            # temperature=temperature,
             # top_p=top_p,
             # top_k=top_k,
             num_beams=self.args.num_beams,

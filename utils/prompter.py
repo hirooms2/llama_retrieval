@@ -34,9 +34,13 @@ class Prompter(object):
                 predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
 
             if 'UD2I' in self.args.prompt:
-                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], label=label, mode=mode))
+                instructions.append(
+                    self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], label=label,
+                                         mode=mode))
             elif 'DP2R' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
+            elif 'D2R' in self.args.prompt:
+                instructions.append(self.generate_prompt(instruction=data['dialog'], label=label, mode=mode))
             elif 'DP2I' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
             elif 'UDP2I' == self.args.prompt:

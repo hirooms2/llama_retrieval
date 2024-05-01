@@ -84,7 +84,7 @@ def prepare_dataset(args, tokenizer, dataset):
         elif 'V' in args.prompt.split('2')[-1]:
             labels.append(data['chatgpt_result'])
         elif args.prompt == 'pretrain':
-            labels.append('')
+            labels.append(data['response'])
         else:
             raise ValueError
 

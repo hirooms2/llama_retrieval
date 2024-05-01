@@ -73,14 +73,21 @@ def llama_finetune(
         prompt_template_name: str = "alpaca_legacy",  # The prompt template to use, will default to alpaca.
 ):
     print('#' * 64)
-    print('I\'M TRAINER####################')
+    print('I\'M TRAINER for Generation')
     print('#' * 64)
 
     base_model = args.base_model
+
+    # global_batch_size = per_device_batch_size * gradient_accumulation_steps * num_gpus
     batch_size = args.batch_size
+    per_device_batch_size = batch_size // args.num_device
+    global_batch_size = args.global_batch_size
+    global_batch_size = global_batch_size if global_batch_size > batch_size else batch_size
+    gradient_accumulation_steps = global_batch_size // (per_device_batch_size * args.num_device)
+    print(f"per_device_batch_size: {per_device_batch_size}\n"
+          f"global_batch_size: {global_batch_size}\n"
+          f"per_device_batch_size: {per_device_batch_size}\n")
     learning_rate = args.learning_rate
-    gradient_accumulation_steps = args.num_device  # update the model's weights once every gradient_accumulation_steps batches instead of updating the weights after every batch.
-    per_device_train_batch_size = batch_size // args.num_device
     resume_from_checkpoint = args.peft_weights
     prompt_template_name = args.prompt
 
@@ -95,7 +102,7 @@ def llama_finetune(
             f"data_path: {data_path}\n"
             f"output_dir: {output_dir}\n"
             f"batch_size: {batch_size}\n"
-            f"per_device_train_batch_size: {per_device_train_batch_size}\n"
+            f"per_device_train_batch_size: {per_device_batch_size}\n"
             f"num_epochs: {num_epochs}\n"
             f"learning_rate: {learning_rate}\n"
             f"val_set_size: {val_set_size}\n"
@@ -118,15 +125,15 @@ def llama_finetune(
     ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
     # gradient_accumulation_steps = batch_size // micro_batch_size
 
-    device_map = "auto"
-    # device_map = "cuda"
+    # device_map = "auto"
+    device_map = {"": 0}
 
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     print("world_size: %d" % world_size)
     ddp = world_size != 1
-    if ddp:
+    if world_size != 1:
         device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
-        gradient_accumulation_steps = gradient_accumulation_steps // world_size
+        print(device_map)
 
     # Check if parameter passed or if set within environ
     use_wandb = len(wandb_project) > 0 or (
@@ -226,7 +233,7 @@ def llama_finetune(
     model = LlamaForCausalLM.from_pretrained(
         base_model,
         torch_dtype=dtype,  # 의미 없음 -> 오히려 빨라지는 양상? 이거 BF16으로 한번 해보기?
-        device_map={"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
+        device_map=device_map,
         quantization_config=quantization_config,  # 240414 추가
     )
 
@@ -305,7 +312,7 @@ def llama_finetune(
         # eval_dataset=val_data,
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
-            per_device_train_batch_size=per_device_train_batch_size,
+            per_device_train_batch_size=per_device_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
             warmup_steps=warmup_steps,
             # max_steps = 100,
@@ -315,8 +322,8 @@ def llama_finetune(
             optim="adamw_torch",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음. paged_adamw_32bit???
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="no",
-            fp16=fp16, # 이거 true vs. false 영향이있나?
-            bf16=bf16,  # BF16으로 하는 거면 True
+            # fp16=fp16,  # 이거 true vs. false 영향이있나?
+            # bf16=bf16,  # BF16으로 하는 거면 True
             eval_steps=5 if val_set_size > 0 else None,
             report_to="none",
             # gradient_checkpointing=True,  # 이거 없으면 메모리 엄청 먹음.
