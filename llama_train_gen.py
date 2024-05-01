@@ -308,10 +308,11 @@ def llama_finetune(
     # ),
     trainer = Trainer(
         model=model,
-        train_dataset=train_data,
+        train_dataset=D2PDataset(tokenizer, train_data),
         # eval_dataset=val_data,
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
+            deepspeed=args.deepspeed if args.deepspeed != '' else None,
             per_device_train_batch_size=per_device_batch_size,
             gradient_accumulation_steps=gradient_accumulation_steps,
             warmup_steps=warmup_steps,
@@ -319,19 +320,17 @@ def llama_finetune(
             learning_rate=learning_rate,
             logging_steps=10,
             output_dir=output_dir,
-            optim="adamw_torch",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음. paged_adamw_32bit???
+            optim="adamw_torch",
+            # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음. paged_adamw_32bit???
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="no",
-            # fp16=fp16,  # 이거 true vs. false 영향이있나?
+            # fp16=fp16,  # args.fp16_trainarg,
             # bf16=bf16,  # BF16으로 하는 거면 True
             eval_steps=5 if val_set_size > 0 else None,
             report_to="none",
-            # gradient_checkpointing=True,  # 이거 없으면 메모리 엄청 먹음.
-            # gradient_checkpointing_kwargs={"use_reentrant": False},  # 얘는 위에거랑 세트
         ),
-        data_collator=transformers.DataCollatorForSeq2Seq(
-            tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
-        ),
+        data_collator=transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt",
+                                                          padding=True),
         callbacks=[QueryEvalCallback(args)]
     )
     model.config.use_cache = False
