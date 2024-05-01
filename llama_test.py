@@ -100,8 +100,8 @@ class LLaMaEvaluator:
                 base_model,
                 load_in_8bit=load_8bit,
                 torch_dtype=dtype,  #
-                device_map='auto' # 이거 auto로 하니가 왜 인지 모르는데, 가끔식 GPU 할당이 이상하게 됌. 특정 GPU로 고정 할당하니까 문제 해결된 듯?
-            ) # .to("cuda") # MultiGPU 써보려고
+                # device_map='auto' # 이거 auto로 하니가 왜 인지 모르는데, 가끔식 GPU 할당이 이상하게 됌. 특정 GPU로 고정 할당하니까 문제 해결된 듯?
+            ).to("cuda")  # MultiGPU 써보려고
 
             # todo: For evaluating the PEFT model
             if peft_weights != "":
@@ -152,12 +152,12 @@ class LLaMaEvaluator:
                  max_new_tokens=128,
                  **kwargs):
         generation_config = GenerationConfig(
-            # temperature=self.args.temperature,
-            # top_p=top_p,
-            # top_k=top_k,
+            temperature=temperature,
+            top_p=top_p,
+            top_k=top_k,
             num_beams=self.args.num_beams,
             num_return_sequences=self.args.num_beams,
-            # do_sample=True,
+            do_sample=True,
             **kwargs,
         )
 
@@ -218,16 +218,18 @@ class LLaMaEvaluator:
                 hit5 = self.metric['hit5'] / self.metric['cnt']
 
                 if self.args.write or self.metric['cnt'] <= 100:
-                    self.args.log_file.write(json.dumps({'CONTEXT': dialog, 'GEN': ' | '.join(response), 'ANSWER': label,
-                                                         'hitgen': '%.4f' % hitgen,
-                                                         'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
-                                                         'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]]),
-                                                         'contain': response[0].strip() in dialog.strip(),
-                                                         'llama_hit': label.strip() in response[0].strip(),
-                                                         'espresso_hit': label.strip() in dialog.strip()}, ensure_ascii=False) + '\n')
+                    self.args.log_file.write(
+                        json.dumps({'CONTEXT': dialog, 'GEN': ' | '.join(response), 'ANSWER': label,
+                                    'hitgen': '%.4f' % hitgen,
+                                    'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
+                                    'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]]),
+                                    'contain': response[0].strip() in dialog.strip(),
+                                    'llama_hit': label.strip() in response[0].strip(),
+                                    'espresso_hit': label.strip() in dialog.strip()}, ensure_ascii=False) + '\n')
 
         if not self.args.write:
             self.args.log_file.write(f'\n---Accuracy results for {self.args.log_name} at epoch {epoch}---\n')
             self.args.log_file.write(json.dumps({'hitgen': '%.4f' % hitgen,
                                                  'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
-                                                 'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}) + '\n')
+                                                 'bleu_scores': '|'.join(
+                                                     ['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}) + '\n')

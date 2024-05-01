@@ -24,21 +24,11 @@ def augment_dataset(know_dataset, labels, topics):
     new_know_dataset, new_labels, new_topics = [], [], []
     for i, j, k in zip(know_dataset, labels, topics):
         tmp_dataset = deepcopy(i)
-        for m in i['chatgpt_result'].split('\n'):
-            if 'highly relevant' in m.lower():
-                new_know_dataset.append(tmp_dataset)
-                new_labels.append(j)
-                new_topics.append(k)
-            # if m[0] == '1':
-            #     tmp_dataset['candidate_knowledges_gpt'] = i['candidate_knowledges'][0]
-            #     new_know_dataset.append(tmp_dataset)
-            #     new_labels.append(j)
-            #     new_topics.append(k)
-            # elif 'highly relevant' in m.lower() and m[0] == '2':
-            #     tmp_dataset['candidate_knowledges_gpt'] = i['candidate_knowledges'][int(m[0])-1]
-            #     new_know_dataset.append(tmp_dataset)
-            #     new_labels.append(j)
-            #     new_topics.append(k)
+        for m in i['candidate_knowledges_gpt']:
+            tmp_dataset['candidate_knowledges_gpt'] = [m]
+            new_know_dataset.append(tmp_dataset)
+            new_labels.append(j)
+            new_topics.append(k)
     return new_know_dataset, new_labels, new_topics
 
 
@@ -53,11 +43,11 @@ def merge_dataset_passages(args, dataset, mode='train'):
 
     ## Duplicate the raw dataset in case the size of the knowledge dataset is larger.
     if len(dataset) != len(know_dataset):
-        dataset = [data for data in dataset for _ in range(int(len(know_dataset)/len(dataset)))]
-    
+        dataset = [data for data in dataset for _ in range(int(len(know_dataset) / len(dataset)))]
+
     for idx, know_data in enumerate(know_dataset):
         dataset[idx]['predicted_know'] = know_data['predicted_know']
-    
+
     return dataset
 
 
@@ -83,14 +73,16 @@ def prepare_dataset(args, tokenizer, dataset):
         topics.append(data['topic'])
 
         for idx, passage in enumerate(data['predicted_know']):
-            data['predicted_know'][idx] = tokenizer.decode(tokenizer(passage).input_ids[1:][:args.passage_cutoff]).strip()
+            data['predicted_know'][idx] = tokenizer.decode(
+                tokenizer(passage).input_ids[1:][:args.passage_cutoff]).strip()
 
         if 'I' in args.prompt.split('2')[-1]:
             labels.append(data['topic'])
         elif 'R' in args.prompt.split('2')[-1]:
             labels.append(data['response'])
         elif 'P' in args.prompt.split('2')[-1]:
-            labels.append(tokenizer.decode(tokenizer(data['target_knowledge']).input_ids[1:][:args.passage_cutoff]).strip())
+            labels.append(
+                tokenizer.decode(tokenizer(data['target_knowledge']).input_ids[1:][:args.passage_cutoff]).strip())
         elif 'V' in args.prompt.split('2')[-1]:
             labels.append(data['chatgpt_result'])
         elif args.prompt == 'pretrain':
@@ -135,7 +127,7 @@ def createLogFile(args):
     else:
         log_name = args.log_name
     args.log_name = mdhm + '_' + log_name
-    args. log_dir = os.path.join(args.home, 'logs')
+    args.log_dir = os.path.join(args.home, 'logs')
     if not os.path.exists(args.log_dir): os.mkdir(args.log_dir)
 
     args.output_dir = os.path.join(args.home, 'result')
