@@ -153,11 +153,11 @@ class LLaMaEvaluator:
                  **kwargs):
         generation_config = GenerationConfig(
             temperature=temperature,
-            top_p=top_p,
-            top_k=top_k,
+            # top_p=top_p,
+            # top_k=top_k,
             num_beams=self.args.num_beams,
             num_return_sequences=self.args.num_beams,
-            do_sample=True,
+            # do_sample=True,
             **kwargs,
         )
 
