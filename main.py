@@ -1,6 +1,6 @@
 import json
 import os
-import sys 
+import sys
 from transformers import LlamaTokenizer
 
 from llama_test import LLaMaEvaluator
@@ -11,9 +11,12 @@ from utils.utils import dir_init, createLogFile, load_dataset, prepare_dataset, 
 import pickle
 from loguru import logger
 
+
 def initLogging(args):
-    try: import git  ## pip install gitpython
-    except: pass
+    try:
+        import git  ## pip install gitpython
+    except:
+        pass
     filename = args.log_name  # f'{args.time}_{"DEBUG" if args.debug else args.log_name}_{args.model_name.replace("/", "_")}_log.txt'
     filename = os.path.join(args.log_dir, filename)
     logger.remove()
@@ -21,10 +24,15 @@ def initLogging(args):
     if not args.debug: logger.add(filename, format=fmt, encoding='utf-8')
     logger.add(sys.stdout, format=fmt, level="INFO", colorize=True)
     logger.info(f"FILENAME: {filename}")
-    try: logger.info(f"Git commit massages: {git.Repo(search_parent_directories=True).head.object.hexsha[:7]}")
-    except: pass
+    try:
+        logger.info(f"Git commit massages: {git.Repo(search_parent_directories=True).head.object.hexsha[:7]}")
+    except:
+        pass
     logger.info('Commend: {}'.format(', '.join(map(str, sys.argv))))
     return logger
+
+
+prompt_list = ["D2P", "DI2P", "DP2I", "UDP2I"]
 
 if __name__ == "__main__":
 
@@ -46,7 +54,7 @@ if __name__ == "__main__":
     train_know_dataset, train_labels, train_topics = prepare_dataset(args, tokenizer, train_know_dataset)
     test_know_dataset, test_labels, test_topics = prepare_dataset(args, tokenizer, test_know_dataset)
 
-    if 'D2P' in args.prompt and args.positive == 'highly_relevant':
+    if args.prompt in prompt_list and args.positive == 'highly_relevant':
         train_know_dataset, train_labels, train_topics = augment_dataset(train_know_dataset, train_labels, train_topics)
         # test_know_dataset, test_labels, test_topics = augment_dataset(test_know_dataset, test_labels, test_topics)
 
@@ -54,24 +62,27 @@ if __name__ == "__main__":
     train_instructions = prompter.generate_instructions('train', train_know_dataset, train_labels)
     test_instructions = prompter.generate_instructions('test', test_know_dataset, test_labels)
 
-    prompt_list = ["D2P", "DI2P", "DP2I", "UDP2I"]
-
     if args.mode == 'train':
-        if args.prompt in prompt_list: from llama_train import llama_finetune
-        else: from llama_train_gen import llama_finetune
+        if args.prompt in prompt_list:
+            from llama_train import llama_finetune
+        else:
+            from llama_train_gen import llama_finetune
         llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, train_know_dataset=train_know_dataset, labels=train_labels, num_epochs=args.epoch)
     elif args.mode == 'test':
         LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, topics=test_topics, prompt_template_name=args.prompt).test()
     elif args.mode == 'train_test':
         if args.sft:
             from llama_train_sft import llama_finetune_sft
+
             llama_finetune_sft(args, tokenizer=tokenizer, instructions=train_instructions, labels=train_labels, num_epochs=args.epoch)
         else:
-            if args.prompt in prompt_list: from llama_train import llama_finetune
-            else: from llama_train_gen import llama_finetune
+            if args.prompt in prompt_list:
+                from llama_train import llama_finetune
+            else:
+                from llama_train_gen import llama_finetune
             llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, train_know_dataset=train_know_dataset, labels=train_labels, num_epochs=args.epoch)
 
         for e in range(args.epoch):
             args.peft_weights = os.path.join(args.saved_model_path, args.log_name + '_E' + str(int(e + 1)))
             print(f"loading peft model: {args.peft_weights}")
-            LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, topics=test_topics, prompt_template_name=args.prompt).test(epoch=e+1)
+            LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, topics=test_topics, prompt_template_name=args.prompt).test(epoch=e + 1)
