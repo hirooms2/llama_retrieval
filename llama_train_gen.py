@@ -86,7 +86,7 @@ def llama_finetune(
     gradient_accumulation_steps = global_batch_size // (per_device_batch_size * args.num_device)
     print(f"per_device_batch_size: {per_device_batch_size}\n"
           f"global_batch_size: {global_batch_size}\n"
-          f"per_device_batch_size: {per_device_batch_size}\n")
+          f"gradient_accumulation_steps: {gradient_accumulation_steps}\n")
     learning_rate = args.learning_rate
     resume_from_checkpoint = args.peft_weights
     prompt_template_name = args.prompt
@@ -308,7 +308,7 @@ def llama_finetune(
     # ),
     trainer = Trainer(
         model=model,
-        train_dataset=D2PDataset(tokenizer, train_data),
+        train_dataset=train_data,
         # eval_dataset=val_data,
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
@@ -329,8 +329,9 @@ def llama_finetune(
             eval_steps=5 if val_set_size > 0 else None,
             report_to="none",
         ),
-        data_collator=transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt",
-                                                          padding=True),
+        data_collator=transformers.DataCollatorForSeq2Seq(
+            tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
+        ),
         callbacks=[QueryEvalCallback(args)]
     )
     model.config.use_cache = False

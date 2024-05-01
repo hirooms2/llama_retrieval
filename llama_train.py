@@ -88,7 +88,7 @@ def llama_finetune(
     gradient_accumulation_steps = global_batch_size // (per_device_batch_size * args.num_device)
     print(f"per_device_batch_size: {per_device_batch_size}\n"
           f"global_batch_size: {global_batch_size}\n"
-          f"per_device_batch_size: {per_device_batch_size}\n")
+          f"gradient_accumulation_steps: {gradient_accumulation_steps}\n")
     learning_rate = args.learning_rate
     resume_from_checkpoint = args.peft_weights
     prompt_template_name = args.prompt
