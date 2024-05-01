@@ -23,10 +23,8 @@ def load_dataset(args):
 def augment_dataset(know_dataset, labels, topics):
     new_know_dataset, new_labels, new_topics = [], [], []
     for i, j, k in zip(know_dataset, labels, topics):
-        tmp_dataset = deepcopy(i)
-        for m in i['candidate_knowledges_gpt']:
-            tmp_dataset['candidate_knowledges_gpt'] = [m]
-            new_know_dataset.append(tmp_dataset)
+        if len(i['candidate_knowledges_gpt']) > 0:
+            new_know_dataset.append(i)
             new_labels.append(j)
             new_topics.append(k)
     return new_know_dataset, new_labels, new_topics

@@ -300,15 +300,18 @@ def llama_finetune(
             data = self.dataset[idx]
 
             predicted_know = []
-            if args.positive == 'only_pseudo':
-                target_knowledge = data['predicted_know'][args.n_pseudo - 1]
-            elif args.positive == 'highly_relevant':
-                target_knowledge = data['candidate_knowledges_gpt'][0]
-                args.n_pseudo = 0
-            else:
+            if args.positive == 'pseudo':
+                # target_knowledge = data['predicted_know'][args.n_pseudo - 1]
                 target_knowledge = random.choice(data['predicted_know'][:args.n_pseudo])
+                hard_negative_candidates = data['predicted_know'][args.n_pseudo:args.n_hard_negative]
+            elif args.positive == 'highly_relevant':
+                target_knowledge = random.choice(data['candidate_knowledges_gpt'])
+                hard_negative_candidates = [item for item in data['predicted_know'][:args.n_hard_negative] if item not in data['candidate_knowledges_gpt']]
+            else:
+                raise ValueError
+
             predicted_know.append(target_knowledge)
-            hard_negative_candidates = data['predicted_know'][args.n_pseudo:args.n_hard_negative]
+
             while len(predicted_know) < 5:
                 selected = random.choice(hard_negative_candidates)
                 if selected not in predicted_know:
