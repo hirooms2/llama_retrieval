@@ -42,9 +42,14 @@ class Prompter(object):
             elif 'D2R' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], label=label, mode=mode))
             elif 'DGI2R' in self.args.prompt:
-                num_items = 2 if mode == 'train' else 1
-                guide = f"Goal: {data['predicted_goal'][0]} | Topic: {' or '.join(data['predicted_topic'][:num_items])}"
+                # num_items = 2 if mode == 'train' else 1
+                guide = f"Goal: {data['predicted_goal'][0]} | Topic: {' or '.join(data['predicted_topic'][:2])}"
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=guide, label=label, mode=mode))
+            elif 'DG2P' in self.args.prompt:
+                # num_items = 2 if mode == 'train' else 1
+                guide = f"Goal: {data['predicted_goal'][0]} | Topic: {' or '.join(data['predicted_topic'][:2])}"
+                # instructions.append(self.generate_prompt(instruction=data['dialog'],  label=label, mode=mode))
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=guide, label=label, mode=mode))
             elif 'DP2I' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
             elif 'UDP2I' == self.args.prompt:
