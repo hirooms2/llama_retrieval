@@ -54,7 +54,7 @@ if __name__ == "__main__":
     train_know_dataset, train_labels, train_topics = prepare_dataset(args, tokenizer, train_know_dataset)
     test_know_dataset, test_labels, test_topics = prepare_dataset(args, tokenizer, test_know_dataset)
 
-    if args.prompt in prompt_list and args.positive == 'highly_relevant':
+    if args.prompt in prompt_list and args.positive == 'gpt_select':
         train_know_dataset, train_labels, train_topics = augment_dataset(train_know_dataset, train_labels, train_topics)
         # test_know_dataset, test_labels, test_topics = augment_dataset(test_know_dataset, test_labels, test_topics)
 
