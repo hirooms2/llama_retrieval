@@ -374,7 +374,7 @@ def llama_finetune(
             # fp16=fp16,  # args.fp16_trainarg,
             # bf16=bf16,  # BF16으로 하는 거면 True
             eval_steps=5 if val_set_size > 0 else None,
-            report_to="none",
+            report_to="wandb",
         ),
         data_collator=transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt",
                                                           padding=True),

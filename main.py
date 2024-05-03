@@ -10,7 +10,7 @@ from utils.prompter import Prompter
 from utils.utils import dir_init, createLogFile, load_dataset, prepare_dataset, merge_dataset_passages, augment_dataset
 import pickle
 from loguru import logger
-
+import wandb
 
 def initLogging(args):
     try:
@@ -43,6 +43,11 @@ if __name__ == "__main__":
     print(args)
 
     initLogging(args)
+
+    # Wandb initialize
+    args.wandb_project = "llama_retrieval"
+    args.wandb_run_name = args.log_name
+    wandb.init(project=args.wandb_project, name=args.wandb_run_name)
 
     tokenizer = LlamaTokenizer.from_pretrained(args.base_model)
 
