@@ -309,7 +309,8 @@ def llama_finetune(
                 hard_negative_candidates = [item for item in data['predicted_know'][:args.n_hard_negative] if item not in data['candidate_knowledges_gpt']]
             elif args.positive == 'gpt_selection':
                 target_knowledge = data['gpt_selection']
-                hard_negative_candidates = data['predicted_know'][:args.n_hard_negative]
+                hard_negative_candidates = [item for item in data['candidate_knowledges'] if item != data['gpt_selection']]
+                hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
             else:
                 raise ValueError
 
