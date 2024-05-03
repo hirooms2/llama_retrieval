@@ -46,6 +46,10 @@ def parse_args():
 
     # parser.add_argument('--prompt_template_name', type=str, default='D2P')
 
+    # adpative item selection
+    parser.add_argument('--item_selection', type=str, default='top', choices=['top', 'conf'], help='Adaptive item selection')
+    parser.add_argument('--topic_conf', type=float, default=0.7, help='Minimum threshold for topic confidence')
+
     # For generation config
     parser.add_argument('--max_new_tokens', type=int, default=100)
     parser.add_argument('--num_beams', type=int, default=5)
