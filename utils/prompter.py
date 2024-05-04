@@ -44,24 +44,24 @@ class Prompter(object):
                 instructions.append(self.generate_prompt(instruction=data['dialog'], label=label, mode=mode))
             elif 'DGI2R' in self.args.prompt:
                 # num_items = 2 if mode == 'train' else 1
-                guide = f"Goal: {data['predicted_goal'][0]} | Topic: {' or '.join(data['predicted_topic'][:2])}"
+                guide = f"Goal: {data['predicted_goal'][0]} | Topic: {' or '.join(data['predicted_topic'][:1])}"
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=guide, label=label, mode=mode))
             elif 'DG2P' in self.args.prompt:
                 # num_items = 2 if mode == 'train' else 1
                 # mode choices = ['test', 'train_test'] -> train_test 옵션일 때 적용 하려면 구조 변경 필요
-                if self.args.mode == 'test' and self.args.item_selection == 'conf':
-                    # adaptive item selection (topic conf) if mode tests
-                    cum_prob = 0
-                    candidate_topic_entities = []
-                    predicted_topic_list = deepcopy(data['predicted_topic'])
-                    predicted_topic_conf_list = deepcopy(data['predicted_topic_confidence'])
-                    for p_topic, p_conf in zip(predicted_topic_list, predicted_topic_conf_list):
-                        if cum_prob < self.args.topic_conf:
-                            candidate_topic_entities.append(p_topic)
-                            cum_prob += p_conf
-                    guide = f"Goal: {data['predicted_goal'][0]} | Topic: {' or '.join(candidate_topic_entities)}"
-                else:
-                    guide = f"Goal: {data['predicted_goal'][0]} | Topic: {' or '.join(data['predicted_topic'][:1])}"
+                # if self.args.mode == 'test' and self.args.item_selection == 'conf':
+                #     # adaptive item selection (topic conf) if mode tests
+                #     cum_prob = 0
+                #     candidate_topic_entities = []
+                #     predicted_topic_list = deepcopy(data['predicted_topic'])
+                #     predicted_topic_conf_list = deepcopy(data['predicted_topic_confidence'])
+                #     for p_topic, p_conf in zip(predicted_topic_list, predicted_topic_conf_list):
+                #         if cum_prob < self.args.topic_conf:
+                #             candidate_topic_entities.append(p_topic)
+                #             cum_prob += p_conf
+                #     guide = f"Goal: {data['predicted_goal'][0]} | Topic: {' or '.join(candidate_topic_entities)}"
+                # else:
+                guide = f"Goal: {data['predicted_goal'][0]} | Topic: {' or '.join(data['predicted_topic'][:1])}"
 
                 # instructions.append(self.generate_prompt(instruction=data['dialog'],  label=label, mode=mode))
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=guide, label=label, mode=mode))
