@@ -33,6 +33,10 @@
         "reduce_bucket_size": "auto",
         "contiguous_gradients": true
     },
+    "wandb": {
+        "project": "llama_retrieval",
+        "enabled": true
+    },
     "gradient_clipping": "auto",
     "steps_per_print": 2000,
     "train_batch_size": "auto",
