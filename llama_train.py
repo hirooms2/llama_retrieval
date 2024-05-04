@@ -1,3 +1,4 @@
+import math
 import os
 import sys
 import random
@@ -52,7 +53,7 @@ def llama_finetune(
         batch_size: int = 2,
         num_epochs: int = 3,
         learning_rate: float = 3e-4,
-        warmup_steps=100,
+        warmup_steps=200,
         val_set_size: int = 0,
         # lora hyperparams
         lora_r: int = 8,
@@ -93,9 +94,8 @@ def llama_finetune(
     resume_from_checkpoint = args.peft_weights
     prompt_template_name = args.prompt
 
-    # if args.warmup != 0:
-    #     max_train_steps = num_epochs * math.ceil(math.ceil(len(instructions) / batch_size) / gradient_accumulation_steps)
-    #     warmup_steps = int(args.warmup * max_train_steps)
+    # max_train_steps = num_epochs * math.ceil(math.ceil(len(instructions) / batch_size) / gradient_accumulation_steps)
+    # warmup_steps = int(0.1 * max_train_steps)
 
     if int(os.environ.get("LOCAL_RANK", 0)) == 0:
         print(

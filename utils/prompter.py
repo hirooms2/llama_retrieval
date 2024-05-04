@@ -49,7 +49,7 @@ class Prompter(object):
             elif 'DG2P' in self.args.prompt:
                 # num_items = 2 if mode == 'train' else 1
                 # mode choices = ['test', 'train_test'] -> train_test 옵션일 때 적용 하려면 구조 변경 필요
-                if self.args.mode=='test' and self.args.item_selection == 'conf':
+                if self.args.mode == 'test' and self.args.item_selection == 'conf':
                     # adaptive item selection (topic conf) if mode tests
                     cum_prob = 0
                     candidate_topic_entities = []
