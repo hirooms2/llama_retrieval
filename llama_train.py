@@ -337,11 +337,15 @@ def llama_finetune(
                 # num_items = 2 if mode == 'train' else 1
                 guide = f"Goal: {data['goal']} | Topic: {' or '.join(data['topic'])}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=guide, label=label, mode='train')
-            elif 'DP2CP' == args.prompt:
+            elif 'DP2GP' == args.prompt:
                 guide = f"Goal: {data['goal']}: {data['topic']}"
                 label = f"{guide}\nPassage:{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode='train')
-
+            elif 'UDP2GP' == args.prompt:
+                guide = f"Goal: {data['goal']}: {data['topic']}"
+                label = f"{guide}\nPassage:{label}"
+                profile = data['user_profile']
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=profile, label=label, mode='train')
             tokenized_full_prompt = tokenize(full_prompt)
             # item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
             # item['labels'] = torch.tensor(self.labels[idx])
