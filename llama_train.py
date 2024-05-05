@@ -93,7 +93,7 @@ def llama_finetune(
     learning_rate = args.learning_rate
     resume_from_checkpoint = args.peft_weights
     prompt_template_name = args.prompt
-
+    warmup_steps = args.warmup_steps
     # max_train_steps = num_epochs * math.ceil(math.ceil(len(instructions) / batch_size) / gradient_accumulation_steps)
     # warmup_steps = int(0.1 * max_train_steps)
 

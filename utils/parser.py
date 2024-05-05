@@ -30,6 +30,8 @@ def parse_args():
     parser.add_argument('--batch_size', type=int, default=2)
     parser.add_argument('--global_batch_size', type=int, default=0)
     parser.add_argument('--eval_batch_size', type=int, default=1)
+    parser.add_argument('--warmup_steps', type=int, default=200)
+
     parser.add_argument('--n_docs', type=int, default=2)
     parser.add_argument('--n_pseudo', type=int, default=2)
     parser.add_argument('--n_hard_negative', type=int, default=10)
