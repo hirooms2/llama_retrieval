@@ -65,7 +65,7 @@ class Prompter(object):
 
                 # instructions.append(self.generate_prompt(instruction=data['dialog'],  label=label, mode=mode))
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=guide, label=label, mode=mode))
-            elif 'DP2C' in self.args.prompt:
+            elif 'DP2CP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
 
             elif 'DP2I' == self.args.prompt:

@@ -337,7 +337,7 @@ def llama_finetune(
                 # num_items = 2 if mode == 'train' else 1
                 guide = f"Goal: {data['goal']} | Topic: {' or '.join(data['topic'])}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=guide, label=label, mode='train')
-            elif 'DP2C' == args.prompt:
+            elif 'DP2CP' == args.prompt:
                 guide = f"Goal: {data['goal'][0]}: {data['topic']}"
                 label = f"{guide}\nPassage:{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode='train')
