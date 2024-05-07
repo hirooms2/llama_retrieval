@@ -75,15 +75,13 @@ def prepare_dataset(args, tokenizer, dataset):
             data['predicted_know'][idx] = tokenizer.decode(
                 tokenizer(passage).input_ids[1:][:args.passage_cutoff]).strip()
 
-        if 'I' in args.prompt.split('2')[-1]:
-            labels.append(data['topic'])
-        elif 'R' in args.prompt.split('2')[-1]:
+        # if 'I' in args.prompt.split('2')[-1]:
+        #     labels.append(data['topic'])
+        if 'R' in args.prompt.split('2')[-1]:
             labels.append(data['response'])
         elif 'P' in args.prompt.split('2')[-1]:
             labels.append(
                 tokenizer.decode(tokenizer(data['target_knowledge']).input_ids[1:][:args.passage_cutoff]).strip())
-        elif 'V' in args.prompt.split('2')[-1]:
-            labels.append(data['chatgpt_result'])
         elif args.prompt == 'pretrain':
             labels.append(data['response'])
         else:
