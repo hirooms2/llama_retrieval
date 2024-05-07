@@ -68,7 +68,7 @@ class Prompter(object):
             elif 'UDP2GP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=data['user_profile'], label=label, mode=mode))
             elif 'DGIP2GIP' == self.args.prompt:
-                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=data['predicted_topic'][:2], input3=predicted_know, label=label, mode=mode))
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:2]), input3=predicted_know, label=label, mode=mode))
             elif 'DP2GP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
             elif 'DP2I' == self.args.prompt:
@@ -99,9 +99,13 @@ class Prompter(object):
             res = self.template["prompt_input"].format(
                 instruction=instruction, input=input
             )
-        elif input and input2:
+        elif input and input2 and not input3:
             res = self.template["prompt_input"].format(
                 instruction=instruction, input=input, input2=input2
+            )
+        elif input and input2 and input3:
+            res = self.template["prompt_input"].format(
+                instruction=instruction, input=input, input2=input2, input3=input3
             )
         else:
             res = self.template["prompt_no_input"].format(
