@@ -130,7 +130,10 @@ def createLogFile(args):
     args.output_dir = os.path.join(args.home, 'result')
     if not os.path.exists(args.output_dir): os.mkdir(args.output_dir)
 
-    result_path = os.path.join(args.output_dir, args.base_model.replace('/', '-'), md)
+    result_path = os.path.join(args.output_dir, args.base_model.replace('/', '-'))
+    if not os.path.exists(result_path): os.mkdir(result_path)
+
+    result_path = os.path.join(result_path, md)
     args.result_path = result_path  # os.path.join(args.home, result_path)
     if not os.path.exists(args.result_path): os.mkdir(args.result_path)
 
