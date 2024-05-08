@@ -107,11 +107,11 @@ class Prompter(object):
             res = self.template["prompt_input"].format(
                 instruction=instruction, input=input, input2=input2
             )
-        elif input and input2 and input3 or not input4:
+        elif input and input2 and input3 and not input4:
             res = self.template["prompt_input"].format(
                 instruction=instruction, input=input, input2=input2, input3=input3
             )
-        elif input and input2 and input3 or input4:
+        elif input and input2 and input3 and input4:
             res = self.template["prompt_input"].format(
                 instruction=instruction, input=input, input2=input2, input3=input3, input4=input4
             )
