@@ -63,9 +63,15 @@ def prepare_dataset(args, tokenizer, dataset):
         dialog = data['dialog'].replace('[SEP]', '\n')[:-1]
         dialog = tokenizer.decode(tokenizer(dialog).input_ids[1:][-args.cutoff:])
         data['dialog'] = dialog
+        ['accepted food', 'accepted music', 'accepted movies', 'accepted celebrities', ]
 
         user_profile = data['user_profile']
-        user_profile = tokenizer.decode(tokenizer(user_profile).input_ids[1:][:args.cutoff])
+        filtered_user_profile = []
+        for profile in user_profile.split('|'):
+            if 'accepted' in profile.lower() or 'rejected' in profile.lower():
+                filtered_user_profile.append(profile.strip())
+        user_profile = " | ".join(filtered_user_profile).strip()
+        user_profile = tokenizer.decode(tokenizer(user_profile).input_ids[1:][:200])
         data['user_profile'] = user_profile
 
         data['response'] = data['response'].replace('[SEP]', '')
