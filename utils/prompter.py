@@ -70,7 +70,7 @@ class Prompter(object):
             elif 'DGIP2GIP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:2]), input3=predicted_know, label=label, mode=mode))
             elif 'UDGIP2GIP' == self.args.prompt:
-                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:2]), input3=predicted_know,
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:self.args.topk_topic]), input3=predicted_know,
                                                          input4=data['user_profile'], label=label, mode=mode))
             elif 'DP2GP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
