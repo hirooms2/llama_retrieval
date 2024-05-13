@@ -316,7 +316,7 @@ def llama_finetune(
 
             predicted_know.append(target_knowledge)
 
-            while len(predicted_know) < 5:
+            while len(predicted_know) < args.n_sampled_negative:
                 selected = random.choice(hard_negative_candidates)
                 if selected not in predicted_know:
                     predicted_know.append(selected)
