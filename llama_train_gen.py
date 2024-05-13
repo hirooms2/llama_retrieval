@@ -204,9 +204,10 @@ def llama_finetune(
         print('8 bit')
         print('#' * 64)
 
-    data = []
-    for inst, lab in zip(train_know_dataset, labels):
-        data.append({"instruction": inst, "input": "", "output": lab})
+    # data = []
+    # for inst, lab in zip(train_know_dataset, labels):
+    #     data.append({"instruction": inst, "input": "", "output": lab})
+    data = [{"instruction": i} for i in instructions]
 
     first_sample = Dataset.from_pandas(pd.DataFrame([data[0]]))
     data = Dataset.from_pandas(pd.DataFrame(data))
