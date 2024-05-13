@@ -90,10 +90,9 @@ def llama_finetune(
     learning_rate = args.learning_rate
     resume_from_checkpoint = args.peft_weights
     prompt_template_name = args.prompt
-
-    # if args.warmup != 0:
-    #     max_train_steps = num_epochs * math.ceil(math.ceil(len(instructions) / batch_size) / gradient_accumulation_steps)
-    #     warmup_steps = int(args.warmup * max_train_steps)
+    warmup_steps = args.warmup_steps
+    # max_train_steps = num_epochs * math.ceil(math.ceil(len(instructions) / batch_size) / gradient_accumulation_steps)
+    # warmup_steps = int(0.1 * max_train_steps)
 
     if int(os.environ.get("LOCAL_RANK", 0)) == 0:
         print(
@@ -130,10 +129,11 @@ def llama_finetune(
 
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     print("world_size: %d" % world_size)
-    ddp = world_size != 1
+    # ddp = world_size != 1
     if world_size != 1:
         device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)}
         print(device_map)
+        # gradient_accumulation_steps = gradient_accumulation_steps // world_size
 
     # Check if parameter passed or if set within environ
     use_wandb = len(wandb_project) > 0 or (
@@ -205,8 +205,9 @@ def llama_finetune(
         print('#' * 64)
 
     data = []
-    for inst, lab in zip(instructions, labels):
-        data.append({"instruction": inst, "input": "", "output": lab})
+    for inst, lab in zip(train_know_dataset, labels):
+        inst['output'] = lab
+        data.append(inst)
 
     first_sample = Dataset.from_pandas(pd.DataFrame([data[0]]))
     data = Dataset.from_pandas(pd.DataFrame(data))
@@ -280,10 +281,10 @@ def llama_finetune(
     else:
         resume_from_checkpoint = None
 
-    if not ddp and torch.cuda.device_count() > 1:
-        # keeps Trainer from trying its own DataParallelism when more than 1 gpu is available
-        model.is_parallelizable = True
-        model.model_parallel = True
+    # if not ddp and torch.cuda.device_count() > 1:
+    #     # keeps Trainer from trying its own DataParallelism when more than 1 gpu is available
+    #     model.is_parallelizable = True
+    #     model.model_parallel = True
 
     # train_args = transformers.TrainingArguments(
     #     per_device_train_batch_size=per_device_train_batch_size,
@@ -319,19 +320,18 @@ def llama_finetune(
             # max_steps = 100,
             learning_rate=learning_rate,
             logging_steps=10,
+            lr_scheduler_type="cosine",
             output_dir=output_dir,
             optim="adamw_torch",
             # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음. paged_adamw_32bit???
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="no",
-            # fp16=fp16,  # args.fp16_trainarg,
-            # bf16=bf16,  # BF16으로 하는 거면 True
+            fp16=False if args.deepspeed != '' else args.fp16_trainarg,  # fp16,  # ,
+            bf16=bf16,  # BF16으로 하는 거면 True
             eval_steps=5 if val_set_size > 0 else None,
-            report_to="none",
+            report_to="wandb",
         ),
-        data_collator=transformers.DataCollatorForSeq2Seq(
-            tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
-        ),
+        data_collator=transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True),
         callbacks=[QueryEvalCallback(args)]
     )
     model.config.use_cache = False

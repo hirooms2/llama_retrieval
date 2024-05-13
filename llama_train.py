@@ -394,8 +394,7 @@ def llama_finetune(
             eval_steps=5 if val_set_size > 0 else None,
             report_to="wandb",
         ),
-        data_collator=transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt",
-                                                          padding=True),
+        data_collator=transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True),
         callbacks=[QueryEvalCallback(args)]
     )
     model.config.use_cache = False

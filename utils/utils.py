@@ -63,7 +63,7 @@ def prepare_dataset(args, tokenizer, dataset):
         dialog = data['dialog'].replace('[SEP]', '\n')[:-1]
         dialog = tokenizer.decode(tokenizer(dialog).input_ids[1:][-args.cutoff:])
         data['dialog'] = dialog
-        ['accepted food', 'accepted music', 'accepted movies', 'accepted celebrities', ]
+        # ['accepted food', 'accepted music', 'accepted movies', 'accepted celebrities', ]
 
         user_profile = data['user_profile']
         filtered_user_profile = []
@@ -88,6 +88,8 @@ def prepare_dataset(args, tokenizer, dataset):
         elif 'P' in args.prompt.split('2')[-1]:
             labels.append(
                 tokenizer.decode(tokenizer(data['target_knowledge']).input_ids[1:][:args.passage_cutoff]).strip())
+        elif 'I' in args.prompt.split('2')[-1]:
+            labels.append(data['topic'])
         elif args.prompt == 'pretrain':
             labels.append(data['response'])
         else:
