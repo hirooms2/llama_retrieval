@@ -207,7 +207,6 @@ def llama_finetune(
     data = []
     for inst, lab in zip(train_know_dataset, labels):
         data.append({"instruction": inst, "input": "", "output": lab})
-        data.append(inst)
 
     first_sample = Dataset.from_pandas(pd.DataFrame([data[0]]))
     data = Dataset.from_pandas(pd.DataFrame(data))
