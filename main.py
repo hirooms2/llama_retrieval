@@ -33,7 +33,7 @@ def initLogging(args):
     return logger
 
 
-prompt_list = ["D2P", "DI2P", "DP2I", "UDP2I", "DG2P", "DP2GP", "UDP2GP", "DGIP2GIP", "UDGIP2GIP"]
+prompt_list = ["D2P", "DI2P", "DP2I", "UDP2I", "DG2P", "DP2GP", "UDP2GP", "DGIP2GIP", "UDGIP2GIP", "UDGIP2P"]
 
 if __name__ == "__main__":
 
