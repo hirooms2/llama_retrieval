@@ -61,7 +61,7 @@ if __name__ == "__main__":
     train_know_dataset, train_labels, train_topics = prepare_dataset(args, tokenizer, train_know_dataset)
     test_know_dataset, test_labels, test_topics = prepare_dataset(args, tokenizer, test_know_dataset)
 
-    if args.prompt in prompt_list and args.positive == 'gpt_selection':
+    if 'P' in args.prompt and args.positive == 'gpt_selection':
         train_know_dataset, train_labels, train_topics = augment_dataset(train_know_dataset, train_labels, train_topics)
         # test_know_dataset, test_labels, test_topics = augment_dataset(test_know_dataset, test_labels, test_topics)
 
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     test_instructions = prompter.generate_instructions('test', test_know_dataset, test_labels)
 
     if args.mode == 'train':
-        if args.prompt in prompt_list:
+        if 'P' in args.prompt:
             from llama_train import llama_finetune
         else:
             from llama_train_gen import llama_finetune
@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
             llama_finetune_sft(args, tokenizer=tokenizer, instructions=train_instructions, labels=train_labels, num_epochs=args.epoch)
         else:
-            if args.prompt in prompt_list:
+            if 'P' in args.prompt:
                 from llama_train import llama_finetune
             else:
                 from llama_train_gen import llama_finetune

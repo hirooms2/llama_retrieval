@@ -68,14 +68,16 @@ class Prompter(object):
             elif 'UDP2GP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=data['user_profile'], label=label, mode=mode))
             elif 'DGIP2GIP' == self.args.prompt:
-                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:2]), input3=predicted_know, label=label, mode=mode))
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:self.args.topk_topic]), input3=predicted_know, label=label, mode=mode))
             elif 'UDGIP2P' == self.args.prompt or 'UDGIP2GIP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:self.args.topk_topic]), input3=predicted_know,
                                                          input4=data['user_profile'], label=label, mode=mode))
             elif 'UDGI2GI' == self.args.prompt:
                 if mode == 'train':
                     label = f"Goal: {data['goal']}\nTopic: {data['topic']}"
-                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:self.args.topk_topic]), input3=data['user_profile'], label=label, mode=mode))
+                predicted_topic_list = deepcopy(data['predicted_topic'][:self.args.topk_topic])
+                random.shuffle(predicted_topic_list)
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(predicted_topic_list), input3=data['user_profile'], label=label, mode=mode))
             elif 'DP2GP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
             elif 'DP2I' == self.args.prompt:
