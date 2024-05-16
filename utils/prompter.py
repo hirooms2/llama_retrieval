@@ -70,7 +70,17 @@ class Prompter(object):
             elif 'DGIP2GIP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:self.args.topk_topic]), input3=predicted_know, label=label, mode=mode))
             elif 'UDGIP2P' == self.args.prompt or 'UDGIP2GIP' == self.args.prompt:
-                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:self.args.topk_topic]), input3=predicted_know,
+                predicted_topic_list = deepcopy(data['predicted_topic'][:self.args.topk_topic])
+                predicted_topic_conf_list = deepcopy(data['predicted_topic_confidence'][:self.args.topk_topic])
+                if self.args.topic_conf != 1:
+                    cum_prob = 0
+                    candidate_topic_entities = []
+                    for p_topic, p_conf in zip(predicted_topic_list, predicted_topic_conf_list):
+                        if cum_prob < self.args.topic_conf:
+                            candidate_topic_entities.append(p_topic)
+                            cum_prob += p_conf
+                    predicted_topic_list = deepcopy(candidate_topic_entities)
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(predicted_topic_list), input3=predicted_know,
                                                          input4=data['user_profile'], label=label, mode=mode))
             elif 'UDGI2GI' == self.args.prompt:
                 if mode == 'train':

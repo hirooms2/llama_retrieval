@@ -52,7 +52,7 @@ def parse_args():
 
     # adpative item selection
     parser.add_argument('--item_selection', type=str, default='top', choices=['top', 'conf'], help='Adaptive item selection')
-    parser.add_argument('--topic_conf', type=float, default=0.7, help='Minimum threshold for topic confidence')
+    parser.add_argument('--topic_conf', type=float, default=1.0, help='Minimum threshold for topic confidence')
     parser.add_argument('--topk_topic', type=int, default=1)
 
     # For generation config
