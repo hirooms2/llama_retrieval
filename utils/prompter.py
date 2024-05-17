@@ -86,7 +86,7 @@ class Prompter(object):
                 if mode == 'train':
                     label = f"Goal: {data['goal']}\nTopic: {data['topic']}"
                 predicted_topic_list = deepcopy(data['predicted_topic'][:self.args.topk_topic])
-                random.shuffle(predicted_topic_list)
+                # random.shuffle(predicted_topic_list)
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(predicted_topic_list), input3=data['user_profile'], label=label, mode=mode))
             elif 'DP2GP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
