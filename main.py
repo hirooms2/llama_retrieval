@@ -58,6 +58,10 @@ if __name__ == "__main__":
     train_know_dataset = merge_dataset_passages(args, train_raw_dataset, mode='train')
     test_know_dataset = merge_dataset_passages(args, test_raw_dataset, mode='test')
 
+    if args.pseudo:
+        train_know_dataset_pseudo = merge_dataset_passages(args, train_raw_dataset, mode='train', know_file_path='pseudo')
+        train_know_dataset.extend(train_know_dataset_pseudo)
+
     train_know_dataset, train_labels, train_topics = prepare_dataset(args, tokenizer, train_know_dataset)
     test_know_dataset, test_labels, test_topics = prepare_dataset(args, tokenizer, test_know_dataset)
 
