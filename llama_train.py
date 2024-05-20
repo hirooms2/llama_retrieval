@@ -2,6 +2,7 @@ import math
 import os
 import sys
 import random
+from copy import deepcopy
 from typing import List
 
 import pandas as pd
@@ -309,6 +310,8 @@ def llama_finetune(
                 hard_negative_candidates = [item for item in data['predicted_know'][:args.n_hard_negative] if item not in data['candidate_knowledges_gpt']]
             elif args.positive == 'gpt_selection':
                 target_knowledge = data['gpt_selection']
+                if args.combined:
+                    data['predicted_know'] = data['predicted_know'][0:0 + 5] + data['predicted_know'][10:10 + 5]
                 hard_negative_candidates = [item for item in data['predicted_know'] if item != data['gpt_selection']]
                 hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
             else:
@@ -316,7 +319,12 @@ def llama_finetune(
 
             predicted_know.append(target_knowledge)
 
-            while len(predicted_know) < args.n_sampled_negative:
+            if len(set(hard_negative_candidates)) + 1 < args.n_sampled_negative:
+                n_sampled_negative = len(set(hard_negative_candidates)) + 1
+            else:
+                n_sampled_negative = args.n_sampled_negative
+
+            while len(predicted_know) < n_sampled_negative:
                 selected = random.choice(hard_negative_candidates)
                 if selected not in predicted_know:
                     predicted_know.append(selected)
@@ -347,8 +355,10 @@ def llama_finetune(
                                                             input2=", ".join(data['predicted_topic'][:2]), input3=predicted_know, label=label, mode='train')
             elif 'UDGIP2GIP' == args.prompt:
                 label = f"Goal: {data['goal']}\nTopic: {data['topic']}\nPassage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:args.topk_topic]), input3=predicted_know,
-                                                            input4=data['user_profile'], label=label, mode='train')
+                predicted_topic = deepcopy(data['predicted_topic'][:args.topk_topic])
+                random.shuffle(predicted_topic)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(predicted_topic),
+                                                            input3=predicted_know, input4=data['user_profile'], label=label, mode='train')
             elif 'UDGIP2P' == args.prompt:
                 label = f"Passage:{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:args.topk_topic]), input3=predicted_know,
