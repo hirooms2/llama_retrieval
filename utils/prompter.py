@@ -30,8 +30,11 @@ class Prompter(object):
         for data, label in zip(dataset_input, dataset_output):
             if 'predicted_know' in data:
                 predicted_know = data['predicted_know'][:self.args.n_docs]
-                if mode == 'train':
-                    random.shuffle(predicted_know)
+                # if self.args.combine:
+                #     len_retrieval = len(data['predicted_know'])
+                #     partition = len_retrieval / self.args.topk_topic
+                #     for idx, x in enumerate(predicted_know):
+                #         predicted_know[idx] = f"{data['predicted_topic'][int(idx // partition)]}|{x}"
                 predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
 
             if 'UD2I' in self.args.prompt:

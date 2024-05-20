@@ -39,6 +39,7 @@ def parse_args():
 
     parser.add_argument('--positive', type=str, default='pseudo', choices=['only_pseudo', 'pseudo', 'highly_relevant', 'gpt_selection'])
     parser.add_argument("--pseudo", action='store_true', help="combine pseudo")
+    parser.add_argument("--combine", action='store_true', help="combine pseudo")
 
     parser.add_argument('--cutoff', type=int, default=256)
     parser.add_argument('--passage_cutoff', type=int, default=128)
