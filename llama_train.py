@@ -341,6 +341,10 @@ def llama_finetune(
                     selected_2 = random.choice(top2_hard_negative_candidates)
                     if selected_2 not in tmp_know_2:
                         tmp_know_2.append(selected_2)
+                if len(tmp_know_1) < len(tmp_know_2):
+                    tmp_know_1.append(target_knowledge)
+                else:
+                    tmp_know_2.append(target_knowledge)
                 random.shuffle(tmp_know_1)
                 random.shuffle(tmp_know_2)
                 predicted_know = tmp_know_1 + tmp_know_2
