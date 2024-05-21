@@ -313,9 +313,9 @@ def llama_finetune(
                 if args.combined:
                     if args.partition:
                         n_partition_negative = int(args.n_hard_negative / 2)
-                        top1_hard_negative_candidates = [item for item in data['predicted_know'][0:0+5] if item.strip() != data['gpt_selection'].strip()]
+                        top1_hard_negative_candidates = [item for item in data['predicted_know'][0:0+5] if item != data['gpt_selection']]
                         top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
-                        top2_hard_negative_candidates = [item for item in data['predicted_know'][10:10+5] if item.strip() != data['gpt_selection'].strip()]
+                        top2_hard_negative_candidates = [item for item in data['predicted_know'][10:10+5] if item != data['gpt_selection']]
                         top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
                     else:
                         data['predicted_know'] = data['predicted_know'][0:0 + 5] + data['predicted_know'][10:10 + 5]
@@ -339,10 +339,10 @@ def llama_finetune(
                     n_partition2_sampled_negative = len(set(top2_hard_negative_candidates)) + 1
                 tmp_know_1 = []
                 tmp_know_2 = []
-                if len(top1_hard_negative_candidates) < n_partition1_sampled_negative:
+                if len(top1_hard_negative_candidates) < n_partition_sampled_negative:
                     tmp_know_1.append(target_knowledge)
                     n_partition1_sampled_negative -= 1
-                if len(top2_hard_negative_candidates) < n_partition2_sampled_negative:
+                if len(top2_hard_negative_candidates) < n_partition_sampled_negative:
                     tmp_know_2.append(target_knowledge)
                     n_partition2_sampled_negative -= 1
                 tmp_know_1.extend(random.sample(top1_hard_negative_candidates,n_partition1_sampled_negative))
