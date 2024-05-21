@@ -311,13 +311,14 @@ def llama_finetune(
             elif args.positive == 'gpt_selection':
                 target_knowledge = data['gpt_selection']
                 if args.combined:
-                    data['predicted_know'] = data['predicted_know'][0:0 + 5] + data['predicted_know'][10:10 + 5]
                     if args.partition:
                         n_partition_negative = int(args.n_hard_negative / 2)
                         top1_hard_negative_candidates = [item for item in data['predicted_know'][0:0+5] if item != data['gpt_selection']]
                         top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
                         top2_hard_negative_candidates = [item for item in data['predicted_know'][10:10+5] if item != data['gpt_selection']]
                         top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
+                    else:
+                        data['predicted_know'] = data['predicted_know'][0:0 + 5] + data['predicted_know'][10:10 + 5]
                 hard_negative_candidates = [item for item in data['predicted_know'] if item != data['gpt_selection']]
                 hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
             else:
