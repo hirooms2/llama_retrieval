@@ -46,10 +46,10 @@ if __name__ == "__main__":
     initLogging(args)
 
     # Wandb initialize
-    if args.debug == False:
-        args.wandb_project = "llama_retrieval"
-        args.wandb_run_name = args.log_name
-        wandb.init(project=args.wandb_project, name=args.wandb_run_name)
+    # if args.debug == False:
+    args.wandb_project = "llama_retrieval"
+    args.wandb_run_name = args.log_name
+    wandb.init(project=args.wandb_project, name=args.wandb_run_name)
 
     tokenizer = LlamaTokenizer.from_pretrained(args.base_model)
 
