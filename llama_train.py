@@ -313,10 +313,8 @@ def llama_finetune(
                 if args.combined:
                     if args.partition:
                         n_partition_negative = int(args.n_hard_negative / 2)
-                        top1_hard_negative_candidates = [item for item in data['predicted_know'][0:0+5] if item != data['gpt_selection']]
-                        top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
-                        top2_hard_negative_candidates = [item for item in data['predicted_know'][10:10+5] if item != data['gpt_selection']]
-                        top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
+                        top1_hard_negative_candidates = [item for item in data['predicted_know'][0:0+n_partition_negative] if item != data['gpt_selection']]
+                        top2_hard_negative_candidates = [item for item in data['predicted_know'][10:10+n_partition_negative] if item != data['gpt_selection']]
                     else:
                         data['predicted_know'] = data['predicted_know'][0:0 + 5] + data['predicted_know'][10:10 + 5]
                 hard_negative_candidates = [item for item in data['predicted_know'] if item != data['gpt_selection']]
@@ -332,24 +330,27 @@ def llama_finetune(
                 n_sampled_negative = args.n_sampled_negative
             if args.partition:
                 n_partition_sampled_negative = int(n_sampled_negative / 2)
-                n_partition1_sampled_negative = n_partition2_sampled_negative = n_partition_sampled_negative
-                if len(set(top1_hard_negative_candidates)) + 1 < n_partition_sampled_negative:
-                    n_partition1_sampled_negative = len(set(top1_hard_negative_candidates)) + 1
-                if len(set(top2_hard_negative_candidates)) + 1 < n_partition_sampled_negative:
-                    n_partition2_sampled_negative = len(set(top2_hard_negative_candidates)) + 1
+                n_partition1_sampled_negative = len(set(top1_hard_negative_candidates))
+                n_partition2_sampled_negative = len(set(top2_hard_negative_candidates))
                 tmp_know_1 = []
                 tmp_know_2 = []
-                if len(top1_hard_negative_candidates) < n_partition_sampled_negative:
-                    tmp_know_1.append(target_knowledge)
-                    n_partition1_sampled_negative -= 1
-                if len(top2_hard_negative_candidates) < n_partition_sampled_negative:
-                    tmp_know_2.append(target_knowledge)
-                    n_partition2_sampled_negative -= 1
-                tmp_know_1.extend(random.sample(top1_hard_negative_candidates,n_partition1_sampled_negative))
-                tmp_know_2.extend(random.sample(top2_hard_negative_candidates,n_partition2_sampled_negative))
-                random.shuffle(tmp_know_1)
-                random.shuffle(tmp_know_2)
-                predicted_know = tmp_know_1 + tmp_know_2
+                if len(top1_hard_negative_candidates) == len(top2_hard_negative_candidates):
+                    # Top1 과 Top2에 모두 정답이 있거나 모두 정답이 없는 경우 일괄 처리
+                    predicted_know.append(target_knowledge)
+                    predicted_know.extend(top1_hard_negative_candidates)
+                    predicted_know.extend(top2_hard_negative_candidates)
+                    random.shuffle(predicted_know)
+                    predicted_know = predicted_know[:n_sampled_negative]
+                else:
+                    if len(top1_hard_negative_candidates) < n_partition_sampled_negative:
+                        tmp_know_1.append(target_knowledge)
+                    elif len(top2_hard_negative_candidates) < n_partition_sampled_negative:
+                        tmp_know_2.append(target_knowledge)
+                    tmp_know_1.extend(random.sample(top1_hard_negative_candidates,n_partition1_sampled_negative))
+                    tmp_know_2.extend(random.sample(top2_hard_negative_candidates,n_partition2_sampled_negative))
+                    random.shuffle(tmp_know_1)
+                    random.shuffle(tmp_know_2)
+                    predicted_know = tmp_know_1 + tmp_know_2
             else:
                 while len(predicted_know) < n_sampled_negative:
                     selected = random.choice(hard_negative_candidates)
