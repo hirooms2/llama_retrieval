@@ -338,6 +338,7 @@ def llama_finetune(
                     # Top1 과 Top2에 모두 정답이 있거나 모두 정답이 없는 경우 일괄 처리
                     predicted_know.extend(top1_hard_negative_candidates)
                     predicted_know.extend(top2_hard_negative_candidates)
+                    predicted_know = list(set(predicted_know))
                     random.shuffle(predicted_know)
                     predicted_know = predicted_know[:n_sampled_negative]
                 else:
