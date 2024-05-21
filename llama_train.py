@@ -332,17 +332,21 @@ def llama_finetune(
                 n_sampled_negative = args.n_sampled_negative
             if args.partition:
                 n_partition_sampled_negative = int(n_sampled_negative / 2)
+                if len(set(top1_hard_negative_candidates)) + 1 < n_partition_sampled_negative:
+                    n_partition1_sampled_negative = len(set(top1_hard_negative_candidates)) + 1
+                if len(set(top2_hard_negative_candidates)) + 1 < n_partition_sampled_negative:
+                    n_partition2_sampled_negative = len(set(top2_hard_negative_candidates)) + 1
                 tmp_know_1 = []
                 tmp_know_2 = []
                 if len(top1_hard_negative_candidates) < len(top2_hard_negative_candidates):
                     tmp_know_1.append(target_knowledge)
                 else:
                     tmp_know_2.append(target_knowledge)
-                while len(tmp_know_1) < n_partition_sampled_negative:
+                while len(tmp_know_1) < n_partition1_sampled_negative:
                     selected_1 = random.choice(top1_hard_negative_candidates)
                     if selected_1 not in tmp_know_1:
                         tmp_know_1.append(selected_1)
-                while len(tmp_know_2) < n_partition_sampled_negative:
+                while len(tmp_know_2) < n_partition2_sampled_negative:
                     selected_2 = random.choice(top2_hard_negative_candidates)
                     if selected_2 not in tmp_know_2:
                         tmp_know_2.append(selected_2)
