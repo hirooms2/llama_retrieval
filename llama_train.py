@@ -332,6 +332,7 @@ def llama_finetune(
                 n_sampled_negative = args.n_sampled_negative
             if args.partition:
                 n_partition_sampled_negative = int(n_sampled_negative / 2)
+                n_partition1_sampled_negative = n_partition2_sampled_negative = n_partition_sampled_negative
                 if len(set(top1_hard_negative_candidates)) + 1 < n_partition_sampled_negative:
                     n_partition1_sampled_negative = len(set(top1_hard_negative_candidates)) + 1
                 if len(set(top2_hard_negative_candidates)) + 1 < n_partition_sampled_negative:
