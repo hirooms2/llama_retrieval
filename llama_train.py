@@ -312,6 +312,12 @@ def llama_finetune(
                 target_knowledge = data['gpt_selection']
                 if args.combined:
                     data['predicted_know'] = data['predicted_know'][0:0 + 5] + data['predicted_know'][10:10 + 5]
+                    if args.partition:
+                        n_partition_negative = args.n_hard_negative / 2
+                        top1_hard_negative_candidates = [item for item in data['predicted_know'][0:0+5] if item != data['gpt_selection']]
+                        top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
+                        top2_hard_negative_candidates = [item for item in data['predicted_know'][10:10+5] if item != data['gpt_selection']]
+                        top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
                 hard_negative_candidates = [item for item in data['predicted_know'] if item != data['gpt_selection']]
                 hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
             else:
@@ -323,13 +329,27 @@ def llama_finetune(
                 n_sampled_negative = len(set(hard_negative_candidates)) + 1
             else:
                 n_sampled_negative = args.n_sampled_negative
+            if args.partition:
+                n_partition_sampled_negative = n_sampled_negative / 2
+                tmp_know_1 = []
+                tmp_know_2 = []
+                while len(tmp_know_2) < n_partition_sampled_negative:
+                    selected_1 = random.choice(top1_hard_negative_candidates)
+                    if selected_1 not in tmp_know_1:
+                        tmp_know_1.append(selected_1)
+                    selected_2 = random.choice(top2_hard_negative_candidates)
+                    if selected_2 not in tmp_know_2:
+                        tmp_know_2.append(selected_2)
+                random.shuffle(tmp_know_1)
+                random.shuffle(tmp_know_2)
+                predicted_know = tmp_know_1 + tmp_know_2
+            else:
+                while len(predicted_know) < n_sampled_negative:
+                    selected = random.choice(hard_negative_candidates)
+                    if selected not in predicted_know:
+                        predicted_know.append(selected)
 
-            while len(predicted_know) < n_sampled_negative:
-                selected = random.choice(hard_negative_candidates)
-                if selected not in predicted_know:
-                    predicted_know.append(selected)
-
-            random.shuffle(predicted_know)
+                random.shuffle(predicted_know)
             relevant_idx = predicted_know.index(target_knowledge)
 
             predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
