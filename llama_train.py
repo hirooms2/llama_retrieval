@@ -341,7 +341,7 @@ def llama_finetune(
                     random.shuffle(predicted_know)
                     predicted_know = predicted_know[:n_sampled_negative]
                 else:
-                    if len(top1_hard_negative_candidates) < len(top2_hard_negative_candidates)
+                    if len(top1_hard_negative_candidates) < len(top2_hard_negative_candidates):
                         tmp_know_1.append(target_knowledge)
                     else:
                         tmp_know_2.append(target_knowledge)
