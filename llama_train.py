@@ -339,10 +339,10 @@ def llama_finetune(
                     n_partition2_sampled_negative = len(set(top2_hard_negative_candidates)) + 1
                 tmp_know_1 = []
                 tmp_know_2 = []
-                if len(top1_hard_negative_candidates) < len(top2_hard_negative_candidates):
+                if len(top1_hard_negative_candidates) < n_partition_sampled_negative:
                     tmp_know_1.append(target_knowledge)
                     n_partition1_sampled_negative -= 1
-                else:
+                if len(top2_hard_negative_candidates) < n_partition_sampled_negative:
                     tmp_know_2.append(target_knowledge)
                     n_partition2_sampled_negative -= 1
                 tmp_know_1.extend(random.sample(top1_hard_negative_candidates,n_partition1_sampled_negative))
