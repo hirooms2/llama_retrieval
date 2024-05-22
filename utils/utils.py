@@ -20,10 +20,10 @@ def load_dataset(args):
     return train_dataset, test_dataset
 
 
-def augment_dataset(know_dataset, labels, topics):
+def augment_dataset(args, know_dataset, labels, topics):
     new_know_dataset, new_labels, new_topics = [], [], []
     for i, j, k in zip(know_dataset, labels, topics):
-        if i['gpt_selection'] != '':
+        if i['gpt_selection'] != '' and i['topic'] in i['predicted_topic'][:args.topk_topic]:
             i['candidate_knowledges'] = [j for j in i['candidate_knowledges'] if j != i['gpt_selection']]
             new_know_dataset.append(i)
             new_labels.append(j)

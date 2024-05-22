@@ -313,8 +313,8 @@ def llama_finetune(
                 if args.combined:
                     if args.partition:
                         n_partition_negative = int(args.n_hard_negative / 2)
-                        top1_hard_negative_candidates = [item for item in data['predicted_know'][0:0+n_partition_negative] if item != data['gpt_selection']]
-                        top2_hard_negative_candidates = [item for item in data['predicted_know'][10:10+n_partition_negative] if item != data['gpt_selection']]
+                        top1_hard_negative_candidates = [item for item in data['predicted_know'][0:0+n_partition_negative] if item != target_knowledge]
+                        top2_hard_negative_candidates = [item for item in data['predicted_know'][10:10+n_partition_negative] if item != target_knowledge]
                     else:
                         data['predicted_know'] = data['predicted_know'][0:0 + 5] + data['predicted_know'][10:10 + 5]
                 hard_negative_candidates = [item for item in data['predicted_know'] if item != data['gpt_selection']]
@@ -328,29 +328,44 @@ def llama_finetune(
                 n_sampled_negative = len(set(hard_negative_candidates)) + 1
             else:
                 n_sampled_negative = args.n_sampled_negative
+            
+            topic_idx = [i for i in range(args.topk_topic)]
+            random.shuffle(topic_idx)
+            predicted_topic = [data['predicted_topic'][i] for i in topic_idx]
+            # deepcopy(data['predicted_topic'][:args.topk_topic])
+
             if args.partition:
-                n_partition_sampled_negative = int(n_sampled_negative / 2)
-                n_partition1_sampled_negative = len(set(top1_hard_negative_candidates))
-                n_partition2_sampled_negative = len(set(top2_hard_negative_candidates))
-                tmp_know_1 = []
-                tmp_know_2 = []
-                if len(top1_hard_negative_candidates) == len(top2_hard_negative_candidates):
-                    # Top1 과 Top2에 모두 정답이 있거나 모두 정답이 없는 경우 일괄 처리
-                    predicted_know = top1_hard_negative_candidates + top2_hard_negative_candidates
-                    predicted_know = list(set(predicted_know))
-                    predicted_know = predicted_know[:n_sampled_negative-1]
-                    predicted_know.append(target_knowledge)
-                    random.shuffle(predicted_know)
-                else:
-                    if len(top1_hard_negative_candidates) < len(top2_hard_negative_candidates):
-                        tmp_know_1.append(target_knowledge)
-                    else:
-                        tmp_know_2.append(target_knowledge)
-                    tmp_know_1.extend(random.sample(top1_hard_negative_candidates,n_partition1_sampled_negative))
-                    tmp_know_2.extend(random.sample(top2_hard_negative_candidates,n_partition2_sampled_negative))
-                    random.shuffle(tmp_know_1)
-                    random.shuffle(tmp_know_2)
-                    predicted_know = tmp_know_1 + tmp_know_2
+                if data['topic'] == data['predicted_topic'][0]:
+                    top1_hard_negative_candidates.append(target_knowledge)
+                elif data['topic'] == data['predicted_topic'][1]:
+                    top2_hard_negative_candidates.appehnd(target_knowledge)
+                random.shuffle(top1_hard_negative_candidates)
+                random.shuffle(top2_hard_negative_candidates)
+                top_hard_negative_candidates_list = [top1_hard_negative_candidates, top2_hard_negative_candidates]
+                predicted_know = top_hard_negative_candidates_list[topic_idx[0]] + top_hard_negative_candidates_list[topic_idx[1]]
+                
+                # n_partition_sampled_negative = int(n_sampled_negative / 2)
+                # n_partition1_sampled_negative = len(set(top1_hard_negative_candidates))
+                # n_partition2_sampled_negative = len(set(top2_hard_negative_candidates))
+                # tmp_know_1 = []
+                # tmp_know_2 = []
+                # if len(top1_hard_negative_candidates) == len(top2_hard_negative_candidates):
+                #     # Top1 과 Top2에 모두 정답이 있거나 모두 정답이 없는 경우 일괄 처리
+                #     predicted_know = top1_hard_negative_candidates + top2_hard_negative_candidates
+                #     predicted_know = list(set(predicted_know))
+                #     predicted_know = predicted_know[:n_sampled_negative-1]
+                #     predicted_know.append(target_knowledge)
+                #     random.shuffle(predicted_know)
+                # else:
+                #     if len(top1_hard_negative_candidates) < len(top2_hard_negative_candidates):
+                #         tmp_know_1.append(target_knowledge)
+                #     else:
+                #         tmp_know_2.append(target_knowledge)
+                #     tmp_know_1.extend(random.sample(top1_hard_negative_candidates,n_partition1_sampled_negative))
+                #     tmp_know_2.extend(random.sample(top2_hard_negative_candidates,n_partition2_sampled_negative))
+                #     random.shuffle(tmp_know_1)
+                #     random.shuffle(tmp_know_2)
+                #     predicted_know = tmp_know_1 + tmp_know_2
             else:
                 while len(predicted_know) < n_sampled_negative:
                     selected = random.choice(hard_negative_candidates)
@@ -383,8 +398,7 @@ def llama_finetune(
                                                             input2=", ".join(data['predicted_topic'][:2]), input3=predicted_know, label=label, mode='train')
             elif 'UDGIP2GIP' == args.prompt:
                 label = f"Goal: {data['goal']}\nTopic: {data['topic']}\nPassage:{label}"
-                predicted_topic = deepcopy(data['predicted_topic'][:args.topk_topic])
-                random.shuffle(predicted_topic)
+
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(predicted_topic),
                                                             input3=predicted_know, input4=data['user_profile'], label=label, mode='train')
             elif 'UDGIP2P' == args.prompt:
