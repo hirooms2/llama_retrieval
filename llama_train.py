@@ -338,7 +338,7 @@ def llama_finetune(
                 if data['topic'] == data['predicted_topic'][0]:
                     top1_hard_negative_candidates.append(target_knowledge)
                 elif data['topic'] == data['predicted_topic'][1]:
-                    top2_hard_negative_candidates.appehnd(target_knowledge)
+                    top2_hard_negative_candidates.append(target_knowledge)
                 random.shuffle(top1_hard_negative_candidates)
                 random.shuffle(top2_hard_negative_candidates)
                 top_hard_negative_candidates_list = [top1_hard_negative_candidates, top2_hard_negative_candidates]
