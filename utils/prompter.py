@@ -39,11 +39,12 @@ class Prompter(object):
                     top1_negative_candidates = [i for i in top1_negative_candidates if data['predicted_topic'][0].lower().strip() in i.lower().strip()]
                     top2_negative_candidates = [i for i in top2_negative_candidates if data['predicted_topic'][1].lower().strip() in i.lower().strip()]
 
-                    # top1_negative_candidates = [f"{data['predicted_topic'][0]}|{i}" for i in top1_negative_candidates]
-                    # top2_negative_candidates = [f"{data['predicted_topic'][1]}|{i}" for i in top2_negative_candidates]
+                    top1_negative_candidates = [f"{data['predicted_topic'][0]}|{i}" for i in top1_negative_candidates]
+                    top2_negative_candidates = [f"{data['predicted_topic'][1]}|{i}" for i in top2_negative_candidates]
 
                     predicted_know = top1_negative_candidates + top2_negative_candidates
-
+                    if len(predicted_know) == 0:
+                        predicted_know = data['predicted_know'][:self.args.n_docs]
                 else:
                     predicted_know = data['predicted_know'][:self.args.n_docs]
                 predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
