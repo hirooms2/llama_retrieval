@@ -302,79 +302,53 @@ def llama_finetune(
 
             predicted_know = []
             if args.positive == 'pseudo':
-                # target_knowledge = data['predicted_know'][args.n_pseudo - 1]
                 target_knowledge = random.choice(data['predicted_know'][:args.n_pseudo])
-                hard_negative_candidates = data['predicted_know'][args.n_pseudo:args.n_hard_negative]
             elif args.positive == 'highly_relevant':
                 target_knowledge = random.choice(data['candidate_knowledges_gpt'])
-                hard_negative_candidates = [item for item in data['predicted_know'][:args.n_hard_negative] if item not in data['candidate_knowledges_gpt']]
             elif args.positive == 'gpt_selection':
                 target_knowledge = data['gpt_selection']
-                if args.combined:
-                    if args.partition:
-                        n_partition_negative = int(args.n_hard_negative / 2)
-                        top1_hard_negative_candidates = [item for item in data['predicted_know'][0:0+n_partition_negative] if item != target_knowledge]
-                        top2_hard_negative_candidates = [item for item in data['predicted_know'][10:10+n_partition_negative] if item != target_knowledge]
-                    else:
-                        data['predicted_know'] = data['predicted_know'][0:0 + 5] + data['predicted_know'][10:10 + 5]
-                hard_negative_candidates = [item for item in data['predicted_know'] if item != data['gpt_selection']]
-                hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
             else:
                 raise ValueError
 
-            predicted_know.append(target_knowledge)
-
-            if len(set(hard_negative_candidates)) + 1 < args.n_sampled_negative:
-                n_sampled_negative = len(set(hard_negative_candidates)) + 1
-            else:
-                n_sampled_negative = args.n_sampled_negative
-            
             topic_idx = [i for i in range(args.topk_topic)]
             random.shuffle(topic_idx)
             predicted_topic = [data['predicted_topic'][i] for i in topic_idx]
-            # deepcopy(data['predicted_topic'][:args.topk_topic])
 
-            if args.partition:
+            if args.combined:
+                n_partition_negative = int(args.n_hard_negative / 2)
+                top1_hard_negative_candidates = [item for item in data['predicted_know'][0:0 + n_partition_negative] if item != target_knowledge]
+                top2_hard_negative_candidates = [item for item in data['predicted_know'][10:10 + n_partition_negative] if item != target_knowledge]
+
+                top1_hard_negative_candidates = [f"{data['predicted_topic'][0]}|{i}" for i in top1_hard_negative_candidates]
+                top2_hard_negative_candidates = [f"{data['predicted_topic'][1]}|{i}" for i in top2_hard_negative_candidates]
+
                 if data['topic'] == data['predicted_topic'][0]:
+                    target_knowledge = f"{data['predicted_topic'][0]}|{target_knowledge}"
                     top1_hard_negative_candidates.append(target_knowledge)
                 elif data['topic'] == data['predicted_topic'][1]:
+                    target_knowledge = f"{data['predicted_topic'][1]}|{target_knowledge}"
                     top2_hard_negative_candidates.append(target_knowledge)
+
                 random.shuffle(top1_hard_negative_candidates)
                 random.shuffle(top2_hard_negative_candidates)
                 top_hard_negative_candidates_list = [top1_hard_negative_candidates, top2_hard_negative_candidates]
                 predicted_know = top_hard_negative_candidates_list[topic_idx[0]] + top_hard_negative_candidates_list[topic_idx[1]]
-                
-                # n_partition_sampled_negative = int(n_sampled_negative / 2)
-                # n_partition1_sampled_negative = len(set(top1_hard_negative_candidates))
-                # n_partition2_sampled_negative = len(set(top2_hard_negative_candidates))
-                # tmp_know_1 = []
-                # tmp_know_2 = []
-                # if len(top1_hard_negative_candidates) == len(top2_hard_negative_candidates):
-                #     # Top1 과 Top2에 모두 정답이 있거나 모두 정답이 없는 경우 일괄 처리
-                #     predicted_know = top1_hard_negative_candidates + top2_hard_negative_candidates
-                #     predicted_know = list(set(predicted_know))
-                #     predicted_know = predicted_know[:n_sampled_negative-1]
-                #     predicted_know.append(target_knowledge)
-                #     random.shuffle(predicted_know)
-                # else:
-                #     if len(top1_hard_negative_candidates) < len(top2_hard_negative_candidates):
-                #         tmp_know_1.append(target_knowledge)
-                #     else:
-                #         tmp_know_2.append(target_knowledge)
-                #     tmp_know_1.extend(random.sample(top1_hard_negative_candidates,n_partition1_sampled_negative))
-                #     tmp_know_2.extend(random.sample(top2_hard_negative_candidates,n_partition2_sampled_negative))
-                #     random.shuffle(tmp_know_1)
-                #     random.shuffle(tmp_know_2)
-                #     predicted_know = tmp_know_1 + tmp_know_2
             else:
+                hard_negative_candidates = [item for item in data['predicted_know'] if item != data['gpt_selection']]
+                hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
+                predicted_know.append(target_knowledge)
+
+                if len(set(hard_negative_candidates)) + 1 < args.n_sampled_negative:
+                    n_sampled_negative = len(set(hard_negative_candidates)) + 1
+                else:
+                    n_sampled_negative = args.n_sampled_negative
                 while len(predicted_know) < n_sampled_negative:
                     selected = random.choice(hard_negative_candidates)
                     if selected not in predicted_know:
                         predicted_know.append(selected)
-
                 random.shuffle(predicted_know)
-            relevant_idx = predicted_know.index(target_knowledge)
 
+            relevant_idx = predicted_know.index(target_knowledge)
             predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
             label = f"{relevant_idx + 1}. {target_knowledge}"
 

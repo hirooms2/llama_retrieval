@@ -29,12 +29,23 @@ class Prompter(object):
 
         for data, label in zip(dataset_input, dataset_output):
             if 'predicted_know' in data:
-                predicted_know = data['predicted_know'][:self.args.n_docs]
-                # if self.args.combine:
-                #     len_retrieval = len(data['predicted_know'])
-                #     partition = len_retrieval / self.args.topk_topic
-                #     for idx, x in enumerate(predicted_know):
-                #         predicted_know[idx] = f"{data['predicted_topic'][int(idx // partition)]}|{x}"
+                if self.args.combined:
+                    partition = int(len(data['predicted_know']) / 2)
+                    n_partition_negative = int(self.args.n_docs / 2)
+
+                    top1_negative_candidates = data['predicted_know'][0:n_partition_negative]
+                    top2_negative_candidates = data['predicted_know'][partition:partition + n_partition_negative]
+
+                    top1_negative_candidates = [i for i in top1_negative_candidates if data['predicted_topic'][0].lower().strip() in i.lower().strip()]
+                    top2_negative_candidates = [i for i in top2_negative_candidates if data['predicted_topic'][1].lower().strip() in i.lower().strip()]
+
+                    # top1_negative_candidates = [f"{data['predicted_topic'][0]}|{i}" for i in top1_negative_candidates]
+                    # top2_negative_candidates = [f"{data['predicted_topic'][1]}|{i}" for i in top2_negative_candidates]
+
+                    predicted_know = top1_negative_candidates + top2_negative_candidates
+
+                else:
+                    predicted_know = data['predicted_know'][:self.args.n_docs]
                 predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
 
             if 'UD2I' in self.args.prompt:
@@ -74,8 +85,8 @@ class Prompter(object):
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:self.args.topk_topic]), input3=predicted_know, label=label, mode=mode))
             elif 'UDGIP2P' == self.args.prompt or 'UDGIP2GIP' == self.args.prompt:
                 predicted_topic_list = deepcopy(data['predicted_topic'][:self.args.topk_topic])
-                predicted_topic_conf_list = deepcopy(data['predicted_topic_confidence'][:self.args.topk_topic])
                 if self.args.topic_conf != 1:
+                    predicted_topic_conf_list = deepcopy(data['predicted_topic_confidence'][:self.args.topk_topic])
                     cum_prob = 0
                     candidate_topic_entities = []
                     for p_topic, p_conf in zip(predicted_topic_list, predicted_topic_conf_list):
