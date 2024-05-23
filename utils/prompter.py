@@ -28,6 +28,12 @@ class Prompter(object):
         instructions = []
 
         for data, label in zip(dataset_input, dataset_output):
+
+            if self.args.query:
+                predicted_goal = data['query']
+            else:
+                predicted_goal = data['predicted_goal'][0]
+
             predicted_topic_list = deepcopy(data['predicted_topic'][:self.args.topk_topic])
             if self.args.topic_conf != 1:
                 predicted_topic_conf_list = deepcopy(data['predicted_topic_confidence'][:self.args.topk_topic])
@@ -90,21 +96,24 @@ class Prompter(object):
                 #             cum_prob += p_conf
                 #     guide = f"Goal: {data['predicted_goal'][0]} | Topic: {' or '.join(candidate_topic_entities)}"
                 # else:
-                guide = f"Goal: {data['predicted_goal'][0]} | Topic: {' or '.join(predicted_topic_list)}"
+                guide = f"Goal: {predicted_goal} | Topic: {' or '.join(predicted_topic_list)}"
 
                 # instructions.append(self.generate_prompt(instruction=data['dialog'],  label=label, mode=mode))
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=guide, label=label, mode=mode))
             elif 'UDP2GP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=data['user_profile'], label=label, mode=mode))
             elif 'DGIP2GIP' == self.args.prompt:
-                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(predicted_topic_list), input3=predicted_know, label=label, mode=mode))
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic_list), input3=predicted_know, label=label, mode=mode))
             elif 'UDGIP2P' == self.args.prompt or 'UDGIP2GIP' == self.args.prompt:
-                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(predicted_topic_list), input3=predicted_know,
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic_list), input3=predicted_know,
+                                                         input4=data['user_profile'], label=label, mode=mode))
+            elif 'UDGIP2GI' == self.args.prompt:
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic_list), input3=predicted_know,
                                                          input4=data['user_profile'], label=label, mode=mode))
             elif 'UDGI2GI' == self.args.prompt:
                 if mode == 'train':
                     label = f"Goal: {data['goal']}\nTopic: {data['topic']}"
-                instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(predicted_topic_list), input3=data['user_profile'], label=label, mode=mode))
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic_list), input3=data['user_profile'], label=label, mode=mode))
             elif 'DP2GP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
             elif 'DP2I' == self.args.prompt:

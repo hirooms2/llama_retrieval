@@ -41,6 +41,7 @@ def parse_args():
     parser.add_argument("--pseudo", action='store_true', help="combine pseudo")
     parser.add_argument("--combined", action='store_true', help="combine pseudo")
     parser.add_argument("--partition", action='store_true', help="combine pseudo")
+    parser.add_argument("--query", action='store_true', help="original goal vs. refined goal")
 
     parser.add_argument('--cutoff', type=int, default=256)
     parser.add_argument('--passage_cutoff', type=int, default=128)
