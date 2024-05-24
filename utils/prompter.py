@@ -29,10 +29,7 @@ class Prompter(object):
 
         for data, label in zip(dataset_input, dataset_output):
 
-            if self.args.query:
-                predicted_goal = data['query']
-            else:
-                predicted_goal = data['predicted_goal'][0]
+            predicted_goal = data['predicted_goal'][0]
 
             predicted_topic_list = deepcopy(data['predicted_topic'][:self.args.topk_topic])
             if self.args.topic_conf != 1:
@@ -53,11 +50,10 @@ class Prompter(object):
                     top1_negative_candidates = data['predicted_know'][:n_partition_negative]
                     top2_negative_candidates = data['predicted_know'][partition:partition + n_partition_negative]
 
-                    top1_negative_candidates = [i for i in top1_negative_candidates if data['predicted_topic'][0].lower().strip() in i.lower().strip()]
-                    top2_negative_candidates = [i for i in top2_negative_candidates if data['predicted_topic'][1].lower().strip() in i.lower().strip()]
-
-                    top1_negative_candidates = [f"{data['predicted_topic'][0]}|{i}" for i in top1_negative_candidates]
-                    top2_negative_candidates = [f"{data['predicted_topic'][1]}|{i}" for i in top2_negative_candidates]
+                    # top1_negative_candidates = [i for i in top1_negative_candidates if data['predicted_topic'][0].lower().strip() in i.lower().strip()]
+                    # top2_negative_candidates = [i for i in top2_negative_candidates if data['predicted_topic'][1].lower().strip() in i.lower().strip()]
+                    # top1_negative_candidates = [f"{data['predicted_topic'][0]}|{i}" for i in top1_negative_candidates]
+                    # top2_negative_candidates = [f"{data['predicted_topic'][1]}|{i}" for i in top2_negative_candidates]
 
                     top_negative_candidates = [top1_negative_candidates, top2_negative_candidates]
                     predicted_know = []
