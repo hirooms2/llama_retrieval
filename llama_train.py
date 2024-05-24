@@ -314,10 +314,10 @@ def llama_finetune(
             random.shuffle(topic_idx)
             predicted_topic = [data['predicted_topic'][i] for i in topic_idx]
 
-            if args.query:
-                label_goal = data['query']
+            if self.args.query:
+                predicted_goal = data['query']
             else:
-                label_goal = data['predicted_goal'][0]
+                predicted_goal = data['predicted_goal'][0]
 
             if args.combined:
                 n_partition_negative = int(args.n_hard_negative / 2)
@@ -365,30 +365,30 @@ def llama_finetune(
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode='train')
             elif 'DG2P' == args.prompt:
                 # num_items = 2 if mode == 'train' else 1
-                guide = f"Goal: {data['goal']} | Topic: {' or '.join(data['topic'])}"
+                guide = f"Goal: {predicted_goal} | Topic: {' or '.join(data['topic'])}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=guide, label=label, mode='train')
             elif 'DP2GP' == args.prompt:
-                guide = f"Goal: {data['goal']}: {data['topic']}"
+                guide = f"Goal: {predicted_goal}: {data['topic']}"
                 label = f"{guide}\nPassage:{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode='train')
             elif 'DGIP2GIP' == args.prompt:
-                label = f"Goal: {data['goal']}\nTopic: {data['topic']}\nPassage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0],
+                label = f"Goal: {predicted_goal}\nTopic: {data['topic']}\nPassage:{label}"
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
                                                             input2=", ".join(data['predicted_topic'][:2]), input3=predicted_know, label=label, mode='train')
             elif 'UDGIP2GIP' == args.prompt:
-                label = f"Goal: {label_goal}\nTopic: {data['topic']}\nPassage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=label_goal, input2=", ".join(predicted_topic),
+                label = f"Goal: {predicted_goal}\nTopic: {data['topic']}\nPassage:{label}"
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic),
                                                             input3=predicted_know, input4=data['user_profile'], label=label, mode='train')
             elif 'UDGIP2GI' == args.prompt:
-                label = f"Goal: {label_goal}\nTopic: {data['topic']}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(predicted_topic),
+                label = f"Goal: {predicted_goal}\nTopic: {data['topic']}"
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic),
                                                             input3=predicted_know, input4=data['user_profile'], label=label, mode='train')
             elif 'UDGIP2P' == args.prompt:
                 label = f"Passage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=data['predicted_goal'][0], input2=", ".join(data['predicted_topic'][:args.topk_topic]), input3=predicted_know,
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(data['predicted_topic'][:args.topk_topic]), input3=predicted_know,
                                                             input4=data['user_profile'], label=label, mode='train')
             elif 'UDP2GP' == args.prompt:
-                guide = f"Goal: {data['goal']}: {data['topic']}"
+                guide = f"Goal: {predicted_goal}: {data['topic']}"
                 label = f"{guide}\nPassage:{label}"
                 profile = data['user_profile']
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=profile, label=label, mode='train')
