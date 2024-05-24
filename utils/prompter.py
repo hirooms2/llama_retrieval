@@ -29,7 +29,8 @@ class Prompter(object):
 
         for data, label in zip(dataset_input, dataset_output):
 
-            predicted_goal = data['predicted_goal'][0]
+            # predicted_goal = data['predicted_goal'][0]
+            predicted_goal = data['query']
 
             predicted_topic_list = deepcopy(data['predicted_topic'][:self.args.topk_topic])
             if self.args.topic_conf != 1:
