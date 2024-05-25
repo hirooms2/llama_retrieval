@@ -67,6 +67,8 @@ class Prompter(object):
                         predicted_know = data['predicted_know'][:self.args.n_docs]
                 else:
                     predicted_know = data['predicted_know'][:self.args.n_docs]
+                relevant_idx = predicted_know.index(label) if label in predicted_know else -1
+                label = f"{relevant_idx + 1}. {label}"
                 predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
 
             if 'UD2I' in self.args.prompt:
