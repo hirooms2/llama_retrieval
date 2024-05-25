@@ -81,6 +81,7 @@ def llama_finetune(
     print('#' * 64)
 
     base_model = args.base_model
+    train_on_inputs = args.train_on_inputs
 
     # global_batch_size = per_device_batch_size * gradient_accumulation_steps * num_gpus
     batch_size = args.batch_size
@@ -175,6 +176,7 @@ def llama_finetune(
     def generate_and_tokenize_prompt(data_point):
         full_prompt = data_point['instruction']
         tokenized_full_prompt = tokenize(full_prompt)
+
         return tokenized_full_prompt
 
     if args.bf:
@@ -297,6 +299,46 @@ def llama_finetune(
             self.dataset = dataset
             self.prompter = Prompter(args, args.prompt)
 
+        def prompting(self, data, predicted_goal, predicted_topic, predicted_know, label, mode='train'):
+            if 'D2P' in args.prompt:
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode)
+            elif 'DI2P' in args.prompt:
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=data['topic'], label=label, mode=mode)
+            elif 'DP2I' == args.prompt:
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode)
+            elif 'DG2P' == args.prompt:
+                # num_items = 2 if mode == 'train' else 1
+                guide = f"Goal:{predicted_goal} | Topic:{' or '.join(data['topic'])}"
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=guide, label=label, mode=mode)
+            elif 'DP2GP' == args.prompt:
+                guide = f"Goal:{predicted_goal}: {data['topic']}"
+                label = f"{guide}\nPassage:{label}"
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode)
+            elif 'DGIP2GIP' == args.prompt:
+                label = f"Goal:{predicted_goal}\nTopic:{data['topic']}\nPassage:{label}"
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=", ".join(data['predicted_topic'][:2]), input3=predicted_know, label=label, mode=mode)
+            elif 'UDGIP2GIP' == args.prompt:
+                label = f"Goal:{predicted_goal}\nTopic:{data['topic']}\nPassage:{label}"
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic),
+                                                            input3=predicted_know, input4=data['user_profile'], label=label, mode=mode)
+            elif 'UDGIP2GI' == args.prompt:
+                label = f"Goal:{predicted_goal}\nTopic:{data['topic']}"
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic),
+                                                            input3=predicted_know, input4=data['user_profile'], label=label, mode=mode)
+            elif 'UDGIP2P' == args.prompt:
+                label = f"Passage:{label}"
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(data['predicted_topic'][:args.topk_topic]), input3=predicted_know,
+                                                            input4=data['user_profile'], label=label, mode=mode)
+            elif 'UDP2GP' == args.prompt:
+                guide = f"Goal:{predicted_goal}: {data['topic']}"
+                label = f"{guide}\nPassage:{label}"
+                profile = data['user_profile']
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=profile, label=label, mode=mode)
+            else:
+                raise ValueError
+            return full_prompt
+
         def __getitem__(self, idx):
             data = self.dataset[idx]
 
@@ -357,44 +399,22 @@ def llama_finetune(
             predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
             label = f"{relevant_idx + 1}. {target_knowledge}"
 
-            if 'D2P' in args.prompt:
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode='train')
-            elif 'DI2P' in args.prompt:
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=data['topic'], label=label, mode='train')
-            elif 'DP2I' == args.prompt:
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode='train')
-            elif 'DG2P' == args.prompt:
-                # num_items = 2 if mode == 'train' else 1
-                guide = f"Goal:{predicted_goal} | Topic:{' or '.join(data['topic'])}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=guide, label=label, mode='train')
-            elif 'DP2GP' == args.prompt:
-                guide = f"Goal:{predicted_goal}: {data['topic']}"
-                label = f"{guide}\nPassage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode='train')
-            elif 'DGIP2GIP' == args.prompt:
-                label = f"Goal:{predicted_goal}\nTopic:{data['topic']}\nPassage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=", ".join(data['predicted_topic'][:2]), input3=predicted_know, label=label, mode='train')
-            elif 'UDGIP2GIP' == args.prompt:
-                label = f"Goal:{predicted_goal}\nTopic:{data['topic']}\nPassage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic),
-                                                            input3=predicted_know, input4=data['user_profile'], label=label, mode='train')
-            elif 'UDGIP2GI' == args.prompt:
-                label = f"Goal:{predicted_goal}\nTopic:{data['topic']}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic),
-                                                            input3=predicted_know, input4=data['user_profile'], label=label, mode='train')
-            elif 'UDGIP2P' == args.prompt:
-                label = f"Passage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(data['predicted_topic'][:args.topk_topic]), input3=predicted_know,
-                                                            input4=data['user_profile'], label=label, mode='train')
-            elif 'UDP2GP' == args.prompt:
-                guide = f"Goal:{predicted_goal}: {data['topic']}"
-                label = f"{guide}\nPassage:{label}"
-                profile = data['user_profile']
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=profile, label=label, mode='train')
+            full_prompt = self.prompting(data, predicted_goal, predicted_topic, predicted_know, label)
+
             tokenized_full_prompt = tokenize(full_prompt)
             # item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
             # item['labels'] = torch.tensor(self.labels[idx])
+            if not train_on_inputs:
+                user_prompt = self.prompting(data, predicted_goal, predicted_topic, predicted_know, label, mode='test')
+
+                tokenized_user_prompt = tokenize(user_prompt, add_eos_token=add_eos_token)
+                user_prompt_len = len(tokenized_user_prompt["input_ids"])
+
+                if add_eos_token:
+                    user_prompt_len -= 1
+
+                tokenized_full_prompt["labels"] = [-100] * user_prompt_len + tokenized_full_prompt["labels"][user_prompt_len:]  # could be sped up, probably
+
             return tokenized_full_prompt
 
         def __len__(self):
