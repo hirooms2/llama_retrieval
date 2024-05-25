@@ -356,7 +356,7 @@ def llama_finetune(
             random.shuffle(topic_idx)
             predicted_topic = [data['predicted_topic'][i] for i in topic_idx]
 
-            if self.args.query:
+            if args.query:
                 predicted_goal = data['query']
             else:
                 predicted_goal = data['predicted_goal'][0]
