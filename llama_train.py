@@ -322,14 +322,15 @@ def llama_finetune(
                 label = f"Goal:{predicted_goal}\nTopic:{data['topic']}\nPassage:{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic),
                                                             input3=predicted_know, input4=data['user_profile'], label=label, mode=mode)
+            elif 'UDGIP2P' == args.prompt:
+                label = f"Passage:{label}"
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic),
+                                                            input3=predicted_know, input4=data['user_profile'], label=label, mode=mode)
             elif 'UDGIP2GI' == args.prompt:
                 label = f"Goal:{predicted_goal}\nTopic:{data['topic']}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic),
                                                             input3=predicted_know, input4=data['user_profile'], label=label, mode=mode)
-            elif 'UDGIP2P' == args.prompt:
-                label = f"Passage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(data['predicted_topic'][:args.topk_topic]), input3=predicted_know,
-                                                            input4=data['user_profile'], label=label, mode=mode)
+
             elif 'UDP2GP' == args.prompt:
                 guide = f"Goal:{predicted_goal}: {data['topic']}"
                 label = f"{guide}\nPassage:{label}"
