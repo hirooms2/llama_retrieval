@@ -128,7 +128,10 @@ def createLogFile(args):
     md = str(datetime.now(timezone('Asia/Seoul')).strftime('%m%d'))
 
     if args.log_name == '':
-        log_name = 'llama_result'
+        if args.peft_weights != '' and args.mode == 'test':
+            log_name = args.peft_weights
+        else:
+            log_name = 'llama_result'
     else:
         log_name = args.log_name
     args.log_name = mdhm + '_' + log_name
