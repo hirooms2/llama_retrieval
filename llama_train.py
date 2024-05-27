@@ -364,24 +364,21 @@ def llama_finetune(
             else:
                 predicted_goal = data['predicted_goal'][0]
 
-            if args.combined:
+            if data['combined']:
+                partition = int(len(data['predicted_know']) / 2)
                 n_partition_negative = int(args.n_hard_negative / 2)
-                top1_hard_negative_candidates = [item for item in data['predicted_know'][0:0 + n_partition_negative] if item != target_knowledge]
-                top2_hard_negative_candidates = [item for item in data['predicted_know'][10:10 + n_partition_negative] if item != target_knowledge]
-
-                top1_hard_negative_candidates = [f"{data['predicted_topic'][0]}|{i}" for i in top1_hard_negative_candidates]
-                top2_hard_negative_candidates = [f"{data['predicted_topic'][1]}|{i}" for i in top2_hard_negative_candidates]
+                top1_hard_negative_candidates = [item for item in data['predicted_know'][:n_partition_negative] if item != target_knowledge]
+                top2_hard_negative_candidates = [item for item in data['predicted_know'][partition:partition + n_partition_negative] if item != target_knowledge]
 
                 if data['topic'] == data['predicted_topic'][0]:
-                    # target_knowledge = f"{data['predicted_topic'][0]}|{target_knowledge}"
                     top1_hard_negative_candidates.append(target_knowledge)
                 elif data['topic'] == data['predicted_topic'][1]:
-                    # target_knowledge = f"{data['predicted_topic'][1]}|{target_knowledge}"
                     top2_hard_negative_candidates.append(target_knowledge)
 
                 random.shuffle(top1_hard_negative_candidates)
                 random.shuffle(top2_hard_negative_candidates)
                 top_hard_negative_candidates_list = [top1_hard_negative_candidates, top2_hard_negative_candidates]
+
                 predicted_know = top_hard_negative_candidates_list[topic_idx[0]] + top_hard_negative_candidates_list[topic_idx[1]]
             else:
                 hard_negative_candidates = [item for item in data['predicted_know'] if item != data['gpt_selection']]

@@ -47,19 +47,19 @@ if __name__ == "__main__":
 
     # Wandb initialize
     # if args.debug == False:
-    args.wandb_project = "llama_retrieval"
-    args.wandb_run_name = args.log_name
-    wandb.init(project=args.wandb_project, name=args.wandb_run_name)
+    # args.wandb_project = "llama_retrieval"
+    # args.wandb_run_name = args.log_name
+    # wandb.init(project=args.wandb_project, name=args.wandb_run_name)
 
     tokenizer = LlamaTokenizer.from_pretrained(args.base_model)
 
     train_raw_dataset, test_raw_dataset = load_dataset(args)
 
-    train_know_dataset = merge_dataset_passages(args, train_raw_dataset, mode='train')
-    test_know_dataset = merge_dataset_passages(args, test_raw_dataset, mode='test')
+    train_know_dataset = merge_dataset_passages(args, train_raw_dataset, mode='train', combined=args.combined)
+    test_know_dataset = merge_dataset_passages(args, test_raw_dataset, mode='test', combined=args.combined)
 
     if args.pseudo:
-        train_know_dataset_pseudo = merge_dataset_passages(args, train_raw_dataset, mode='train', know_file_path='pseudo')
+        train_know_dataset_pseudo = merge_dataset_passages(args, train_raw_dataset, mode='train', know_file_path='pseudo', combined=False)
         train_know_dataset.extend(train_know_dataset_pseudo)
 
     train_know_dataset, train_labels, train_topics = prepare_dataset(args, tokenizer, train_know_dataset)

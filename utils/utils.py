@@ -31,7 +31,7 @@ def augment_dataset(args, know_dataset, labels, topics):
     return new_know_dataset, new_labels, new_topics
 
 
-def merge_dataset_passages(args, dataset, mode='train', know_file_path=''):
+def merge_dataset_passages(args, dataset, mode='train', know_file_path='', combined=False):
     if mode == 'train' and know_file_path == '':
         know_file_path = args.train_know_file
     elif mode == 'test' and know_file_path == '':
@@ -46,6 +46,7 @@ def merge_dataset_passages(args, dataset, mode='train', know_file_path=''):
 
     for idx, know_data in enumerate(know_dataset):
         dataset[idx]['predicted_know'] = know_data['predicted_know']
+        dataset[idx]['combined'] = combined
 
     return deepcopy(dataset)
 
