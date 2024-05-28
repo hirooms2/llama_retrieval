@@ -9,7 +9,7 @@ import pandas as pd
 import torch
 import transformers
 from datasets import Dataset
-from transformers import Trainer, TrainingArguments, TrainerState, TrainerControl, LlamaConfig
+from transformers import Trainer, TrainingArguments, TrainerState, TrainerControl, LlamaConfig, AutoModelForCausalLM
 from utils.prompter import Prompter
 
 """
@@ -238,7 +238,7 @@ def llama_finetune(
     #     configuration = LlamaConfig(num_hidden_layers=1)
     #     model = LlamaForCausalLM(configuration)
     # else:
-    model = LlamaForCausalLM.from_pretrained(
+    model = AutoModelForCausalLM.from_pretrained(
         base_model,
         torch_dtype=dtype,  # 의미 없음 -> 오히려 빨라지는 양상? 이거 BF16으로 한번 해보기?
         device_map=device_map,  # {"": 0},  # device_map,  # {"": 0},  # 만일 multi-GPU를 'auto', 240414 추가

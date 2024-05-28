@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from transformers import LlamaTokenizer
+from transformers import AutoTokenizer
 
 from llama_test import LLaMaEvaluator
 # from llama_train import llama_finetune
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     # args.wandb_run_name = args.log_name
     # wandb.init(project=args.wandb_project, name=args.wandb_run_name)
 
-    tokenizer = LlamaTokenizer.from_pretrained(args.base_model)
+    tokenizer = AutoTokenizer.from_pretrained(args.base_model)
 
     train_raw_dataset, test_raw_dataset = load_dataset(args)
 
