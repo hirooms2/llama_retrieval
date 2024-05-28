@@ -49,7 +49,7 @@ def parse_args():
 
     parser.add_argument('--epoch', type=int, default=5)
     parser.add_argument('--learning_rate', type=float, default=3e-4)
-    parser.add_argument('--base_model', type=str, default='meta-llama/Llama-2-7b-chat-hf', choices=['meta-llama/Meta-Llama-3-8B-Instruct', 'meta-llama/Llama-2-7b-chat-hf'])
+    parser.add_argument('--base_model', type=str, default='meta-llama/Llama-2-7b-chat-hf', choices=['meta-llama/Meta-Llama-3-8B-Instruct', 'meta-llama/Llama-2-7b-chat-hf', 'meta-llama/Llama-2-13b-chat-hf'])
     parser.add_argument('--resume_from_checkpoint', type=str, default='')
     parser.add_argument('--deepspeed', type=str, default='')
 
