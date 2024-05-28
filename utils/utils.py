@@ -55,7 +55,7 @@ def prepare_dataset(args, tokenizer, dataset):
     labels, topics = [], []
 
     if args.debug:
-        dataset = dataset[:100]
+        dataset = dataset[:50] + dataset[-50:]
 
     if args.test_continue != 0:
         dataset = dataset[args.test_continue:]
