@@ -124,8 +124,11 @@ class LLaMaEvaluator:
             #         device_map={"": device},
             #     )
         # unwind broken decapoda-research config
+
         self.tokenizer.add_special_tokens({'pad_token': '<pad>'})
+        model.resize_token_embeddings(len(self.tokenizer))
         model.config.pad_token_id = self.tokenizer.pad_token_id
+
         model.config.bos_token_id = self.tokenizer.bos_token_id
         model.config.eos_token_id = self.tokenizer.eos_token_id
         self.tokenizer.add_eos_token = False

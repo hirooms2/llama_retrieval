@@ -249,6 +249,8 @@ def llama_finetune(
     #     0  # unk. we want this to be different from the eos token
     # )
     tokenizer.add_special_tokens({'pad_token': '<pad>'})
+    model.resize_token_embeddings(len(tokenizer))
+    model.config.pad_token_id = tokenizer.pad_token_id
 
     tokenizer.padding_side = "left"  # "left" 이거 right로 하면 학습안됨?"" # Allow batched inference
     # tokenizer.add_eos_token = True  # 이렇게 했을 때, 마지막에 eos 붙는거 확인.. 위치는 SFTtrainer 안에 _prepare_dataset() 내에서 진행. 240414 추가
