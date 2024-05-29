@@ -374,16 +374,24 @@ def llama_finetune(
             predicted_topic = [data['predicted_topic'][i] for i in topic_idx]
 
             if data['combined']:
-
                 partition = int(len(data['predicted_know']) / 2)
-                n_partition_negative = int(args.n_hard_negative / 2)
-                top1_hard_negative_candidates = [item for item in data['predicted_know'][:n_partition_negative] if item != target_knowledge]
-                top2_hard_negative_candidates = [item for item in data['predicted_know'][partition:partition + n_partition_negative] if item != target_knowledge]
+                top1_hard_negative_candidates = [item for item in data['predicted_know'][:partition] if item != target_knowledge]
+                top2_hard_negative_candidates = [item for item in data['predicted_know'][partition:] if item != target_knowledge]
+
+                top1_hard_negative_candidates = top1_hard_negative_candidates[:args.n_hard_negative]
+                top2_hard_negative_candidates = top2_hard_negative_candidates[:args.n_hard_negative]
+
+                random.shuffle(top1_hard_negative_candidates)
+                random.shuffle(top2_hard_negative_candidates)
 
                 if data['topic'] == data['predicted_topic'][0]:
-                    top1_hard_negative_candidates.append(target_knowledge)
+                    top1_hard_negative_candidates.insert(0, target_knowledge)
                 elif data['topic'] == data['predicted_topic'][1]:
-                    top2_hard_negative_candidates.append(target_knowledge)
+                    top2_hard_negative_candidates.insert(0, target_knowledge)
+
+                n_partition_negative = int(args.n_sampled_negative / 2)
+                top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
+                top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
 
                 random.shuffle(top1_hard_negative_candidates)
                 random.shuffle(top2_hard_negative_candidates)
