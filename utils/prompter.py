@@ -47,7 +47,7 @@ class Prompter(object):
                 predicted_topic_list = deepcopy(candidate_topic_entities)
 
             if 'predicted_know' in data and 'P' in self.args.prompt:
-                if self.args.combined:
+                if len(predicted_topic_list) > 1:  # self.args.combined:
                     partition = int(len(data['predicted_know']) / 2)
                     n_partition_negative = int(self.args.n_docs / 2)
 
@@ -62,15 +62,19 @@ class Prompter(object):
                     # Tagging code
                     # top1_negative_candidates = [f"{data['predicted_topic'][0]}|{i}" for i in top1_negative_candidates]
                     # top2_negative_candidates = [f"{data['predicted_topic'][1]}|{i}" for i in top2_negative_candidates]
-
-                    top_negative_candidates = [top1_negative_candidates, top2_negative_candidates]
-                    predicted_know = []
-                    for i in range(len(predicted_topic_list)):
-                        predicted_know += top_negative_candidates[i]
-                    if len(predicted_know) == 0:
-                        predicted_know = data['predicted_know'][:self.args.n_docs]
-                else:
+                    predicted_know = top1_negative_candidates + top2_negative_candidates
+                    # top_negative_candidates = [top1_negative_candidates, top2_negative_candidates]
+                    # predicted_know = []
+                    # for i in range(len(predicted_topic_list)):
+                    #     predicted_know += top_negative_candidates[i]
+                else:  # 사용되는 topic이 무조건 top-1인 경우
                     predicted_know = data['predicted_know'][:self.args.n_docs]
+                    if self.args.filtering:
+                        predicted_know = [i for i in predicted_know if data['predicted_topic'][0].lower().strip() in i.lower().strip()]
+
+                if len(predicted_know) == 0:  # 가끔 싹 다 필터링되는 상황이 있음
+                    predicted_know = data['predicted_know'][:self.args.n_docs]
+
                 relevant_idx = predicted_know.index(label) if label in predicted_know else -1
                 label = f"{relevant_idx + 1}. {label}"
                 predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
