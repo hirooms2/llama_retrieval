@@ -58,6 +58,9 @@ if __name__ == "__main__":
     train_know_dataset = merge_dataset_passages(args, train_raw_dataset, mode='train', combined=args.combined)
     test_know_dataset = merge_dataset_passages(args, test_raw_dataset, mode='test', combined=args.combined)
 
+    # test_know_dataset_combined = merge_dataset_passages(args, test_raw_dataset, mode='test', know_file_path='combined', combined=True)
+    # top2nd = json.load(open('en_CotMAE_CL_GPT_BM25_top1_know_top_1_0_test_know_3711.json', 'r', encoding='utf-8'))
+
     if args.pseudo:
         train_know_dataset_pseudo = merge_dataset_passages(args, train_raw_dataset, mode='train', know_file_path='pseudo', combined=False)
         train_know_dataset.extend(train_know_dataset_pseudo)
