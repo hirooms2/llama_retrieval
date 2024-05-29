@@ -54,8 +54,12 @@ class Prompter(object):
                     top1_negative_candidates = data['predicted_know'][:n_partition_negative]
                     top2_negative_candidates = data['predicted_know'][partition:partition + n_partition_negative]
 
-                    # top1_negative_candidates = [i for i in top1_negative_candidates if data['predicted_topic'][0].lower().strip() in i.lower().strip()]
-                    # top2_negative_candidates = [i for i in top2_negative_candidates if data['predicted_topic'][1].lower().strip() in i.lower().strip()]
+                    # Filtering code
+                    if self.args.filtering:
+                        top1_negative_candidates = [i for i in top1_negative_candidates if data['predicted_topic'][0].lower().strip() in i.lower().strip()]
+                        top2_negative_candidates = [i for i in top2_negative_candidates if data['predicted_topic'][1].lower().strip() in i.lower().strip()]
+
+                    # Tagging code
                     # top1_negative_candidates = [f"{data['predicted_topic'][0]}|{i}" for i in top1_negative_candidates]
                     # top2_negative_candidates = [f"{data['predicted_topic'][1]}|{i}" for i in top2_negative_candidates]
 
