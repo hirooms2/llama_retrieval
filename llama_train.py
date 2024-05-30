@@ -375,11 +375,13 @@ def llama_finetune(
 
             if data['combined']:
                 partition = int(len(data['predicted_know']) / 2)
+                n_partition_negative = int(args.n_sampled_negative / 2)
+
                 top1_hard_negative_candidates = [item for item in data['predicted_know'][:partition] if item != target_knowledge]
                 top2_hard_negative_candidates = [item for item in data['predicted_know'][partition:] if item != target_knowledge]
 
-                top1_hard_negative_candidates = top1_hard_negative_candidates[:args.n_hard_negative]
-                top2_hard_negative_candidates = top2_hard_negative_candidates[:args.n_hard_negative]
+                top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
+                top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
 
                 random.shuffle(top1_hard_negative_candidates)
                 random.shuffle(top2_hard_negative_candidates)
@@ -389,7 +391,6 @@ def llama_finetune(
                 elif data['topic'] == data['predicted_topic'][1]:
                     top2_hard_negative_candidates.insert(0, target_knowledge)
 
-                n_partition_negative = int(args.n_sampled_negative / 2)
                 top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
                 top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
 
@@ -416,6 +417,9 @@ def llama_finetune(
             relevant_idx = predicted_know.index(target_knowledge)
             predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
             label = f"{relevant_idx + 1}. {target_knowledge}"
+
+            if args.combined_top1 and idx % 2 == 0:
+                predicted_topic = data['predicted_topic'][0] if data['topic'] == data['predicted_topic'][0] else data['predicted_topic'][1]
 
             full_prompt = self.prompting(data, predicted_goal, predicted_topic, predicted_know, label)
 

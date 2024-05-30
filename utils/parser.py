@@ -40,6 +40,8 @@ def parse_args():
     parser.add_argument('--positive', type=str, default='pseudo', choices=['only_pseudo', 'pseudo', 'highly_relevant', 'gpt_selection'])
     parser.add_argument("--pseudo", action='store_true', help="combine pseudo")
     parser.add_argument("--combined", action='store_true', help="combine pseudo")
+    parser.add_argument("--combined_top1", action='store_true', help="combine combined but top-1")
+
     parser.add_argument("--partition", action='store_true', help="combine pseudo")
     parser.add_argument("--query", action='store_true', help="original goal vs. refined goal")
     parser.add_argument("--filtering", action='store_true', help="filter-out if a passage does not contain the predicted topic")
