@@ -54,6 +54,9 @@ class Prompter(object):
                     top1_negative_candidates = data['predicted_know'][:partition]
                     top2_negative_candidates = data['predicted_know'][partition:]
 
+                    top1_negative_candidates = [i for i in top1_negative_candidates if i != '']
+                    top2_negative_candidates = [i for i in top2_negative_candidates if i != '']
+
                     # Filtering code
                     if self.args.filtering:
                         top1_negative_candidates = [i for i in top1_negative_candidates if data['predicted_topic'][0].lower().strip() in i.lower().strip()]
@@ -72,10 +75,11 @@ class Prompter(object):
                     #     predicted_know += top_negative_candidates[i]
                 else:  # 사용되는 topic이 무조건 top-1인 경우
                     predicted_know = data['predicted_know']
+                    predicted_know = [i for i in predicted_know if i != '']
+
                     if self.args.filtering:
                         predicted_know = [i for i in predicted_know if data['predicted_topic'][0].lower().strip() in i.lower().strip()]
                     predicted_know = predicted_know[:self.args.n_docs]
-
 
                 if len(predicted_know) == 0:  # 가끔 싹 다 필터링되는 상황이 있음
                     predicted_know = data['predicted_know'][:self.args.n_docs]
