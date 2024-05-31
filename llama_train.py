@@ -319,7 +319,15 @@ def llama_finetune(
                 label = f"{guide}\nPassage:{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode)
             elif 'DGIP2GIP' in args.prompt:
-                label = f"Goal:{predicted_goal}\nTopic:{data['topic']}\nPassage:{label}"
+                if 'DGIP2GIP_newnew' == args.prompt:
+                    label = f"""Let's think step by step.
+                    Based on the dialog and candidate passages, determine the most suitable goal and topic for the response.
+                    Goal: {predicted_goal}
+                    Topic: {data['topic']}
+                    Then, using the chosen goal and topic, select the most relevant passage from the list above to generate the response.
+                    Passage: {label}"""
+                else:
+                    label = f"Goal:{predicted_goal}\nTopic:{data['topic']}\nPassage:{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
                                                             input2=", ".join(predicted_topic), input3=predicted_know, label=label, mode=mode)
             elif 'UDGIP2GIP' == args.prompt:
