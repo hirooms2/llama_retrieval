@@ -41,6 +41,7 @@ def parse_args():
     parser.add_argument("--pseudo", action='store_true', help="combine pseudo")
     parser.add_argument("--combined", action='store_true', help="combine pseudo")
     parser.add_argument("--combined_top1", action='store_true', help="combine combined but top-1")
+    parser.add_argument("--input_top1", action='store_true', help="combine combined but top-1")
 
     parser.add_argument("--partition", action='store_true', help="combine pseudo")
     parser.add_argument("--query", action='store_true', help="original goal vs. refined goal")
