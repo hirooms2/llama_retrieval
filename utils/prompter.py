@@ -47,7 +47,7 @@ class Prompter(object):
                 predicted_topic_list = deepcopy(candidate_topic_entities)
 
             if 'predicted_know' in data and 'P' in self.args.prompt:
-                if len(predicted_topic_list) > 1:  # self.args.combined:
+                if len(predicted_topic_list) > 1 or self.args.combined_top1:  # self.args.combined:
                     partition = int(len(data['predicted_know']) / 2)
                     n_partition_negative = int(self.args.n_docs / 2)
 
