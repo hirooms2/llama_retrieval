@@ -418,7 +418,7 @@ def llama_finetune(
             predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
             label = f"{relevant_idx + 1}. {target_knowledge}"
 
-            if args.combined_top1: # and idx % 2 == 0:
+            if args.combined_top1 and idx % 2 == 0:
                 predicted_topic = [data['predicted_topic'][0]] if data['topic'] == data['predicted_topic'][0] else [data['predicted_topic'][1]]
 
             full_prompt = self.prompting(data, predicted_goal, predicted_topic, predicted_know, label)
