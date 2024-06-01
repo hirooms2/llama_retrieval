@@ -422,7 +422,7 @@ def llama_finetune(
                 random.shuffle(predicted_know)
 
             relevant_idx = predicted_know.index(target_knowledge)
-            predicted_know = '\n'.join([f"Passage {idx + 1}. {know} (related to {predicted_topic[idx // len(predicted_know)]})" for idx, know in enumerate(predicted_know)])
+            predicted_know = '\n'.join([f"Passage {idx + 1}. {know} (related to {predicted_topic[idx // int(len(predicted_know) / 2)]})" for idx, know in enumerate(predicted_know)])
             label = f"{relevant_idx + 1}. {target_knowledge}"
 
             if args.combined_top1:
