@@ -65,7 +65,7 @@ def parse_args():
     parser.add_argument('--topk_topic', type=int, default=1)
 
     # For generation config
-    parser.add_argument('--max_new_tokens', type=int, default=128)
+    parser.add_argument('--max_new_tokens', type=int, default=256)
     parser.add_argument('--num_beams', type=int, default=5)
     parser.add_argument('--temperature', type=float, default=0.1)
 
