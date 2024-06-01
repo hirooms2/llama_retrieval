@@ -70,7 +70,7 @@ class Prompter(object):
                     predicted_know = ""
                     for i in range(len(predicted_topic_list)):
                         prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
-                        candidate_passages = '\n'.join([f"{i * n_partition_negative + idx + 1}. {know}" for idx, know in enumerate(top_negative_candidates[i])])
+                        candidate_passages = '\n'.join([f"Passage {i * n_partition_negative + idx + 1}. {know}" for idx, know in enumerate(top_negative_candidates[i])])
                         predicted_know += f"{prefix}\n{candidate_passages}\n\n"
 
                 else:  # 사용되는 topic이 무조건 top-1인 경우
