@@ -49,7 +49,7 @@ class Prompter(object):
             if 'predicted_know' in data and 'P' in self.args.prompt:
                 if self.args.combined:  # self.args.combined:
                     partition = int(len(data['predicted_know']) / 2)
-                    n_partition_negative = int(self.args.n_docs / 2)
+                    n_partition_negative = self.args.n_sampled_negative  # int(self.args.n_docs / 2)
 
                     top1_negative_candidates = data['predicted_know'][:partition]
                     top2_negative_candidates = data['predicted_know'][partition:]
