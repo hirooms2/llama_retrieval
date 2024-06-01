@@ -407,6 +407,15 @@ def llama_finetune(
                 top_hard_negative_candidates_list = [top1_hard_negative_candidates, top2_hard_negative_candidates]
 
                 predicted_know = top_hard_negative_candidates_list[topic_idx[0]] + top_hard_negative_candidates_list[topic_idx[1]]
+
+                relevant_idx = predicted_know.index(target_knowledge)
+
+                predicted_know = ""
+                for i in range(len(predicted_topic)):
+                    prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic[i]}"
+                    candidate_passages = '\n'.join([f"{i * n_partition_negative + idx + 1}. {know}" for idx, know in enumerate(top_hard_negative_candidates_list[topic_idx[i]])])
+                    predicted_know += f"{prefix}\n{candidate_passages}\n\n"
+
             else:
                 hard_negative_candidates = [item for item in data['predicted_know'] if item != data['gpt_selection']]
                 hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
@@ -422,8 +431,8 @@ def llama_finetune(
                         predicted_know.append(selected)
                 random.shuffle(predicted_know)
 
-            relevant_idx = predicted_know.index(target_knowledge)
-            predicted_know = '\n'.join([f"Passage {idx + 1}. {know} (related to {predicted_topic[idx // int(len(predicted_know) / 2)]})" for idx, know in enumerate(predicted_know)])
+                relevant_idx = predicted_know.index(target_knowledge)
+                predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
             label = f"{relevant_idx + 1}. {target_knowledge}"
 
             if args.combined_top1:
