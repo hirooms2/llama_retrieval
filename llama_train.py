@@ -320,7 +320,8 @@ def llama_finetune(
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode)
             elif 'DGIP2I' in args.prompt:
                 label = data['topic']
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic), input3=predicted_know, label=label, mode=mode)
+                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics, input3=predicted_know, label=label, mode=mode)
             elif 'DGIP2GIP' in args.prompt:
                 if 'DGIP2GIP_newnew' == args.prompt:
                     label = f"Let's think step by step.\nBased on the dialog and candidate passages, determine the most suitable goal and topic for the response.\nGoal: {predicted_goal}\nTopic: {data['topic']}\n\nThen, using the chosen goal and topic, select the most relevant passage from the list above to generate the response.\nPassage: {label}"
@@ -421,7 +422,7 @@ def llama_finetune(
                 random.shuffle(predicted_know)
 
             relevant_idx = predicted_know.index(target_knowledge)
-            predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
+            predicted_know = '\n'.join([f"Passage {idx + 1}. {know} (related to {predicted_topic[idx // len(predicted_know)]})" for idx, know in enumerate(predicted_know)])
             label = f"{relevant_idx + 1}. {target_knowledge}"
 
             if args.combined_top1:
