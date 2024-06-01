@@ -389,7 +389,7 @@ def llama_finetune(
 
             if data['combined']:
                 partition = int(len(data['predicted_know']) / 2)
-                n_partition_negative = int(args.n_sampled_negative / 2)
+                n_partition_negative = args.n_sampled_negative  # int(args.n_sampled_negative / 2)
 
                 top1_hard_negative_candidates = [item for item in data['predicted_know'][:partition] if item != target_knowledge]
                 top2_hard_negative_candidates = [item for item in data['predicted_know'][partition:] if item != target_knowledge]
@@ -402,10 +402,8 @@ def llama_finetune(
 
                 if data['topic'] == data['predicted_topic'][0]:
                     top1_hard_negative_candidates.insert(0, target_knowledge)
-                    target_topic_idx = 0
                 elif data['topic'] == data['predicted_topic'][1]:
                     top2_hard_negative_candidates.insert(0, target_knowledge)
-                    target_topic_idx = 1
 
                 top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
                 top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
@@ -428,18 +426,19 @@ def llama_finetune(
                     predicted_know += f"{prefix}\n{candidate_passages}\n\n"
 
             else:
-                hard_negative_candidates = [item for item in data['predicted_know'] if item != data['gpt_selection']]
-                hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
-                predicted_know.append(target_knowledge)
-
-                if len(set(hard_negative_candidates)) + 1 < args.n_sampled_negative:
-                    n_sampled_negative = len(set(hard_negative_candidates)) + 1
-                else:
-                    n_sampled_negative = args.n_sampled_negative
-                while len(predicted_know) < n_sampled_negative:
-                    selected = random.choice(hard_negative_candidates)
-                    if selected not in predicted_know:
-                        predicted_know.append(selected)
+                predicted_know = [item for item in data['predicted_know'] if item != target_knowledge]
+                predicted_know.insert(0, target_knowledge)
+                predicted_know = predicted_know[:args.n_sampled_negative]
+                # predicted_know.append(target_knowledge)
+                #
+                # if len(set(hard_negative_candidates)) + 1 < args.n_sampled_negative:
+                #     n_sampled_negative = len(set(hard_negative_candidates)) + 1
+                # else:
+                #     n_sampled_negative = args.n_sampled_negative
+                # while len(predicted_know) < n_sampled_negative:
+                #     selected = random.choice(hard_negative_candidates)
+                #     if selected not in predicted_know:
+                #         predicted_know.append(selected)
                 random.shuffle(predicted_know)
 
                 relevant_idx = predicted_know.index(target_knowledge)
