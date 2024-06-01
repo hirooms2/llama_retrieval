@@ -412,7 +412,7 @@ def llama_finetune(
 
                 predicted_know = ""
                 for i in range(len(predicted_topic)):
-                    prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic[i]}"
+                    prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic[topic_idx[i]]}"
                     candidate_passages = '\n'.join([f"{i * n_partition_negative + idx + 1}. {know}" for idx, know in enumerate(top_hard_negative_candidates_list[topic_idx[i]])])
                     predicted_know += f"{prefix}\n{candidate_passages}\n\n"
 
