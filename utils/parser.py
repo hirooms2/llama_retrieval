@@ -35,7 +35,7 @@ def parse_args():
     parser.add_argument('--n_docs', type=int, default=2)
     parser.add_argument('--n_pseudo', type=int, default=2)
     parser.add_argument('--n_hard_negative', type=int, default=10)
-    parser.add_argument('--n_sampled_negative', type=int, default=5)
+    parser.add_argument('--n_sampled_negative', type=int, default=3)
 
     parser.add_argument('--positive', type=str, default='pseudo', choices=['only_pseudo', 'pseudo', 'highly_relevant', 'gpt_selection'])
     parser.add_argument("--pseudo", action='store_true', help="combine pseudo")
@@ -48,7 +48,7 @@ def parse_args():
     parser.add_argument("--filtering", action='store_true', help="filter-out if a passage does not contain the predicted topic")
 
     parser.add_argument('--cutoff', type=int, default=256)
-    parser.add_argument('--passage_cutoff', type=int, default=32)
+    parser.add_argument('--passage_cutoff', type=int, default=50)
     parser.add_argument('--train_on_inputs', action='store_false', help="Disable to learn input")
 
     parser.add_argument('--epoch', type=int, default=5)
