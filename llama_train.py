@@ -319,7 +319,7 @@ def llama_finetune(
                 label = f"{guide}\nPassage:{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode)
             elif 'DGIP2I' in args.prompt:
-                topic_idx = 1 if data['predicted_topic'][0] == data['topic'] else 2
+                topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
                 label = f"Topic {topic_idx}. {data['topic']}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics, input3=predicted_know, label=label, mode=mode)
