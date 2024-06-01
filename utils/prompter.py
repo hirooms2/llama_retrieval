@@ -74,6 +74,7 @@ class Prompter(object):
                     # for i in range(len(predicted_topic_list)):
                     #     predicted_know += top_negative_candidates[i]
                 else:  # 사용되는 topic이 무조건 top-1인 경우
+                    n_partition_negative = int(self.args.n_docs / 1)
                     predicted_know = data['predicted_know']
                     predicted_know = [i for i in predicted_know if i != '']
 
@@ -86,7 +87,8 @@ class Prompter(object):
 
                 relevant_idx = predicted_know.index(label) if label in predicted_know else -1
                 label = f"{relevant_idx + 1}. {label}"
-                predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
+                # predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
+                predicted_know = '\n'.join([f"Passage {idx + 1}. {know} (related to {predicted_topic_list[idx // n_partition_negative]})" for idx, know in enumerate(predicted_know)])
 
             if 'UD2I' in self.args.prompt:
                 instructions.append(
@@ -122,7 +124,9 @@ class Prompter(object):
             elif 'UDP2GP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=data['user_profile'], label=label, mode=mode))
             elif 'DGIP2I' in self.args.prompt:
-                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic_list), input3=predicted_know, label=label, mode=mode))
+                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic_list)])
+
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics, input3=predicted_know, label=label, mode=mode))
             elif 'DGIP2GIP' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic_list), input3=predicted_know, label=label, mode=mode))
             elif 'DGP2P' == self.args.prompt:
