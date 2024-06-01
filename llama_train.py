@@ -448,7 +448,7 @@ def llama_finetune(
                 candidate_passages = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
                 predicted_know = f"{prefix}\n{candidate_passages}\n\n"
 
-            label = target_knowledge
+            label = f"Passage {relevant_idx + 1}. {target_knowledge}"
 
             if args.combined_top1:
                 if idx % 2 == 0 or args.input_top1:
