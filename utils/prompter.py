@@ -56,7 +56,7 @@ class Prompter(object):
                         for idx, top_passages in enumerate(top_negative_candidates):
                             top_negative_candidates[idx] = [i for i in top_passages if data['predicted_topic'][idx].lower().strip() in i.lower().strip()]
 
-                    for idx, top_passages in enumerate(data["predicted_know"]):
+                    for idx, top_passages in enumerate(top_negative_candidates):
                         top_negative_candidates[idx] = top_negative_candidates[idx][:self.args.n_sampled_negative]
 
                     predicted_know = ""

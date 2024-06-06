@@ -408,15 +408,15 @@ def llama_finetune(
                     for idx, top_passages in enumerate(top_negative_candidates):
                         top_negative_candidates[idx] = [i for i in top_passages if data['predicted_topic'][idx].lower().strip() in i.lower().strip()]
 
-                for idx, predicted_topic in enumerate(predicted_topic_list):
+                for idx, predicted_topic in enumerate(data['predicted_topic'][:topk_topic]):
                     if data['topic'] == predicted_topic:
                         top_negative_candidates[idx].insert(0, target_knowledge)
 
-                for idx, top_passages in enumerate(data["predicted_know"]):
+                for idx, top_passages in enumerate(top_negative_candidates):
                     top_negative_candidates[idx] = top_negative_candidates[idx][:args.n_sampled_negative]
 
                 if args.shuffle:
-                    for idx, top_passages in enumerate(data["predicted_know"]):
+                    for idx, top_passages in enumerate(top_negative_candidates):
                         random.shuffle(top_negative_candidates[idx])
 
                 # predicted_know = ""
