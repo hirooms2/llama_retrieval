@@ -332,7 +332,7 @@ def llama_finetune(
                 # label = f"{data['topic']}"
                 topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
                 if args.postfix:
-                    label = f"Considering the given dialog and passages, the most suitable topic would be Topic {topic_idx}. {data['topic']}"
+                    label = f"Considering the given dialog and passages, the most suitable topic would be:\nTopic {topic_idx}. {data['topic']}"
                 else:
                     label = f"Topic {topic_idx}. {data['topic']}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
