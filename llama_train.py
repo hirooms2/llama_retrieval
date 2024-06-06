@@ -411,6 +411,7 @@ def llama_finetune(
                 for idx, predicted_topic in enumerate(data['predicted_topic'][:topk_topic]):
                     if data['topic'] == predicted_topic:
                         top_negative_candidates[idx].insert(0, target_knowledge)
+                        break
 
                 for idx, top_passages in enumerate(top_negative_candidates):
                     top_negative_candidates[idx] = top_negative_candidates[idx][:args.n_sampled_negative]
