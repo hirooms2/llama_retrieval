@@ -73,7 +73,7 @@ def llama_finetune(
         prompt_template_name: str = "alpaca_legacy",  # The prompt template to use, will default to alpaca.
 ):
     print('#' * 64)
-    print('I\'M TRAINER for Sampling')
+    print('I\'M TRAINER for GEN')
     print('#' * 64)
 
     base_model = args.base_model
