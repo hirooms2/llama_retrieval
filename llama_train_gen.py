@@ -73,10 +73,11 @@ def llama_finetune(
         prompt_template_name: str = "alpaca_legacy",  # The prompt template to use, will default to alpaca.
 ):
     print('#' * 64)
-    print('I\'M TRAINER for Generation')
+    print('I\'M TRAINER for Sampling')
     print('#' * 64)
 
     base_model = args.base_model
+    train_on_inputs = args.train_on_inputs
 
     # global_batch_size = per_device_batch_size * gradient_accumulation_steps * num_gpus
     batch_size = args.batch_size
