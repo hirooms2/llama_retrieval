@@ -396,46 +396,73 @@ def llama_finetune(
             topk_topic = args.topk_topic if data['combined'] else 1  # data['combined']의 경우 여러개의 item이 섞인 상황. 아니면 top-1만 쓰는 상호아
             topic_idx = [i for i in range(topk_topic)]
             random.shuffle(topic_idx)  # 만일 top-1 item만 쓰는 경우, 아무 상관없음
-            predicted_topic = [data['predicted_topic'][i] for i in topic_idx]
+            predicted_topic_list = [data['predicted_topic'][i] for i in topic_idx]
+
+            top_negative_candidates = deepcopy(data['predicted_know'])
 
             if data['combined']:
-                partition = int(len(data['predicted_know']) / 2)
-                n_partition_negative = args.n_sampled_negative  # int(args.n_sampled_negative / 2)
+                for idx, top_passages in enumerate(top_negative_candidates):
+                    top_negative_candidates[idx] = [i for i in top_passages if i != '']
+                # Filtering code
+                if self.args.filtering:
+                    for idx, top_passages in enumerate(top_negative_candidates):
+                        top_negative_candidates[idx] = [i for i in top_passages if data['predicted_topic'][idx].lower().strip() in i.lower().strip()]
 
-                top1_hard_negative_candidates = [item for item in data['predicted_know'][:partition] if item != target_knowledge]
-                top2_hard_negative_candidates = [item for item in data['predicted_know'][partition:] if item != target_knowledge]
+                for idx, predicted_topic in enumerate(predicted_topic_list):
+                    if data['topic'] == predicted_topic:
+                        top_negative_candidates[idx].insert(0, target_knowledge)
 
-                top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
-                top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
-
-                if args.shuffle:
-                    random.shuffle(top1_hard_negative_candidates)
-                    random.shuffle(top2_hard_negative_candidates)
-
-                if data['topic'] == data['predicted_topic'][0]:
-                    top1_hard_negative_candidates.insert(0, target_knowledge)
-                elif data['topic'] == data['predicted_topic'][1]:
-                    top2_hard_negative_candidates.insert(0, target_knowledge)
-
-                top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
-                top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
+                for idx, top_passages in enumerate(data["predicted_know"]):
+                    top_negative_candidates[idx] = top_negative_candidates[idx][:self.args.n_sampled_negative]
 
                 if args.shuffle:
-                    random.shuffle(top1_hard_negative_candidates)
-                    random.shuffle(top2_hard_negative_candidates)
-                top_hard_negative_candidates_list = [top1_hard_negative_candidates, top2_hard_negative_candidates]
+                    for idx, top_passages in enumerate(data["predicted_know"]):
+                        random.shuffle(top_negative_candidates[idx])
+
+                # predicted_know = ""
+                # for i in range(len(predicted_topic_list)):
+                #     prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
+                #     candidate_passages = '\n'.join([f"Passage {i * self.args.n_sampled_negative + idx + 1}. {know}" for idx, know in enumerate(top_negative_candidates[i])])
+                #     predicted_know += f"{prefix}\n{candidate_passages}\n\n"
+                #
+                # ####
+                # partition = int(len(data['predicted_know']) / 2)
+                # n_partition_negative = args.n_sampled_negative  # int(args.n_sampled_negative / 2)
+                #
+                # top1_hard_negative_candidates = [item for item in data['predicted_know'][:partition] if item != target_knowledge]
+                # top2_hard_negative_candidates = [item for item in data['predicted_know'][partition:] if item != target_knowledge]
+                #
+                # top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
+                # top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
+                #
+                # if args.shuffle:
+                #     random.shuffle(top1_hard_negative_candidates)
+                #     random.shuffle(top2_hard_negative_candidates)
+                #
+                # if data['topic'] == data['predicted_topic'][0]:
+                #     top1_hard_negative_candidates.insert(0, target_knowledge)
+                # elif data['topic'] == data['predicted_topic'][1]:
+                #     top2_hard_negative_candidates.insert(0, target_knowledge)
+                #
+                # top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
+                # top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
+                #
+                # if args.shuffle:
+                #     random.shuffle(top1_hard_negative_candidates)
+                #     random.shuffle(top2_hard_negative_candidates)
+                # top_hard_negative_candidates_list = [top1_hard_negative_candidates, top2_hard_negative_candidates]
 
                 predicted_know = []
 
-                for i in range(len(predicted_topic)):
-                    predicted_know += top_hard_negative_candidates_list[topic_idx[i]]
+                for i in range(len(predicted_topic_list)):
+                    predicted_know += top_negative_candidates[topic_idx[i]]
 
                 relevant_idx = predicted_know.index(target_knowledge)
 
                 predicted_know = ""
-                for i in range(len(predicted_topic)):
-                    prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic[i]}"
-                    candidate_passages = '\n'.join([f"Passage {i * n_partition_negative + idx + 1}. {know}" for idx, know in enumerate(top_hard_negative_candidates_list[topic_idx[i]])])
+                for i in range(len(predicted_topic_list)):
+                    prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
+                    candidate_passages = '\n'.join([f"Passage {i * self.args.n_sampled_negative + idx + 1}. {know}" for idx, know in enumerate(top_negative_candidates[topic_idx[i]])])
                     predicted_know += f"{prefix}\n{candidate_passages}\n\n"
 
             else:
@@ -457,7 +484,7 @@ def llama_finetune(
 
                 relevant_idx = predicted_know.index(target_knowledge)
 
-                prefix = f"Here are the candidate passages about Topic 1. {predicted_topic[0]}"
+                prefix = f"Here are the candidate passages about Topic 1. {predicted_topic_list[0]}"
                 candidate_passages = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
                 predicted_know = f"{prefix}\n{candidate_passages}\n\n"
 
@@ -465,15 +492,15 @@ def llama_finetune(
 
             if args.combined_top1:
                 if idx % 2 == 0 or args.input_top1:
-                    predicted_topic = [data['predicted_topic'][0]] if data['topic'] == data['predicted_topic'][0] else [data['predicted_topic'][1]]
+                    predicted_topic_list = [data['predicted_topic'][0]] if data['topic'] == data['predicted_topic'][0] else [data['predicted_topic'][1]]
 
-            full_prompt = self.prompting(data, predicted_goal, predicted_topic, predicted_know, label)
+            full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label)
 
             tokenized_full_prompt = tokenize(full_prompt)
             # item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
             # item['labels'] = torch.tensor(self.labels[idx])
             if not train_on_inputs:
-                user_prompt = self.prompting(data, predicted_goal, predicted_topic, predicted_know, label, mode='test')
+                user_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label, mode='test')
 
                 tokenized_user_prompt = tokenize(user_prompt, add_eos_token=add_eos_token)
                 user_prompt_len = len(tokenized_user_prompt["input_ids"])
