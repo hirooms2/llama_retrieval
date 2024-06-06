@@ -404,7 +404,7 @@ def llama_finetune(
                 for idx, top_passages in enumerate(top_negative_candidates):
                     top_negative_candidates[idx] = [i for i in top_passages if i != '']
                 # Filtering code
-                if self.args.filtering:
+                if args.filtering:
                     for idx, top_passages in enumerate(top_negative_candidates):
                         top_negative_candidates[idx] = [i for i in top_passages if data['predicted_topic'][idx].lower().strip() in i.lower().strip()]
 
@@ -413,7 +413,7 @@ def llama_finetune(
                         top_negative_candidates[idx].insert(0, target_knowledge)
 
                 for idx, top_passages in enumerate(data["predicted_know"]):
-                    top_negative_candidates[idx] = top_negative_candidates[idx][:self.args.n_sampled_negative]
+                    top_negative_candidates[idx] = top_negative_candidates[idx][:args.n_sampled_negative]
 
                 if args.shuffle:
                     for idx, top_passages in enumerate(data["predicted_know"]):
@@ -462,7 +462,7 @@ def llama_finetune(
                 predicted_know = ""
                 for i in range(len(predicted_topic_list)):
                     prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
-                    candidate_passages = '\n'.join([f"Passage {i * self.args.n_sampled_negative + idx + 1}. {know}" for idx, know in enumerate(top_negative_candidates[topic_idx[i]])])
+                    candidate_passages = '\n'.join([f"Passage {i * args.n_sampled_negative + idx + 1}. {know}" for idx, know in enumerate(top_negative_candidates[topic_idx[i]])])
                     predicted_know += f"{prefix}\n{candidate_passages}\n\n"
 
             else:
