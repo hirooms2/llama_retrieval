@@ -402,6 +402,9 @@ def llama_finetune(
 
             if data['combined']:
                 for idx, top_passages in enumerate(top_negative_candidates):
+                    top_negative_candidates[idx] = [i for i in top_passages if i != target_knowledge]
+
+                for idx, top_passages in enumerate(top_negative_candidates):
                     top_negative_candidates[idx] = [i for i in top_passages if i != '']
                 # Filtering code
                 if args.filtering:
