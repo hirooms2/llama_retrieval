@@ -201,6 +201,8 @@ def make(args, mode, dialogs, augmendted_dialogs, topic_mode):
             topic = data['predicted_topic'][0]
         elif topic_mode == 'top2':
             topic = data['predicted_topic'][1]
+        elif topic_mode == 'top3':
+            topic = data['predicted_topic'][2]
         else:
             topic = data['topic']
 
@@ -313,6 +315,8 @@ if __name__ == "__main__":
 
     augmendted_train_dialogs = pickle.load(open("data/train_pred_aug_dataset_new_prev.pkl", "rb"))
     augmendted_test_dialogs = pickle.load(open("data/test_pred_aug_dataset_new.pkl", "rb"))
+    # augmendted_train_dialogs = pickle.load(open("data/train_pred_aug_dataset_new3.pkl", "rb"))
+
     # augmendted_train_dialogs_top = pickle.load(open("train_pred_aug_dataset_new.pkl", "rb"))
 
     filtered_corpus_train = []
@@ -333,9 +337,10 @@ if __name__ == "__main__":
     if 'train' in args.mode:
         augmendted_train_dialogs = make(args, 'train', train_dialogs, augmendted_train_dialogs, 'top1')
         augmendted_train_dialogs = make(args, 'train', train_dialogs, augmendted_train_dialogs, 'top2')
+        augmendted_train_dialogs = make(args, 'train', train_dialogs, augmendted_train_dialogs, 'top3')
 
         eval(augmendted_train_dialogs)
-        pickle.dump(augmendted_train_dialogs, open(f'data/train_pred_aug_dataset_new.pkl', 'wb'))
+        pickle.dump(augmendted_train_dialogs, open(f'data/train_pred_aug_dataset_new3.pkl', 'wb'))
 
     if 'test' in args.mode:
         augmendted_test_dialogs = make(args, 'test', test_dialogs, augmendted_test_dialogs)

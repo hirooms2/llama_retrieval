@@ -78,9 +78,10 @@ def prepare_dataset(args, tokenizer, dataset):
         data['response'] = data['response'].replace('[SEP]', '')
         topics.append(data['topic'])
 
-        for idx, passage in enumerate(data['predicted_know']):
-            data['predicted_know'][idx] = tokenizer.decode(
-                tokenizer(passage).input_ids[1:][:args.passage_cutoff]).strip()
+        for idx1, top_passages in enumerate(data['predicted_know']):
+            for idx2, passage in enumerate(top_passages):
+                data['predicted_know'][idx1][idx2] = tokenizer.decode(
+                    tokenizer(passage).input_ids[1:][:args.passage_cutoff]).strip()
 
         # if 'I' in args.prompt.split('2')[-1]:
         #     labels.append(data['topic'])
