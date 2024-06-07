@@ -35,7 +35,7 @@ class Prompter(object):
             else:
                 predicted_goal = data['predicted_goal'][0]
 
-            topk_topic = self.args.topk_topic if mode == 'test' else self.args.topk_topic_temp
+            topk_topic = self.args.topk_topic
             predicted_topic_list = deepcopy(data['predicted_topic'][:topk_topic])
             if self.args.topic_conf != 1:
                 predicted_topic_conf_list = deepcopy(data['predicted_topic_confidence'][:topk_topic])
