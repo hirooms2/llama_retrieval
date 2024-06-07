@@ -48,6 +48,7 @@ def parse_args():
     parser.add_argument("--filtering", action='store_true', help="filter-out if a passage does not contain the predicted topic")
     parser.add_argument("--shuffle", action='store_true', help="shuffle passages if task is passage selection")
     parser.add_argument("--postfix", action='store_true', help="Add postfix in GEN")
+    parser.add_argument("--topic_num_shuffle", action='store_true', help="Variable number of topics")
 
     parser.add_argument('--cutoff', type=int, default=256)
     parser.add_argument('--passage_cutoff', type=int, default=50)

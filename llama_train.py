@@ -393,7 +393,10 @@ def llama_finetune(
             else:
                 predicted_goal = data['predicted_goal'][0]
 
-            topk_topic = args.topk_topic_temp if data['combined'] else 1  # data['combined']의 경우 여러개의 item이 섞인 상황. 아니면 top-1만 쓰는 상호아
+            topk_topic = args.topk_topic_temp if data['combined'] else 1  # data['combined']의 경우 여러개의 item이 섞인 상황. 아니면 top-1만 쓰는 상황
+            if args.topic_num_shuffle and topk_topic > 1:
+                topk_topic = random.randint(2, topk_topic)
+
             topic_idx = [i for i in range(topk_topic)]
             random.shuffle(topic_idx)  # 만일 top-1 item만 쓰는 경우, 아무 상관없음
             predicted_topic_list = [data['predicted_topic'][i] for i in topic_idx]
@@ -422,39 +425,6 @@ def llama_finetune(
                 if args.shuffle:
                     for idx, top_passages in enumerate(top_negative_candidates):
                         random.shuffle(top_negative_candidates[idx])
-
-                # predicted_know = ""
-                # for i in range(len(predicted_topic_list)):
-                #     prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
-                #     candidate_passages = '\n'.join([f"Passage {i * self.args.n_sampled_negative + idx + 1}. {know}" for idx, know in enumerate(top_negative_candidates[i])])
-                #     predicted_know += f"{prefix}\n{candidate_passages}\n\n"
-                #
-                # ####
-                # partition = int(len(data['predicted_know']) / 2)
-                # n_partition_negative = args.n_sampled_negative  # int(args.n_sampled_negative / 2)
-                #
-                # top1_hard_negative_candidates = [item for item in data['predicted_know'][:partition] if item != target_knowledge]
-                # top2_hard_negative_candidates = [item for item in data['predicted_know'][partition:] if item != target_knowledge]
-                #
-                # top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
-                # top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
-                #
-                # if args.shuffle:
-                #     random.shuffle(top1_hard_negative_candidates)
-                #     random.shuffle(top2_hard_negative_candidates)
-                #
-                # if data['topic'] == data['predicted_topic'][0]:
-                #     top1_hard_negative_candidates.insert(0, target_knowledge)
-                # elif data['topic'] == data['predicted_topic'][1]:
-                #     top2_hard_negative_candidates.insert(0, target_knowledge)
-                #
-                # top1_hard_negative_candidates = top1_hard_negative_candidates[:n_partition_negative]
-                # top2_hard_negative_candidates = top2_hard_negative_candidates[:n_partition_negative]
-                #
-                # if args.shuffle:
-                #     random.shuffle(top1_hard_negative_candidates)
-                #     random.shuffle(top2_hard_negative_candidates)
-                # top_hard_negative_candidates_list = [top1_hard_negative_candidates, top2_hard_negative_candidates]
 
                 predicted_know = []
 
