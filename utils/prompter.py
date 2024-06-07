@@ -35,9 +35,10 @@ class Prompter(object):
             else:
                 predicted_goal = data['predicted_goal'][0]
 
-            predicted_topic_list = deepcopy(data['predicted_topic'][:self.args.topk_topic])
+            topk_topic = self.args.topk_topic if mode == 'test' else self.args.topk_topic_temp
+            predicted_topic_list = deepcopy(data['predicted_topic'][:topk_topic])
             if self.args.topic_conf != 1:
-                predicted_topic_conf_list = deepcopy(data['predicted_topic_confidence'][:self.args.topk_topic])
+                predicted_topic_conf_list = deepcopy(data['predicted_topic_confidence'][:topk_topic])
                 cum_prob = 0
                 candidate_topic_entities = []
                 for p_topic, p_conf in zip(predicted_topic_list, predicted_topic_conf_list):
@@ -77,6 +78,8 @@ class Prompter(object):
             if 'UD2I' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], label=label, mode=mode))
             elif 'UDGI2I' == self.args.prompt:
+                if mode == 'train':
+                    random.shuffle(predicted_topic_list)
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic_list)])
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics, input3=data['user_profile'], label=label, mode=mode))
             elif 'DP2R' in self.args.prompt:
