@@ -81,7 +81,6 @@ def llama_finetune(
     print('#' * 64)
 
     base_model = args.base_model
-    train_on_inputs = args.train_on_inputs
 
     # global_batch_size = per_device_batch_size * gradient_accumulation_steps * num_gpus
     batch_size = args.batch_size
@@ -372,6 +371,8 @@ def llama_finetune(
             return full_prompt
 
         def __getitem__(self, idx):
+            train_on_inputs = args.train_on_inputs
+
             if args.weighted_loss:
                 if random.randint(0, 1) == 0:
                     train_on_inputs = True
