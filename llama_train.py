@@ -65,7 +65,9 @@ def llama_finetune(
             "v_proj",
         ],
         # llm hyperparams
-        train_on_inputs: bool = True,  # if False, masks out inputs in loss
+        # train_on_inputs: bool = True,  # if False, masks out inputs in loss
+        train_only_inputs: bool = True,
+        train_only_outputs: bool = False,
         add_eos_token: bool = False,
         group_by_length: bool = False,  # faster, but produces an odd training loss curve
         # wandb params
@@ -113,7 +115,9 @@ def llama_finetune(
             f"lora_alpha: {lora_alpha}\n"
             f"lora_dropout: {lora_dropout}\n"
             f"lora_target_modules: {lora_target_modules}\n"
-            f"train_on_inputs: {train_on_inputs}\n"
+            # f"train_on_inputs: {train_on_inputs}\n"
+            f"train_only_inputs: {train_only_inputs}\n"
+            f"train_only_outputs: {train_only_outputs}\n"
             f"add_eos_token: {add_eos_token}\n"
             f"group_by_length: {group_by_length}\n"
             f"wandb_project: {wandb_project}\n"
@@ -372,12 +376,16 @@ def llama_finetune(
 
         def __getitem__(self, idx):
             # train_on_inputs = args.train_on_inputs
+            train_only_inputs = args.train_only_inputs
+            train_only_outputs = args.train_only_outputs
 
             if args.weighted_loss:
                 if random.randint(1, 10) <= args.proportion:
-                    train_on_inputs = True
+                    # train_on_inputs = True
+                    train_only_outputs = False
                 else:
-                    train_on_inputs = False
+                    # train_on_inputs = False
+                    train_only_outputs = True
 
             data = self.dataset[idx]
 
@@ -482,7 +490,8 @@ def llama_finetune(
                 full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label)
                 tokenized_full_prompt = tokenize(full_prompt)
 
-            if not train_on_inputs:
+            # if not train_on_inputs:
+            if train_only_outputs:
                 user_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label, mode='test')
 
                 tokenized_user_prompt = tokenize(user_prompt, add_eos_token=add_eos_token)
