@@ -115,7 +115,6 @@ def llama_finetune(
             f"lora_alpha: {lora_alpha}\n"
             f"lora_dropout: {lora_dropout}\n"
             f"lora_target_modules: {lora_target_modules}\n"
-            # f"train_on_inputs: {train_on_inputs}\n"
             f"train_only_inputs: {train_only_inputs}\n"
             f"train_only_outputs: {train_only_outputs}\n"
             f"add_eos_token: {add_eos_token}\n"
@@ -378,14 +377,6 @@ def llama_finetune(
             # train_on_inputs = args.train_on_inputs
             train_only_inputs = args.train_only_inputs
             train_only_outputs = args.train_only_outputs
-
-            if args.weighted_loss:
-                if random.randint(1, 10) <= args.proportion:
-                    # train_on_inputs = True
-                    train_only_outputs = False
-                else:
-                    # train_on_inputs = False
-                    train_only_outputs = True
 
             data = self.dataset[idx]
 
