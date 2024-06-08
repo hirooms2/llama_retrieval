@@ -371,7 +371,7 @@ def llama_finetune(
             return full_prompt
 
         def __getitem__(self, idx):
-            train_on_inputs = args.train_on_inputs
+            # train_on_inputs = args.train_on_inputs
 
             if args.weighted_loss:
                 if random.randint(1, 10) <= args.proportion:
