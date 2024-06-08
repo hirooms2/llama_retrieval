@@ -475,11 +475,13 @@ def llama_finetune(
                 if idx % 2 == 0 or args.input_top1:
                     predicted_topic_list = [data['predicted_topic'][0]] if data['topic'] == data['predicted_topic'][0] else [data['predicted_topic'][1]]
 
-            full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label)
+            if args.train_only_inputs:
+                full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label, mode='test')
+                tokenized_full_prompt = tokenize(full_prompt, add_eos_token=False)
+            else:
+                full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label)
+                tokenized_full_prompt = tokenize(full_prompt)
 
-            tokenized_full_prompt = tokenize(full_prompt)
-            # item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
-            # item['labels'] = torch.tensor(self.labels[idx])
             if not train_on_inputs:
                 user_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label, mode='test')
 
