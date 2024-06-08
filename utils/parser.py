@@ -49,12 +49,11 @@ def parse_args():
     parser.add_argument("--shuffle", action='store_true', help="shuffle passages if task is passage selection")
     parser.add_argument("--postfix", action='store_true', help="Add postfix in GEN")
     parser.add_argument("--topic_num_shuffle", action='store_true', help="Variable number of topics")
-    parser.add_argument("--weighted_loss", action='store_true', help="randomly switch train_on_inputs")
     parser.add_argument('--proportion', type=int, default=10)
 
     parser.add_argument('--cutoff', type=int, default=256)
     parser.add_argument('--passage_cutoff', type=int, default=50)
-    parser.add_argument('--train_only_outputs', action='store_false', help="Disable to learn input")
+    parser.add_argument('--train_only_outputs', action='store_true', help="Disable to learn input")
     parser.add_argument('--train_only_inputs', action='store_true', help="Disable to learn input")
 
     parser.add_argument('--epoch', type=int, default=5)
