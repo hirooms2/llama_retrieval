@@ -70,6 +70,7 @@ if __name__ == "__main__":
 
     if 'P' in args.prompt and args.positive == 'gpt_selection':
         train_know_dataset, train_labels, train_topics = augment_dataset(args, train_know_dataset, train_labels, train_topics)
+        print(len(train_know_dataset))
         # test_know_dataset, test_labels, test_topics = augment_dataset(test_know_dataset, test_labels, test_topics)
 
     prompter = Prompter(args, args.prompt)
