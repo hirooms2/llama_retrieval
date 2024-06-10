@@ -354,7 +354,8 @@ def llama_finetune(
             elif 'UDGIP2I_cot' == args.prompt:
                 # label = f"{data['topic']}"
                 topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
-                label = f"{data['topic_cot']}\nTherefore the most suitable topic is as follow:\nTopic {topic_idx}. {data['topic']}"
+                rationale = data['topic_cot'].split('Therefore')[0].replace('"', '').strip()
+                label = f"{rationale} Therefore, the most suitable topic would be {data['topic']}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
                                                             input2=candidate_topics,
