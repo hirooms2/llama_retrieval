@@ -307,29 +307,38 @@ def llama_finetune(
 
         def prompting(self, data, predicted_goal, predicted_topic, predicted_know, label, mode='train'):
             if 'D2P' in args.prompt:
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
+                                                            label=label, mode=mode)
             elif 'DI2P' in args.prompt:
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=data['topic'], label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
+                                                            input2=data['topic'], label=label, mode=mode)
             elif 'DP2I' == args.prompt:
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
+                                                            label=label, mode=mode)
             elif 'DG2P' == args.prompt:
                 # num_items = 2 if mode == 'train' else 1
                 guide = f"Goal:{predicted_goal} | Topic:{' or '.join(data['topic'])}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=guide, label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
+                                                            input2=guide, label=label, mode=mode)
             elif 'DP2GP' == args.prompt:
                 guide = f"Goal:{predicted_goal}: {data['topic']}"
                 label = f"{guide}\nPassage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
+                                                            label=label, mode=mode)
             elif 'DGIP2I' == args.prompt:
                 topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
                 label = f"Topic {topic_idx}. {data['topic']}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics, input3=predicted_know, label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=candidate_topics, input3=predicted_know, label=label,
+                                                            mode=mode)
 
             elif 'UDGIP2GIP' == args.prompt:
                 label = f"Goal:{predicted_goal}\nTopic:{data['topic']}\nPassage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic),
-                                                            input3=predicted_know, input4=data['user_profile'], label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=", ".join(predicted_topic),
+                                                            input3=predicted_know, input4=data['user_profile'],
+                                                            label=label, mode=mode)
             elif 'UDGIP2I_new' == args.prompt:
                 # label = f"{data['topic']}"
                 topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
@@ -338,44 +347,57 @@ def llama_finetune(
                 else:
                     label = f"Topic {topic_idx}. {data['topic']}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics,
-                                                            input3=predicted_know, input4=data['user_profile'], label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=candidate_topics,
+                                                            input3=predicted_know, input4=data['user_profile'],
+                                                            label=label, mode=mode)
             elif 'UDGIP2I_cot' == args.prompt:
                 # label = f"{data['topic']}"
                 topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
                 label = f"{data['topic_cot']}\nTherefore the most suitable topic is as follow:\nTopic {topic_idx}. {data['topic']}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics,
-                                                            input3=predicted_know, input4=data['user_profile'], label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=candidate_topics,
+                                                            input3=predicted_know, input4=data['user_profile'],
+                                                            label=label, mode=mode)
             elif 'UDGIP2GIP_new' == args.prompt:
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 # topic_idx = 1 if data['predicted_topic'][0] == data['topic'] else 2
                 label = f"Based on the user profile, dialog, and candidate passages for each topic, determine the most suitable goal and topic for the response.\nGoal:{data['goal']}\nTopic:{data['topic']}\n\nThen, using the chosen goal and topic, select the most relevant passage from the list above for generating the response to the given dialog.\nPassage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics,
-                                                            input3=predicted_know, input4=data['user_profile'], label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=candidate_topics,
+                                                            input3=predicted_know, input4=data['user_profile'],
+                                                            label=label, mode=mode)
             elif 'DGIP2GIP' in args.prompt:
                 if 'DGIP2GIP_newnew' == args.prompt:
                     label = f"Let's think step by step.\nBased on the dialog and candidate passages, determine the most suitable goal and topic for the response.\nGoal: {predicted_goal}\nTopic: {data['topic']}\n\nThen, using the chosen goal and topic, select the most relevant passage from the list above to generate the response.\nPassage: {label}"
                 else:
                     label = f"Goal:{predicted_goal}\nTopic:{data['topic']}\nPassage:{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=", ".join(predicted_topic), input3=predicted_know, label=label, mode=mode)
+                                                            input2=", ".join(predicted_topic), input3=predicted_know,
+                                                            label=label, mode=mode)
             elif 'UDGIP2P' == args.prompt:
                 label = f"Passage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic),
-                                                            input3=predicted_know, input4=data['user_profile'], label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=", ".join(predicted_topic),
+                                                            input3=predicted_know, input4=data['user_profile'],
+                                                            label=label, mode=mode)
             elif 'DGP2P' == args.prompt:
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=predicted_know, label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=predicted_know, label=label, mode=mode)
             elif 'UDGIP2GI' == args.prompt:
                 label = f"Goal:{predicted_goal}\nTopic:{data['topic']}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=", ".join(predicted_topic),
-                                                            input3=predicted_know, input4=data['user_profile'], label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=", ".join(predicted_topic),
+                                                            input3=predicted_know, input4=data['user_profile'],
+                                                            label=label, mode=mode)
 
             elif 'UDP2GP' == args.prompt:
                 guide = f"Goal:{predicted_goal}: {data['topic']}"
                 label = f"{guide}\nPassage:{label}"
                 profile = data['user_profile']
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=profile, label=label, mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
+                                                            input2=profile, label=label, mode=mode)
             else:
                 raise ValueError
             return full_prompt
@@ -406,7 +428,8 @@ def llama_finetune(
             else:
                 predicted_goal = data['predicted_goal'][0]
 
-            topk_topic = args.topk_topic if data['combined'] else 1  # data['combined']의 경우 여러개의 item이 섞인 상황. 아니면 top-1만 쓰는 상황
+            topk_topic = args.topk_topic if data[
+                'combined'] else 1  # data['combined']의 경우 여러개의 item이 섞인 상황. 아니면 top-1만 쓰는 상황
             if args.topic_num_shuffle and topk_topic > 1:
                 # item이 3개, 2개 섞어 들어감
                 topk_topic = random.randint(2, topk_topic)
@@ -417,22 +440,31 @@ def llama_finetune(
                 # 뒤에서 2개 골라서 top_negative_candidates를 만들도록 함
                 topk_topic = args.item_random_negative_num
 
-            topic_idx = [i for i in range(topk_topic)]
+            if args.item_random_negative:
+                topic_idx = [data['predicted_topic'].index(data['topic'])]
+                while len(topic_idx) < topk_topic:
+                    negative_idx = random.randint(0, 2)  # idx = {0, 1, 2}
+                    topic_idx.append(negative_idx)
+            else:
+                topic_idx = [i for i in range(topk_topic)]
             random.shuffle(topic_idx)  # 만일 top-1 item만 쓰는 경우, 아무 상관없음
             predicted_topic_list = [data['predicted_topic'][i] for i in topic_idx]
 
-            if args.item_random_negative:
-                # item 3개 중에 2개 고르기
-                target_item = data['topic']
-                target_idx = data['predicted_topic'].index(target_item)
-                negative_item_idx_list = [predicted_topic_list.index(i) for i in predicted_topic_list if i != target_item]
-                random.shuffle(negative_item_idx_list)
-                # top_negative_candidates 생성
-                target_knowledges = deepcopy(data['predicted_know'][target_idx]) # 정답 넣어주기
-                negative_knowledges = deepcopy(data['predicted_know'][negative_item_idx_list[0]]) # negative sample 넣어주기
-                top_negative_candidates = target_knowledges + negative_knowledges
-            else:
-                top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])  # 순서 기반으로 자르고 있음
+            # if args.item_random_negative:
+            #     # item 3개 중에 2개 고르기
+            #     target_item = data['topic']
+            #     target_idx = data['predicted_topic'].index(target_item)
+            #     negative_item_idx_list = [predicted_topic_list.index(i) for i in predicted_topic_list if
+            #                               i != target_item]
+            #     random.shuffle(negative_item_idx_list)
+            #
+            #     target_knowledges = deepcopy(data['predicted_know'][target_idx])  # 정답 넣어주기
+            #     negative_knowledges = deepcopy(
+            #         data['predicted_know'][negative_item_idx_list[0]])  # negative sample 넣어주기
+            #     top_negative_candidates = target_knowledges + negative_knowledges
+            # else:
+            #     top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])  # 순서 기반으로 자르고 있음
+            top_negative_candidates = [data['predicted_know'][i] for i in topic_idx]
 
             if data['combined']:
                 for idx, top_passages in enumerate(top_negative_candidates):
@@ -443,9 +475,10 @@ def llama_finetune(
                 # Filtering code
                 if args.filtering:
                     for idx, top_passages in enumerate(top_negative_candidates):
-                        top_negative_candidates[idx] = [i for i in top_passages if data['predicted_topic'][idx].lower().strip() in i.lower().strip()]
+                        top_negative_candidates[idx] = [i for i in top_passages if data['predicted_topic'][
+                            idx].lower().strip() in i.lower().strip()]
 
-                for idx, predicted_topic in enumerate(data['predicted_topic'][:topk_topic]):
+                for idx, predicted_topic in enumerate(predicted_topic_list):
                     if data['topic'] == predicted_topic:
                         top_negative_candidates[idx].insert(0, target_knowledge)
                         break
@@ -460,14 +493,16 @@ def llama_finetune(
                 predicted_know = []
 
                 for i in range(len(predicted_topic_list)):
-                    predicted_know += top_negative_candidates[topic_idx[i]]
+                    predicted_know += top_negative_candidates[i]
 
                 relevant_idx = predicted_know.index(target_knowledge)
 
                 predicted_know = ""
                 for i in range(len(predicted_topic_list)):
                     prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
-                    candidate_passages = '\n'.join([f"Passage {i * args.n_sampled_negative + idx + 1}. {know}" for idx, know in enumerate(top_negative_candidates[topic_idx[i]])])
+                    candidate_passages = '\n'.join(
+                        [f"Passage {i * args.n_sampled_negative + idx + 1}. {know}" for idx, know in
+                         enumerate(top_negative_candidates[i])])
                     predicted_know += f"{prefix}\n{candidate_passages}\n\n"
 
             else:
@@ -490,17 +525,20 @@ def llama_finetune(
                 relevant_idx = predicted_know.index(target_knowledge)
 
                 prefix = f"Here are the candidate passages about Topic 1. {predicted_topic_list[0]}"
-                candidate_passages = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
+                candidate_passages = '\n'.join(
+                    [f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
                 predicted_know = f"{prefix}\n{candidate_passages}\n\n"
 
             label = f"Passage {relevant_idx + 1}. {target_knowledge}"
 
             if args.combined_top1:
                 if idx % 2 == 0 or args.input_top1:
-                    predicted_topic_list = [data['predicted_topic'][0]] if data['topic'] == data['predicted_topic'][0] else [data['predicted_topic'][1]]
+                    predicted_topic_list = [data['predicted_topic'][0]] if data['topic'] == data['predicted_topic'][
+                        0] else [data['predicted_topic'][1]]
 
             if args.train_only_inputs:
-                full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label, mode='test')
+                full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label,
+                                             mode='test')
                 tokenized_full_prompt = tokenize(full_prompt, add_eos_token=False)
             else:
                 full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label)
@@ -508,7 +546,8 @@ def llama_finetune(
 
             # if not train_on_inputs:
             if train_only_outputs:
-                user_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label, mode='test')
+                user_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label,
+                                             mode='test')
 
                 tokenized_user_prompt = tokenize(user_prompt, add_eos_token=add_eos_token)
                 user_prompt_len = len(tokenized_user_prompt["input_ids"])
@@ -516,7 +555,8 @@ def llama_finetune(
                 if add_eos_token:
                     user_prompt_len -= 1
 
-                tokenized_full_prompt["labels"] = [-100] * user_prompt_len + tokenized_full_prompt["labels"][user_prompt_len:]  # could be sped up, probably
+                tokenized_full_prompt["labels"] = [-100] * user_prompt_len + tokenized_full_prompt["labels"][
+                                                                             user_prompt_len:]  # could be sped up, probably
 
             return tokenized_full_prompt
 
@@ -555,7 +595,8 @@ def llama_finetune(
             eval_steps=5 if val_set_size > 0 else None,
             report_to="wandb",
         ),
-        data_collator=transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True),
+        data_collator=transformers.DataCollatorForSeq2Seq(tokenizer, pad_to_multiple_of=8, return_tensors="pt",
+                                                          padding=True),
         callbacks=[QueryEvalCallback(args)]
     )
     model.config.use_cache = False
