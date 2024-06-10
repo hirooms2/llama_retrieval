@@ -443,7 +443,7 @@ def llama_finetune(
             if args.item_random_negative:
                 topic_idx = [data['predicted_topic'].index(data['topic'])]
                 while len(topic_idx) < topk_topic:
-                    negative_idx = random.randrange(0, args.item_random_negative_num)  # idx = {0, 1, 2}
+                    negative_idx = random.randrange(args.item_random_negative_num)  # idx = {0, 1, 2}
                     if negative_idx not in topic_idx:
                         topic_idx.append(negative_idx)
             else:
