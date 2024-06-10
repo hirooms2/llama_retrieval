@@ -411,20 +411,29 @@ def llama_finetune(
                 # item이 3개, 2개 섞어 들어감
                 topk_topic = random.randint(2, topk_topic)
 
-            if args.item_random_negative and topk_topic > 2:
+            if args.item_random_negative:
                 # item 3개 중에 2개 고르기
-
-                select_topic = random.randint(2, topk_topic)
-                topk_topic = random.randint(2, topk_topic)
+                # 일단 item 3개 다 넣어서 predicted_topic_list 를 만든 후
+                # 뒤에서 2개 골라서 top_negative_candidates를 만들도록 함
+                topk_topic = args.item_random_negative_num
 
             topic_idx = [i for i in range(topk_topic)]
             random.shuffle(topic_idx)  # 만일 top-1 item만 쓰는 경우, 아무 상관없음
             predicted_topic_list = [data['predicted_topic'][i] for i in topic_idx]
 
             if args.item_random_negative:
-                predicted_topic_list = []
-
-            top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])
+                # item 3개 중에 2개 고르기
+                target_item = data['topic']
+                target_idx = data['predicted_topic'].index(target_item)
+                negative_item_idx_list = [predicted_topic_list.index(i) for i in predicted_topic_list if i != target_item]
+                random.shuffle(negative_item_idx_list)
+                # 정답 넣어주기
+                target_knowledges = deepcopy(data['predicted_know'][target_idx])
+                # negative sample 넣어주기
+                negative_knowledges = deepcopy(data['predicted_know'][negative_item_idx_list[0]])
+                top_negative_candidates = target_knowledges + negative_knowledges
+            else:
+                top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])  # 순서 기반으로 자르고 있음
 
             if data['combined']:
                 for idx, top_passages in enumerate(top_negative_candidates):
