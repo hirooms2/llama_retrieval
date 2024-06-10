@@ -427,10 +427,9 @@ def llama_finetune(
                 target_idx = data['predicted_topic'].index(target_item)
                 negative_item_idx_list = [predicted_topic_list.index(i) for i in predicted_topic_list if i != target_item]
                 random.shuffle(negative_item_idx_list)
-                # 정답 넣어주기
-                target_knowledges = deepcopy(data['predicted_know'][target_idx])
-                # negative sample 넣어주기
-                negative_knowledges = deepcopy(data['predicted_know'][negative_item_idx_list[0]])
+                # top_negative_candidates 생성
+                target_knowledges = deepcopy(data['predicted_know'][target_idx]) # 정답 넣어주기
+                negative_knowledges = deepcopy(data['predicted_know'][negative_item_idx_list[0]]) # negative sample 넣어주기
                 top_negative_candidates = target_knowledges + negative_knowledges
             else:
                 top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])  # 순서 기반으로 자르고 있음
