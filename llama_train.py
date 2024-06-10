@@ -408,6 +408,13 @@ def llama_finetune(
 
             topk_topic = args.topk_topic if data['combined'] else 1  # data['combined']의 경우 여러개의 item이 섞인 상황. 아니면 top-1만 쓰는 상황
             if args.topic_num_shuffle and topk_topic > 1:
+                # item이 3개, 2개 섞어 들어감
+                topk_topic = random.randint(2, topk_topic)
+
+            if args.item_random_negative and topk_topic > 2:
+                # item 3개 중에 2개 고르기
+
+                select_topic = random.randint(2, topk_topic)
                 topk_topic = random.randint(2, topk_topic)
 
             topic_idx = [i for i in range(topk_topic)]
@@ -415,12 +422,9 @@ def llama_finetune(
             predicted_topic_list = [data['predicted_topic'][i] for i in topic_idx]
 
             if args.item_random_negative:
-                # target item 넣고 나머지 item 중 랜덤하게 넣어서 negative sample 만들기
+                predicted_topic_list = []
 
-                top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])
-            else:
-                # 앞에서부터 topk_topic 잘라서 넣기
-                top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])
+            top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])
 
             if data['combined']:
                 for idx, top_passages in enumerate(top_negative_candidates):
