@@ -23,18 +23,17 @@ def load_dataset(args):
 def augment_dataset(args, know_dataset, labels, topics):
     new_know_dataset, new_labels, new_topics = [], [], []
     for i, j, k in zip(know_dataset, labels, topics):
-        # if args.prompt == 'UDGIP2I_cot':
-        #     if i['topic'] in i['predicted_topic'][:args.topk_topic]:
-        #         if i['topic'].replace('\xa0', ' ').strip().lower() == i['topic_cot'].split('Topic:')[-1].lower().strip():
-        #             new_know_dataset.append(i)
-        #             new_labels.append(j)
-        #             new_topics.append(k)
+        if i['topic'] in i['predicted_topic'][:args.topk_topic]:
+            if i['topic'].replace('\xa0', ' ').strip().lower() == i['topic_cot'].split('Topic:')[-1].lower().strip():
+                new_know_dataset.append(i)
+                new_labels.append(j)
+                new_topics.append(k)
         # else:
-        if i['gpt_selection'] != '' and i['topic'] in i['predicted_topic'][:args.topk_topic]:
-            i['candidate_knowledges'] = [j for j in i['candidate_knowledges'] if j != i['gpt_selection']]
-            new_know_dataset.append(i)
-            new_labels.append(j)
-            new_topics.append(k)
+        # if i['gpt_selection'] != '' and i['topic'] in i['predicted_topic'][:args.topk_topic]:
+        #     i['candidate_knowledges'] = [j for j in i['candidate_knowledges'] if j != i['gpt_selection']]
+        #     new_know_dataset.append(i)
+        #     new_labels.append(j)
+        #     new_topics.append(k)
     return new_know_dataset, new_labels, new_topics
 
 
