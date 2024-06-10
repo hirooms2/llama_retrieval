@@ -538,11 +538,12 @@ def llama_finetune(
                         0] else [data['predicted_topic'][1]]
 
             if args.train_only_inputs:
-                full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label,
-                                             mode='test')
+                full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label, mode='test')
+                full_prompt = full_prompt.replace('\xa0', ' ').strip()
                 tokenized_full_prompt = tokenize(full_prompt, add_eos_token=False)
             else:
                 full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label)
+                full_prompt = full_prompt.replace('\xa0', ' ').strip()
                 tokenized_full_prompt = tokenize(full_prompt)
 
             # if not train_on_inputs:

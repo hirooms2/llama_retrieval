@@ -28,7 +28,6 @@ class Prompter(object):
         instructions = []
 
         for data, label in zip(dataset_input, dataset_output):
-
             # predicted_goal = data['predicted_goal'][0]
             if self.args.query:
                 predicted_goal = data['query']
@@ -135,6 +134,8 @@ class Prompter(object):
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
             elif 'DI2P' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=data['topic'], label=label, mode=mode))
+
+        instructions = [i.replace('\xa0', ' ').strip() for i in instructions]
         return instructions
 
     def generate_prompt(
