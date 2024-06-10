@@ -428,8 +428,7 @@ def llama_finetune(
             else:
                 predicted_goal = data['predicted_goal'][0]
 
-            topk_topic = args.topk_topic if data[
-                'combined'] else 1  # data['combined']의 경우 여러개의 item이 섞인 상황. 아니면 top-1만 쓰는 상황
+            topk_topic = args.topk_topic if data['combined'] else 1  # data['combined']의 경우 여러개의 item이 섞인 상황. 아니면 top-1만 쓰는 상황
             if args.topic_num_shuffle and topk_topic > 1:
                 # item이 3개, 2개 섞어 들어감
                 topk_topic = random.randint(2, topk_topic)
