@@ -434,17 +434,18 @@ def llama_finetune(
                 # item이 3개, 2개 섞어 들어감
                 topk_topic = random.randint(2, topk_topic)
 
-            if args.item_random_negative:
-                # item 3개 중에 2개 고르기
-                # 일단 item 3개 다 넣어서 predicted_topic_list 를 만든 후
-                # 뒤에서 2개 골라서 top_negative_candidates를 만들도록 함
-                topk_topic = args.item_random_negative_num
+            # if args.item_random_negative:
+            #     # item 3개 중에 2개 고르기
+            #     # 일단 item 3개 다 넣어서 predicted_topic_list 를 만든 후
+            #     # 뒤에서 2개 골라서 top_negative_candidates를 만들도록 함
+            #     topk_topic = args.item_random_negative_num
 
             if args.item_random_negative:
                 topic_idx = [data['predicted_topic'].index(data['topic'])]
                 while len(topic_idx) < topk_topic:
-                    negative_idx = random.randint(0, 2)  # idx = {0, 1, 2}
-                    topic_idx.append(negative_idx)
+                    negative_idx = random.randrange(0, args.item_random_negative_num)  # idx = {0, 1, 2}
+                    if negative_idx not in topic_idx:
+                        topic_idx.append(negative_idx)
             else:
                 topic_idx = [i for i in range(topk_topic)]
             random.shuffle(topic_idx)  # 만일 top-1 item만 쓰는 경우, 아무 상관없음
