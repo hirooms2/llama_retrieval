@@ -68,6 +68,7 @@ def parse_args():
     parser.add_argument('--item_selection', type=str, default='top', choices=['top', 'conf'], help='Adaptive item selection')
     parser.add_argument('--topic_conf', type=float, default=1.0, help='Minimum threshold for topic confidence')
     parser.add_argument('--topk_topic', type=int, default=1)
+    parser.add_argument('--item_random_negative', action='store_true', help='random select negative sample')
 
     # For generation config
     parser.add_argument('--max_new_tokens', type=int, default=256)

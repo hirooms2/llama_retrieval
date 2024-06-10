@@ -414,7 +414,13 @@ def llama_finetune(
             random.shuffle(topic_idx)  # 만일 top-1 item만 쓰는 경우, 아무 상관없음
             predicted_topic_list = [data['predicted_topic'][i] for i in topic_idx]
 
-            top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])
+            if args.item_random_negative:
+                # target item 넣고 나머지 item 중 랜덤하게 넣어서 negative sample 만들기
+
+                top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])
+            else:
+                # 앞에서부터 topk_topic 잘라서 넣기
+                top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])
 
             if data['combined']:
                 for idx, top_passages in enumerate(top_negative_candidates):
