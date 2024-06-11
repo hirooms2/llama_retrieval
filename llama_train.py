@@ -552,6 +552,9 @@ def llama_finetune(
                 full_prompt = full_prompt.replace('\xa0', ' ').strip()
                 tokenized_full_prompt = tokenize(full_prompt)
 
+            if args.debug:
+                print(full_prompt)
+                print(train_only_outputs)
             # if not train_on_inputs:
             if train_only_outputs:
                 user_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label, mode='test')
