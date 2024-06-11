@@ -408,6 +408,12 @@ def llama_finetune(
             train_only_inputs = args.train_only_inputs
             train_only_outputs = args.train_only_outputs
 
+            if args.weighted_loss:
+                if idx % 2 == 0:
+                    train_only_outputs = False
+                else:
+                    train_only_outputs = True
+
             data = self.dataset[idx]
 
             predicted_know = []
@@ -548,8 +554,7 @@ def llama_finetune(
 
             # if not train_on_inputs:
             if train_only_outputs:
-                user_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label,
-                                             mode='test')
+                user_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label, mode='test')
 
                 tokenized_user_prompt = tokenize(user_prompt, add_eos_token=add_eos_token)
                 user_prompt_len = len(tokenized_user_prompt["input_ids"])
@@ -557,8 +562,7 @@ def llama_finetune(
                 if add_eos_token:
                     user_prompt_len -= 1
 
-                tokenized_full_prompt["labels"] = [-100] * user_prompt_len + tokenized_full_prompt["labels"][
-                                                                             user_prompt_len:]  # could be sped up, probably
+                tokenized_full_prompt["labels"] = [-100] * user_prompt_len + tokenized_full_prompt["labels"][user_prompt_len:]  # could be sped up, probably
 
             return tokenized_full_prompt
 
