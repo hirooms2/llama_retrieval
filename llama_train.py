@@ -361,6 +361,14 @@ def llama_finetune(
                                                             input2=candidate_topics,
                                                             input3=predicted_know, input4=data['user_profile'],
                                                             label=label, mode=mode)
+            elif 'UDGIP2P_new' == args.prompt:
+                # label = f"{data['topic']}"
+                label = f"{label}"
+                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=candidate_topics,
+                                                            input3=predicted_know, input4=data['user_profile'],
+                                                            label=label, mode=mode)
             elif 'UDGIP2GIP_new' == args.prompt:
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 # topic_idx = 1 if data['predicted_topic'][0] == data['topic'] else 2
@@ -540,8 +548,7 @@ def llama_finetune(
 
             if args.combined_top1:
                 if idx % 2 == 0 or args.input_top1:
-                    predicted_topic_list = [data['predicted_topic'][0]] if data['topic'] == data['predicted_topic'][
-                        0] else [data['predicted_topic'][1]]
+                    predicted_topic_list = [data['predicted_topic'][0]] if data['topic'] == data['predicted_topic'][0] else [data['predicted_topic'][1]]
 
             if args.train_only_inputs:
                 full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label, mode='test')
