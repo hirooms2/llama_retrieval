@@ -24,7 +24,7 @@ def augment_dataset(args, know_dataset, labels, topics):
     new_know_dataset, new_labels, new_topics = [], [], []
     for i, j, k in zip(know_dataset, labels, topics):
         if i['topic'] in i['predicted_topic'][:args.topk_topic]:
-            if i['topic'].replace('\xa0', ' ').strip().lower() == i['topic_cot_long'].split('Therefore')[-1].lower().strip():
+            if i['topic'].replace('\xa0', ' ').strip().lower() in i['topic_cot_long'].split('Therefore')[-1].lower().strip():
                 new_know_dataset.append(i)
                 new_labels.append(j)
                 new_topics.append(k)
