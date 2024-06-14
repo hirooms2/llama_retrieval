@@ -141,7 +141,9 @@ class Prompter(object):
             elif 'DI2P' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=data['topic'], label=label, mode=mode))
 
-        instructions = [i.replace('\xa0', ' ').strip() for i in instructions]
+        # instructions = [i.replace('\xa0', ' ').strip() for i in instructions]
+        instructions = [i.replace('\xa0', ' ').replace('  ', ' ').strip() for i in instructions]
+
         return instructions
 
     def generate_prompt(
