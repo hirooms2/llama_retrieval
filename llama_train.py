@@ -552,13 +552,12 @@ def llama_finetune(
 
             if args.train_only_inputs:
                 full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label, mode='test')
-
+                full_prompt = full_prompt.replace('\xa0', ' ').replace('  ', ' ').strip()
+                tokenized_full_prompt = tokenize(full_prompt, add_eos_token=False)
             else:
                 full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label)
-
-            # full_prompt = full_prompt.replace('\xa0', ' ').strip()
-            full_prompt = full_prompt.replace('\xa0', ' ').replace('  ', ' ').strip()
-            tokenized_full_prompt = tokenize(full_prompt, add_eos_token=False)
+                full_prompt = full_prompt.replace('\xa0', ' ').replace('  ', ' ').strip()
+                tokenized_full_prompt = tokenize(full_prompt, add_eos_token=True)
 
             if args.debug:
                 print(full_prompt)
