@@ -31,9 +31,10 @@ def augment_dataset(args, know_dataset, labels, topics):
                     new_labels.append(j)
                     new_topics.append(k)
             else:
-                new_know_dataset.append(i)
-                new_labels.append(j)
-                new_topics.append(k)
+                if i['gpt_selection'] != '':
+                    new_know_dataset.append(i)
+                    new_labels.append(j)
+                    new_topics.append(k)
 
     return new_know_dataset, new_labels, new_topics
 
