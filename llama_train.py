@@ -386,7 +386,7 @@ def llama_finetune(
                                                             input2=", ".join(predicted_topic), input3=predicted_know,
                                                             label=label, mode=mode)
             elif 'UDGIP2P' == args.prompt:
-                label = f"Passage:{label}"
+                label = f"{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
                                                             input2=", ".join(predicted_topic),
                                                             input3=predicted_know, input4=data['user_profile'],
