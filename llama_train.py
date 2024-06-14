@@ -526,8 +526,8 @@ def llama_finetune(
                 # predicted_know = predicted_know[:args.n_sampled_negative]
 
                 hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage != target_knowledge and passage != '']
-                hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
                 predicted_know.append(target_knowledge)
+                hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
 
                 if len(set(hard_negative_candidates)) + 1 < args.n_sampled_negative:
                     n_sampled_negative = len(set(hard_negative_candidates)) + 1
