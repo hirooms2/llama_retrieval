@@ -521,7 +521,7 @@ def llama_finetune(
                     predicted_know += f"{prefix}\n{candidate_passages}\n\n"
 
             else:
-                predicted_know = [item for item in data['predicted_know'] if item != target_knowledge]
+                predicted_know = [item for item in data['predicted_know'][0] if item != target_knowledge]
                 predicted_know.insert(0, target_knowledge)
                 predicted_know = predicted_know[:args.n_sampled_negative]
                 # predicted_know.append(target_knowledge)
