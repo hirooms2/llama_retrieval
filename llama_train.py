@@ -521,19 +521,18 @@ def llama_finetune(
                     predicted_know += f"{prefix}\n{candidate_passages}\n\n"
 
             else:
-                predicted_know = [item for item in data['predicted_know'][0] if item != target_knowledge]
-                predicted_know.insert(0, target_knowledge)
-                predicted_know = predicted_know[:args.n_sampled_negative]
-                # predicted_know.append(target_knowledge)
-                #
-                # if len(set(hard_negative_candidates)) + 1 < args.n_sampled_negative:
-                #     n_sampled_negative = len(set(hard_negative_candidates)) + 1
-                # else:
-                #     n_sampled_negative = args.n_sampled_negative
-                # while len(predicted_know) < n_sampled_negative:
-                #     selected = random.choice(hard_negative_candidates)
-                #     if selected not in predicted_know:
-                #         predicted_know.append(selected)
+                # predicted_know = [item for item in data['predicted_know'][0] if item != target_knowledge]
+                # predicted_know.insert(0, target_knowledge)
+                # predicted_know = predicted_know[:args.n_sampled_negative]
+
+                hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage != target_knowledge and passage != '']
+                hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
+                predicted_know.append(target_knowledge)
+
+                while len(predicted_know) < args.n_sampled_negative:
+                    selected = random.choice(hard_negative_candidates)
+                    if selected not in predicted_know:
+                        predicted_know.append(selected)
                 if args.shuffle:
                     random.shuffle(predicted_know)
 
