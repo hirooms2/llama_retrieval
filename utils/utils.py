@@ -26,16 +26,20 @@ def augment_dataset(args, know_dataset, labels, topics):
         if i['topic'] in i['predicted_topic'][:args.topk_topic]:
             if args.prompt == 'UDGIP2I_cot':
                 # if i['topic'].replace('\xa0', ' ').strip().lower() in i['topic_cot'].split('Therefore')[-1].lower().strip():
-                if i['topic'].replace('\xa0', ' ').replace('  ',' ').strip().lower() in i['topic_cot'].split('Therefore')[-1].lower().strip():
+                if i['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower() in i['topic_cot'].split('Therefore')[-1].lower().strip():
                     new_know_dataset.append(i)
                     new_labels.append(j)
                     new_topics.append(k)
             else:
-                if i['gpt_selection'] != '':
+                if i['positive'] == 'gpt_selection':
+                    if i['gpt_selection'] != '':
+                        new_know_dataset.append(i)
+                        new_labels.append(j)
+                        new_topics.append(k)
+                else:
                     new_know_dataset.append(i)
                     new_labels.append(j)
                     new_topics.append(k)
-
     return new_know_dataset, new_labels, new_topics
 
 
@@ -103,14 +107,14 @@ def prepare_dataset(args, tokenizer, dataset):
         # else:
         #     raise ValueError
         if 'R' in args.prompt.split('2')[-1]:
-            labels.append(data['response'].replace('\xa0', ' ').replace('  ',' ').strip())
+            labels.append(data['response'].replace('\xa0', ' ').replace('  ', ' ').strip())
         elif 'P' in args.prompt.split('2')[-1]:
             labels.append(
-                tokenizer.decode(tokenizer(data['target_knowledge']).input_ids[1:][:args.passage_cutoff]).strip().replace('\xa0', ' ').replace('  ',' ').strip())
+                tokenizer.decode(tokenizer(data['target_knowledge']).input_ids[1:][:args.passage_cutoff]).strip().replace('\xa0', ' ').replace('  ', ' ').strip())
         elif 'I' in args.prompt.split('2')[-1]:
-            labels.append(data['topic'].replace('\xa0', ' ').replace('  ',' ').strip())
+            labels.append(data['topic'].replace('\xa0', ' ').replace('  ', ' ').strip())
         elif args.prompt == 'pretrain':
-            labels.append(data['response'].replace('\xa0', ' ').replace('  ',' ').strip())
+            labels.append(data['response'].replace('\xa0', ' ').replace('  ', ' ').strip())
         else:
             raise ValueError
 
