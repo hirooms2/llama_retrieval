@@ -542,7 +542,7 @@ def llama_finetune(
                 random.shuffle(hard_negative_candidates)
 
                 hard_negative_candidates.insert(0, target_knowledge)
-                hard_negative_candidates = hard_negative_candidates[:args.n_sample_negative]
+                hard_negative_candidates = hard_negative_candidates[:args.n_sampled_negative]
                 random.shuffle(hard_negative_candidates)
 
                 predicted_know = hard_negative_candidates
