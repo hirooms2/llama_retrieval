@@ -37,7 +37,7 @@ def parse_args():
     parser.add_argument('--n_hard_negative', type=int, default=10)
     parser.add_argument('--n_sampled_negative', type=int, default=3)
 
-    parser.add_argument('--positive', type=str, default='pseudo', choices=['only_pseudo', 'pseudo', 'highly_relevant', 'gpt_selection'])
+    parser.add_argument('--positive', type=str, default='pseudo', choices=['only_pseudo', 'pseudo', 'highly_relevant', 'gpt_selection', 'target'])
     parser.add_argument("--pseudo", action='store_true', help="combine pseudo")
     parser.add_argument("--combined", action='store_true', help="combine pseudo")
     parser.add_argument("--combined_top1", action='store_true', help="combine combined but top-1")

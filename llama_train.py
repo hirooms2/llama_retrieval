@@ -431,6 +431,8 @@ def llama_finetune(
                 target_knowledge = random.choice(data['candidate_knowledges_gpt'])
             elif args.positive == 'gpt_selection':
                 target_knowledge = data['gpt_selection']
+            elif args.positive == 'target':
+                target_knowledge = data['target_knowledge']
             else:
                 raise ValueError
 
