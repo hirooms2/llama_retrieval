@@ -436,6 +436,9 @@ def llama_finetune(
             else:
                 raise ValueError
 
+            # target knowledge truncation
+            target_knowledge = self.tokenizer.decode(tokenizer(target_knowledge).input_ids[1:][:args.passage_cutoff])
+
             # topic_idx = [i for i in range(args.topk_topic)]
             # random.shuffle(topic_idx)
             # predicted_topic = [data['predicted_topic'][i] for i in topic_idx]
