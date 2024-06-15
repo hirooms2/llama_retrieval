@@ -432,7 +432,7 @@ def llama_finetune(
             elif args.positive == 'gpt_selection':
                 target_knowledge = data['gpt_selection']
             elif args.positive == 'target':
-                target_knowledge = data['label']
+                target_knowledge = data['target_knowledge']
             else:
                 raise ValueError
 
