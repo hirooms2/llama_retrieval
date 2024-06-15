@@ -532,9 +532,11 @@ def llama_finetune(
 
                 hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage != target_knowledge and passage != '']
                 if args.filtering:
-                    hard_negative_candidates = [passage for passage in hard_negative_candidates if data['predicted_topic'][0].lower().strip() in passage.lower().strip()]  # Filtering
-                    if len(hard_negative_candidates) == 0:
-                        hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage != target_knowledge and passage != '']
+                    hard_negative_candidates_filtered = [passage for passage in hard_negative_candidates if data['predicted_topic'][0].lower().strip() in passage.lower().strip()]  # Filtering
+                    hard_negative_candidates_unfiltered = [passage for passage in hard_negative_candidates if data['predicted_topic'][0].lower().strip() not in passage.lower().strip()]  # Filtering
+                    if len(hard_negative_candidates_filtered) < args.n_hard_negative:
+                        hard_negative_candidates_filtered = hard_negative_candidates_filtered + hard_negative_candidates_unfiltered[:args.n_hard_negative-len(hard_negative_candidates_filtered)]
+                    hard_negative_candidates = hard_negative_candidates_filtered
 
                 hard_negative_candidates = hard_negative_candidates[:args.n_sampled_negative]
                 predicted_know.append(target_knowledge)

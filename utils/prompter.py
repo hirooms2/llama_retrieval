@@ -69,9 +69,11 @@ class Prompter(object):
                     predicted_know = [i for i in top_negative_candidates[0] if i != '']
 
                     if self.args.filtering:
-                        predicted_know = [i for i in predicted_know if data['predicted_topic'][0].lower().strip() in i.lower().strip()]
-                        if len(predicted_know) == 0:
-                            predicted_know = [i for i in top_negative_candidates[0] if i != '']
+                        predicted_know_filtered = [i for i in predicted_know if data['predicted_topic'][0].lower().strip() in i.lower().strip()]
+                        predicted_know_unfiltered = [i for i in predicted_know if data['predicted_topic'][0].lower().strip() not in i.lower().strip()]
+                        if len(predicted_know_filtered) < self.args.n_sampled_negative:
+                            predicted_know_filtered = predicted_know_filtered + predicted_know_unfiltered[:self.args.n_sampled_negative-len(predicted_know_filtered)]
+                        predicted_know = predicted_know_filtered
                     predicted_know = predicted_know[:self.args.n_sampled_negative]
 
                     # predicted_know = '\n'.join([f"{idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
