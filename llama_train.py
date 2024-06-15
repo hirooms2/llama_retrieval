@@ -535,24 +535,17 @@ def llama_finetune(
                     hard_negative_candidates_filtered = [passage for passage in hard_negative_candidates if data['predicted_topic'][0].lower().strip() in passage.lower().strip()]  # Filtering
                     hard_negative_candidates_unfiltered = [passage for passage in hard_negative_candidates if data['predicted_topic'][0].lower().strip() not in passage.lower().strip()]  # Filtering
                     if len(hard_negative_candidates_filtered) < args.n_hard_negative:
-                        hard_negative_candidates_filtered = hard_negative_candidates_filtered + hard_negative_candidates_unfiltered[:args.n_hard_negative-len(hard_negative_candidates_filtered)]
+                        hard_negative_candidates_filtered = hard_negative_candidates_filtered + hard_negative_candidates_unfiltered[:args.n_hard_negative - len(hard_negative_candidates_filtered)]
                     hard_negative_candidates = hard_negative_candidates_filtered
 
-                hard_negative_candidates = hard_negative_candidates[:args.n_sampled_negative]
-                predicted_know.append(target_knowledge)
                 hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
+                random.shuffle(hard_negative_candidates)
 
-                if len(set(hard_negative_candidates)) + 1 < args.n_sampled_negative:
-                    n_sampled_negative = len(set(hard_negative_candidates)) + 1
-                else:
-                    n_sampled_negative = args.n_sampled_negative
+                hard_negative_candidates.insert(0, target_knowledge)
+                hard_negative_candidates = hard_negative_candidates[:args.n_sample_negative]
+                random.shuffle(hard_negative_candidates)
 
-                while len(predicted_know) < n_sampled_negative:
-                    selected = random.choice(hard_negative_candidates)
-                    if selected not in predicted_know:
-                        predicted_know.append(selected)
-                if args.shuffle:
-                    random.shuffle(predicted_know)
+                predicted_know = hard_negative_candidates
 
                 relevant_idx = predicted_know.index(target_knowledge)
                 predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
