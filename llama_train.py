@@ -432,7 +432,7 @@ def llama_finetune(
             elif args.positive == 'gpt_selection':
                 target_knowledge = data['gpt_selection']
             elif args.positive == 'target':
-                target_knowledge = data['target_knowledge']
+                target_knowledge = data['label']
             else:
                 raise ValueError
 
@@ -528,6 +528,8 @@ def llama_finetune(
                 # predicted_know = predicted_know[:args.n_sampled_negative]
 
                 hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage != target_knowledge and passage != '']
+                hard_negative_candidates = [passage for passage in hard_negative_candidates if data['predicted_topic'][0].lower().strip() in passage.lower().strip()]  # Filtering
+
                 predicted_know.append(target_knowledge)
                 hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
 
