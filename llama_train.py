@@ -488,15 +488,23 @@ def llama_finetune(
 
             if data['combined']:
                 for idx, top_passages in enumerate(top_negative_candidates):
-                    top_negative_candidates[idx] = [i for i in top_passages if i != target_knowledge]
+                    top_negative_candidates[idx] = [i for i in top_passages if i != target_knowledge and i != '']
 
-                for idx, top_passages in enumerate(top_negative_candidates):
-                    top_negative_candidates[idx] = [i for i in top_passages if i != '']
                 # Filtering code
                 if args.filtering:
                     for idx, top_passages in enumerate(top_negative_candidates):
-                        top_negative_candidates[idx] = [i for i in top_passages if data['predicted_topic'][
-                            idx].lower().strip() in i.lower().strip()]
+                        hard_negative_candidates_filtered = [passage for passage in top_passages if data['predicted_topic'][idx].lower().strip() in passage.lower().strip()]  # Filtering
+                        hard_negative_candidates_unfiltered = [passage for passage in top_passages if data['predicted_topic'][idx].lower().strip() not in passage.lower().strip()]  # Filtering
+                        if len(hard_negative_candidates_filtered) < args.n_hard_negative:
+                            hard_negative_candidates_filtered = hard_negative_candidates_filtered + hard_negative_candidates_unfiltered[:args.n_hard_negative - len(hard_negative_candidates_filtered)]
+                        top_negative_candidates[idx] = hard_negative_candidates_filtered
+
+                for idx, top_passages in enumerate(top_negative_candidates):
+                    top_negative_candidates[idx] = top_negative_candidates[idx][:args.n_hard_negative]
+
+                if args.shuffle:
+                    for idx, top_passages in enumerate(top_negative_candidates):
+                        random.shuffle(top_negative_candidates[idx])
 
                 for idx, predicted_topic in enumerate(predicted_topic_list):
                     if data['topic'] == predicted_topic:
