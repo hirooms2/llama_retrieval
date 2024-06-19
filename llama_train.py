@@ -369,6 +369,23 @@ def llama_finetune(
                                                             input2=candidate_topics,
                                                             input3=predicted_know, input4=data['user_profile'],
                                                             label=label, mode=mode)
+            elif 'DGIP2P_cot' == args.prompt:
+                # label = f"{data['topic']}"
+                rationale = data['passage_cot'].split('Therefore')[0].strip()
+                label = f"{rationale} Therefore, the most relevant passage is \"{label}\""
+                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=candidate_topics,
+                                                            input3=predicted_know,
+                                                            label=label, mode=mode)
+            elif 'DGIP2GIP_new' == args.prompt:
+                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                # topic_idx = 1 if data['predicted_topic'][0] == data['topic'] else 2
+                label = f"Based on the user profile, dialog, and candidate passages for each topic, determine the most suitable goal and topic for the response.\nGoal:{data['goal']}\nTopic:{data['topic']}\n\nThen, using the chosen goal and topic, select the most relevant passage from the list above for generating the response to the given dialog.\nPassage:{label}"
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=candidate_topics,
+                                                            input3=predicted_know,
+                                                            label=label, mode=mode)
             elif 'UDGIP2P_cot' == args.prompt:
                 # label = f"{data['topic']}"
                 rationale = data['passage_cot'].split('Therefore')[0].strip()

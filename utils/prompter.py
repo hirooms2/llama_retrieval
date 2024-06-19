@@ -72,7 +72,7 @@ class Prompter(object):
                         predicted_know_filtered = [i for i in predicted_know if data['predicted_topic'][0].lower().strip() in i.lower().strip()]
                         predicted_know_unfiltered = [i for i in predicted_know if data['predicted_topic'][0].lower().strip() not in i.lower().strip()]
                         if len(predicted_know_filtered) < self.args.n_sampled_negative:
-                            predicted_know_filtered = predicted_know_filtered + predicted_know_unfiltered[:self.args.n_sampled_negative-len(predicted_know_filtered)]
+                            predicted_know_filtered = predicted_know_filtered + predicted_know_unfiltered[:self.args.n_sampled_negative - len(predicted_know_filtered)]
                         predicted_know = predicted_know_filtered
                     predicted_know = predicted_know[:self.args.n_sampled_negative]
 
@@ -117,6 +117,10 @@ class Prompter(object):
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic_list)])
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics, input3=predicted_know,
                                                          input4=data['user_profile'], label=label, mode=mode))
+            elif 'DGIP2P_new' == self.args.prompt or 'DGIP2P_cot' == self.args.prompt:
+                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic_list)])
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics, input3=predicted_know,
+                                                         label=label, mode=mode))
             elif 'UDGIP2GIP_new' == self.args.prompt:
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic_list)])
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics, input3=predicted_know,
