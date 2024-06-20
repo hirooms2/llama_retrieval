@@ -313,8 +313,6 @@ def llama_finetune(
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
                                                             input2=data['topic'], label=label, mode=mode)
             elif 'DP2R' in args.prompt:
-                predicted_know = data['gpt_selection']
-                label = data['response']
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode)
             elif 'DP2I' == args.prompt:
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
@@ -577,11 +575,13 @@ def llama_finetune(
                     hard_negative_candidates = hard_negative_candidates_filtered
 
                 hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
-                random.shuffle(hard_negative_candidates)
+                if args.shuffle:
+                    random.shuffle(hard_negative_candidates)
 
                 hard_negative_candidates.insert(0, target_knowledge)
                 hard_negative_candidates = hard_negative_candidates[:args.n_sampled_negative]
-                random.shuffle(hard_negative_candidates)
+                if args.shuffle:
+                    random.shuffle(hard_negative_candidates)
 
                 predicted_know = hard_negative_candidates
 
