@@ -312,6 +312,10 @@ def llama_finetune(
             elif 'DI2P' in args.prompt:
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
                                                             input2=data['topic'], label=label, mode=mode)
+            elif 'DP2R' in args.prompt:
+                predicted_know = data['gpt_selection']
+                label = data['response']
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode)
             elif 'DP2I' == args.prompt:
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
                                                             label=label, mode=mode)
