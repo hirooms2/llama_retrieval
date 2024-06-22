@@ -29,6 +29,8 @@ class Prompter(object):
 
         for data, label in zip(dataset_input, dataset_output):
             # predicted_goal = data['predicted_goal'][0]
+            if "System: It's suitable for eating Steamed Chicken with Chili Sauce in such weather." in data['response']:
+                print('fuck')
             if self.args.query:
                 predicted_goal = data['query']
             else:
@@ -74,8 +76,8 @@ class Prompter(object):
                         else:
                             p_topic = data['predicted_topic'][0]
 
-                        predicted_know_filtered = [i for i in predicted_know if p_topic.lower().strip() in i.lower().strip()]
-                        predicted_know_unfiltered = [i for i in predicted_know if p_topic.lower().strip() not in i.lower().strip()]
+                        predicted_know_filtered = [i for i in predicted_know if p_topic.lower().strip() in i.replace('\xa0', ' ').strip().lower().strip()]
+                        predicted_know_unfiltered = [i for i in predicted_know if p_topic.lower().strip() not in i.replace('\xa0', ' ').strip().lower().strip()]
                         if len(predicted_know_filtered) < self.args.n_sampled_negative:
                             predicted_know_filtered = predicted_know_filtered + predicted_know_unfiltered[:self.args.n_sampled_negative - len(predicted_know_filtered)]
                         predicted_know = predicted_know_filtered
