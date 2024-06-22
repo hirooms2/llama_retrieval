@@ -29,8 +29,6 @@ class Prompter(object):
 
         for data, label in zip(dataset_input, dataset_output):
             # predicted_goal = data['predicted_goal'][0]
-            if "System: It's suitable for eating Steamed Chicken with Chili Sauce in such weather." in data['response']:
-                print('fuck')
             if self.args.query:
                 predicted_goal = data['query']
             else:
