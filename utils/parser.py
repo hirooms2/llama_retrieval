@@ -47,6 +47,8 @@ def parse_args():
     parser.add_argument("--query", action='store_true', help="original goal vs. refined goal")
     parser.add_argument("--filtering", action='store_true', help="filter-out if a passage does not contain the predicted topic")
     parser.add_argument("--shuffle", action='store_true', help="shuffle passages if task is passage selection")
+    parser.add_argument("--selected_topic", action='store_true', help="selected_topic")
+
     parser.add_argument("--postfix", action='store_true', help="Add postfix in GEN")
     parser.add_argument("--topic_num_shuffle", action='store_true', help="Variable number of topics")
     parser.add_argument('--weighted_loss', action='store_true', help="Add postfix in GEN")
