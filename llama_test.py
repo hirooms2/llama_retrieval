@@ -218,8 +218,11 @@ class LLaMaEvaluator:
 
                 logits_outputs = torch.stack(logits, dim=1)[torch.arange(batch_size).to('cuda'), tokenized_rationales_idx.to('cuda')]  # [B, V]
                 logits_outputs = torch.nn.functional.softmax(logits_outputs, dim=-1)
-                logits_outputs = logits_outputs[:, output_list]  # [B, n_sample]
-                filtered_passages = (logits_outputs > 0.1).nonzero()
+                logits_outputs = logits_outputs[:, output_list].detach().tolist()  # [B, n_sample]
+
+                for i in range(batch_size):
+                    responses[i] = responses[i] + "\n\nProbs:" + '|'.join([".3f" % i for i in logits_outputs[i]])
+
 
             else:
                 responses = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=self.args.num_beams)
