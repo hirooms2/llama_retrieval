@@ -180,9 +180,10 @@ class LLaMaEvaluator:
                 max_new_tokens=max_new_tokens,
             )
         s = generation_output.sequences
+        logits = generation_output.logits
         # scores = generation_output.sequences_scores
         output = self.tokenizer.batch_decode(s, skip_special_tokens=True)
-        return [self.prompter.get_response(i) for i in output]  # , scores.to('cpu').numpy()
+        return [self.prompter.get_response(i) for i in output], logits  # , scores.to('cpu').numpy()
 
     def test(self, epoch=None):
         model = self.prepare_model()
@@ -202,10 +203,20 @@ class LLaMaEvaluator:
             batched_inputs = self.tokenizer(batch[0], padding=True, return_tensors="pt")
             input_ids = batched_inputs["input_ids"].to("cuda")
             attention_mask = batched_inputs["attention_mask"].to("cuda")
+            batch_size = attention_mask.size(0)
 
             if self.args.prompt == 'DGIP2P_cot':
-                responses = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=1)
-                rationales = [i.split(' "Passage')[0] for i in responses]
+                responses, logits = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=1)
+                tokenized_response = self.tokenizer(responses, add_special_tokens=False).input_ids
+
+                rationales = [i.split(' "Passage')[0] + " \"Passage " for i in responses]
+                tokenized_rationales = self.tokenizer(rationales, add_special_tokens=False, padding=True).attention_mask
+                tokenized_rationales_idx = torch.sum(tokenized_rationales, dim=-1)
+
+                output_list = self.tokenizer.convert_tokens_to_ids([str(idx + 1) for idx in range(self.args.n_sampled_negative)])
+                output_list = torch.LongTensor(output_list).to('cuda')
+
+                logits_outputs = logits[torch.arange(batch_size).to('cuda'), tokenized_rationales_idx.to('cuda')]
 
                 batched_inputs_with_rationale = [i + j + " \"Passage " for i, j in zip(batch[0], rationales)]  # [B, L]
                 batched_inputs_with_rationale = self.tokenizer(batched_inputs_with_rationale, padding=True, return_tensors="pt")
@@ -217,7 +228,7 @@ class LLaMaEvaluator:
                 logits = outputs.logits[:, -1, :]
                 probs = torch.nn.functional.softmax(logits, dim=-1)
 
-                output_list = self.tokenizer.convert_tokens_to_ids([str(idx + 1) for idx in range(self.args.n_sampled_negative)])
+                output_list = self.tokenizer.convert_tokens_to_ids()
                 output_list = torch.LongTensor(output_list).to("cuda")
                 probs_output_list = probs[:, output_list]
 
