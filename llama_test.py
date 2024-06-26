@@ -202,9 +202,9 @@ class LLaMaEvaluator:
 
             if self.args.prompt == 'DGIP2P_cot' and self.args.num_beams > 1:
                 responses = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=1)
-                rationales = [i.split('"Passage')[0] for i in responses]
+                rationales = [i.split(' "Passage')[0] for i in responses]
 
-                batched_inputs_with_rationale = [i+j for i,j in zip(batch[0], rationales)]
+                batched_inputs_with_rationale = [i + j for i, j in zip(batch[0], rationales)]
                 batched_inputs_with_rationale = self.tokenizer(batched_inputs_with_rationale, padding=True, return_tensors="pt")
                 input_ids_with_rationale = batched_inputs_with_rationale["input_ids"].to("cuda")
                 attention_mask_with_rationale = batched_inputs_with_rationale["attention_mask"].to("cuda")
