@@ -216,23 +216,11 @@ class LLaMaEvaluator:
                 output_list = self.tokenizer.convert_tokens_to_ids([str(idx + 1) for idx in range(self.args.n_sampled_negative)])
                 output_list = torch.LongTensor(output_list).to('cuda')
 
-                logits_outputs = logits[torch.arange(batch_size).to('cuda'), tokenized_rationales_idx.to('cuda')]
+                logits_outputs = torch.stack(logits, dim=1)[torch.arange(batch_size).to('cuda'), tokenized_rationales_idx.to('cuda')]  # [B, V]
+                logits_outputs = torch.nn.functional.softmax(logits_outputs, dim=-1)
+                logits_outputs = logits_outputs[:, output_list]  # [B, n_sample]
 
-                batched_inputs_with_rationale = [i + j + " \"Passage " for i, j in zip(batch[0], rationales)]  # [B, L]
-                batched_inputs_with_rationale = self.tokenizer(batched_inputs_with_rationale, padding=True, return_tensors="pt")
-                input_ids = batched_inputs_with_rationale["input_ids"].to("cuda")
-                attention_mask = batched_inputs_with_rationale["attention_mask"].to("cuda")
 
-                with torch.no_grad():
-                    outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                logits = outputs.logits[:, -1, :]
-                probs = torch.nn.functional.softmax(logits, dim=-1)
-
-                output_list = self.tokenizer.convert_tokens_to_ids()
-                output_list = torch.LongTensor(output_list).to("cuda")
-                probs_output_list = probs[:, output_list]
-
-                # responses = self.evaluate(input_ids_with_rationale, attention_mask_with_rationale, model, max_new_tokens=self.args.max_new_tokens, num_beams=1)
 
             else:
                 responses = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=self.args.num_beams)
