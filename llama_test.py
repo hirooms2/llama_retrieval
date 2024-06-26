@@ -202,6 +202,8 @@ class LLaMaEvaluator:
             batched_inputs = self.tokenizer(batch[0], padding=True, return_tensors="pt")
             input_ids = batched_inputs["input_ids"].to("cuda")
             attention_mask = batched_inputs["attention_mask"].to("cuda")
+            with torch.no_grad():
+                outputs = model(input_ids=input_ids, attention_mask=attention_mask)
 
             if self.args.prompt == 'DGIP2P_cot':
                 responses = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=1)
