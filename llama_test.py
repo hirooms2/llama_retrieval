@@ -209,7 +209,7 @@ class LLaMaEvaluator:
                 input_ids_with_rationale = batched_inputs_with_rationale["input_ids"].to("cuda")
                 attention_mask_with_rationale = batched_inputs_with_rationale["attention_mask"].to("cuda")
 
-                logits = model(input_ids=input_ids_with_rationale, attention_mask=attention_mask_with_rationale).logits
+                logits = model(input_ids=input_ids_with_rationale, attention_mask=attention_mask_with_rationale).logits[:, -1, :]
                 probs = torch.nn.functional.softmax(logits, dim=-1)
 
                 output_list = self.tokenizer.convert_tokens_to_ids([idx + 1 for idx in range(self.args.n_sampled_negative)])
