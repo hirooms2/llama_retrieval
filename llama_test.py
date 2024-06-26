@@ -161,8 +161,8 @@ class LLaMaEvaluator:
             # temperature=temperature,
             # top_p=top_p,
             # top_k=top_k,
-            num_beams=self.args.num_beams,
-            num_return_sequences=self.args.num_beams,
+            num_beams=num_beams,
+            num_return_sequences=num_beams,
             # do_sample=True,
             **kwargs,
         )
@@ -200,8 +200,19 @@ class LLaMaEvaluator:
             input_ids = batched_inputs["input_ids"].to("cuda")
             attention_mask = batched_inputs["attention_mask"].to("cuda")
 
-            responses = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens,
-                                      num_beams=self.args.num_beams)
+            if self.args.prompt == 'DGIP2P_cot' and self.args.num_beams > 1:
+                responses = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=1)
+                rationales = [i.split('"Passage')[0] for i in responses]
+
+                batched_inputs_with_rationale = [i+j for i,j in zip(responses, rationales)]
+                batched_inputs_with_rationale = self.tokenizer(batched_inputs_with_rationale, padding=True, return_tensors="pt")
+                input_ids_with_rationale = batched_inputs_with_rationale["input_ids"].to("cuda")
+                attention_mask_with_rationale = batched_inputs_with_rationale["attention_mask"].to("cuda")
+                responses = self.evaluate(input_ids_with_rationale, attention_mask_with_rationale, model, max_new_tokens=self.args.max_new_tokens, num_beams=self.args.num_beams)
+
+            else:
+                responses = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=self.args.num_beams)
+
             responses = np.reshape(responses, (-1, self.args.num_beams)).tolist()  # [B, beam]
 
             dialogs, labels, topics = batch[0], batch[1], batch[2]
