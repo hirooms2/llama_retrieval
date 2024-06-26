@@ -218,7 +218,7 @@ class LLaMaEvaluator:
                 output_list = torch.LongTensor(output_list).to("cuda")
                 probs_output_list = probs[:, output_list]
 
-                responses = self.evaluate(input_ids_with_rationale, attention_mask_with_rationale, model, max_new_tokens=self.args.max_new_tokens, num_beams=1)
+                # responses = self.evaluate(input_ids_with_rationale, attention_mask_with_rationale, model, max_new_tokens=self.args.max_new_tokens, num_beams=1)
 
             else:
                 responses = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=self.args.num_beams)
