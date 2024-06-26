@@ -221,7 +221,7 @@ class LLaMaEvaluator:
                 logits_outputs = logits_outputs[:, output_list].detach().tolist()  # [B, n_sample]
 
                 for i in range(batch_size):
-                    responses[i] = responses[i] + "\n\nProbs:" + '|'.join([".3f" % i for i in logits_outputs[i]])
+                    responses[i] = responses[i] + "\n\nProbs:" + '|'.join(["%.4f" % i for i in logits_outputs[i]])
 
 
             else:
