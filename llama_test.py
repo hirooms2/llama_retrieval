@@ -208,10 +208,10 @@ class LLaMaEvaluator:
 
                 batched_inputs_with_rationale = [i + j + " \"Passage " for i, j in zip(batch[0], rationales)]  # [B, L]
                 batched_inputs_with_rationale = self.tokenizer(batched_inputs_with_rationale, padding=True, return_tensors="pt")
-                input_ids_with_rationale = batched_inputs_with_rationale["input_ids"].to("cuda")
-                attention_mask_with_rationale = batched_inputs_with_rationale["attention_mask"].to("cuda")
+                input_ids = batched_inputs_with_rationale["input_ids"].to("cuda")
+                attention_mask = batched_inputs_with_rationale["attention_mask"].to("cuda")
 
-                logits = model(input_ids=input_ids_with_rationale, attention_mask=attention_mask_with_rationale).logits[:, -1, :]
+                logits = model(input_ids=input_ids, attention_mask=attention_mask).logits[:, -1, :]
                 probs = torch.nn.functional.softmax(logits, dim=-1)
 
                 output_list = self.tokenizer.convert_tokens_to_ids([idx + 1 for idx in range(self.args.n_sampled_negative)])
