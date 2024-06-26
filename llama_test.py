@@ -210,7 +210,7 @@ class LLaMaEvaluator:
                 tokenized_response = self.tokenizer(responses, add_special_tokens=False).input_ids
 
                 rationales = [i.split(' "Passage')[0] + " \"Passage " for i in responses]
-                tokenized_rationales = self.tokenizer(rationales, add_special_tokens=False, padding=True).attention_mask
+                tokenized_rationales = self.tokenizer(rationales, add_special_tokens=False, padding=True, return_tensors="pt").attention_mask
                 tokenized_rationales_idx = torch.sum(tokenized_rationales, dim=-1)
 
                 output_list = self.tokenizer.convert_tokens_to_ids([str(idx + 1) for idx in range(self.args.n_sampled_negative)])
