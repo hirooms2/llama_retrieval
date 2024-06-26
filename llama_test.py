@@ -14,6 +14,8 @@ from peft import PeftModel
 
 from utils.prompter import Prompter
 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 if torch.cuda.is_available():
     device = "cuda"
 else:
