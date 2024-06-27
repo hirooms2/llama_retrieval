@@ -568,17 +568,19 @@ def llama_finetune(
 
                 if args.candidate_knowledges_gpt:
                     hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage not in candidate_knowledges_gpt and passage != '']
+                    n_hard_negative = args.n_sampled_negative - len(candidate_knowledges_gpt)
                 else:
                     hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage != target_knowledge and passage != '']
+                    n_hard_negative = args.n_sampled_negative - 1
 
                 if args.filtering:
                     hard_negative_candidates_filtered = [passage for passage in hard_negative_candidates if data['predicted_topic'][0].lower().strip() in passage.lower().strip()]  # Filtering
                     hard_negative_candidates_unfiltered = [passage for passage in hard_negative_candidates if data['predicted_topic'][0].lower().strip() not in passage.lower().strip()]  # Filtering
-                    if len(hard_negative_candidates_filtered) < args.n_hard_negative:
-                        hard_negative_candidates_filtered = hard_negative_candidates_filtered + hard_negative_candidates_unfiltered[:args.n_hard_negative - len(hard_negative_candidates_filtered)]
+                    if len(hard_negative_candidates_filtered) < n_hard_negative:
+                        hard_negative_candidates_filtered = hard_negative_candidates_filtered + hard_negative_candidates_unfiltered[:n_hard_negative - len(hard_negative_candidates_filtered)]
                     hard_negative_candidates = hard_negative_candidates_filtered
 
-                hard_negative_candidates = hard_negative_candidates[:args.n_hard_negative]
+                hard_negative_candidates = hard_negative_candidates[:n_hard_negative]
                 if args.shuffle:
                     random.shuffle(hard_negative_candidates)
 
@@ -600,9 +602,9 @@ def llama_finetune(
                 predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
 
             if args.candidate_knowledges_gpt:
-                label = f"Passage {relevant_idx + 1}. {target_knowledge}"
-            else:
                 label = ', '.join([f"\"Passage {x + 1}\"" for x, y in zip(relevant_idx_list, candidate_knowledges_gpt)])
+            else:
+                label = f"Passage {relevant_idx + 1}. {target_knowledge}"
 
             if args.combined_top1:
                 if idx % 2 == 0 or args.input_top1:
