@@ -15,12 +15,12 @@ pseudo_test_name = 'en_test_pseudo_BySamples3711.txt'
 pseudo_test_path = os.path.join(dataPath(), pseudo_test_name)
 pseudo_test_context = read_json(pseudo_test_path)
 
-train_raw_pkl_file_name = 'data/train_pred_aug_dataset.pkl'
+train_raw_pkl_file_name = 'data/train_pred_aug_dataset_new.pkl'
 train_raw_pkl_path = os.path.join(dataPath(), train_raw_pkl_file_name)
 train_raw = read_pkl(train_raw_pkl_path)
 
 
-test_raw_pkl_file_name = 'data/test_pred_aug_dataset.pkl'
+test_raw_pkl_file_name = 'data/test_pred_aug_dataset_new.pkl'
 test_raw_pkl_path = os.path.join(dataPath(), test_raw_pkl_file_name)
 test_raw = read_pkl(test_raw_pkl_path)
 
