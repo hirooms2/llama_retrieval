@@ -181,13 +181,9 @@ class LLaMaEvaluator:
             )
         s = generation_output.sequences
         # scores = generation_output.sequences_scores
+        logits = generation_output.logits
         output = self.tokenizer.batch_decode(s, skip_special_tokens=True)
-        return [self.prompter.get_response(i) for i in output]  # , scores.to('cpu').numpy()
-        # s = generation_output.sequences
-        # logits = generation_output.logits
-        # # scores = generation_output.sequences_scores
-        # output = self.tokenizer.batch_decode(s, skip_special_tokens=True)
-        # return [self.prompter.get_response(i) for i in output], logits  # , scores.to('cpu').numpy()
+        return [self.prompter.get_response(i) for i in output], logits  # , scores.to('cpu').numpy()
 
     def test(self, epoch=None):
         model = self.prepare_model()
@@ -229,7 +225,7 @@ class LLaMaEvaluator:
 
 
             else:
-                responses = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=self.args.num_beams)
+                responses, _ = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=self.args.num_beams)
 
             responses = np.reshape(responses, (-1, self.args.num_beams)).tolist()  # [B, beam]
 
