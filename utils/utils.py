@@ -92,12 +92,11 @@ def prepare_dataset(args, tokenizer, dataset):
 
         for idx1, top_passages in enumerate(data['predicted_know']):
             for idx2, passage in enumerate(top_passages):
-                data['predicted_know'][idx1][idx2] = tokenizer.decode(
-                    tokenizer(passage).input_ids[1:][:args.passage_cutoff]).strip()
+                data['predicted_know'][idx1][idx2] = tokenizer.decode(tokenizer(passage).input_ids[1:][:args.passage_cutoff]).strip()
 
         # target knowledge truncation
         if 'gpt_selection' in data:
-            data['gpt_selection'] = tokenizer.decode(tokenizer(data['gpt_selection']).input_ids[1:][:args.passage_cutoff])
+            data['gpt_selection'] = tokenizer.decode(tokenizer(data['gpt_selection']).input_ids[1:][:args.passage_cutoff]).strip()
 
         for idx, candidate in enumerate(data['candidate_knowledges_gpt']):
             data['candidate_knowledges_gpt'][idx] = tokenizer.decode(tokenizer(candidate).input_ids[1:][:args.passage_cutoff]).strip()
