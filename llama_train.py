@@ -392,7 +392,7 @@ def llama_finetune(
             elif 'UDGIP2P_cot' == args.prompt:
                 # label = f"{data['topic']}"
                 rationale = data['passage_cot'].split('Therefore')[0].strip()
-                label = f"{rationale} Therefore, the most relevant passage is \"{label}\""
+                label = f"{rationale} Therefore, the most relevant passage is {label}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
                                                             input2=candidate_topics,
@@ -467,6 +467,11 @@ def llama_finetune(
 
             # target knowledge truncation
             target_knowledge = self.tokenizer.decode(tokenizer(target_knowledge).input_ids[1:][:args.passage_cutoff])
+
+            # 만약에 passage X 만 출력할거면 얘는 없어도 됨
+            candidate_knowledges_gpt = data['candidate_knowledges_gpt']
+            for idx, candidate in enumerate(candidate_knowledges_gpt):
+                candidate_knowledges_gpt[idx] = self.tokenizer.decode(tokenizer(candidate).input_ids[1:][:args.passage_cutoff])
 
             # topic_idx = [i for i in range(args.topk_topic)]
             # random.shuffle(topic_idx)
@@ -567,7 +572,11 @@ def llama_finetune(
                 # predicted_know.insert(0, target_knowledge)
                 # predicted_know = predicted_know[:args.n_sampled_negative]
 
-                hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage != target_knowledge and passage != '']
+                if args.candidate_knowledges_gpt:
+                    hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage in candidate_knowledges_gpt and passage != '']
+                else:
+                    hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage != target_knowledge and passage != '']
+
                 if args.filtering:
                     hard_negative_candidates_filtered = [passage for passage in hard_negative_candidates if data['predicted_topic'][0].lower().strip() in passage.lower().strip()]  # Filtering
                     hard_negative_candidates_unfiltered = [passage for passage in hard_negative_candidates if data['predicted_topic'][0].lower().strip() not in passage.lower().strip()]  # Filtering
@@ -579,17 +588,27 @@ def llama_finetune(
                 if args.shuffle:
                     random.shuffle(hard_negative_candidates)
 
-                hard_negative_candidates.insert(0, target_knowledge)
+                if args.candidate_knowledges_gpt:
+                    hard_negative_candidates = candidate_knowledges_gpt + hard_negative_candidates
+                else:
+                    hard_negative_candidates.insert(0, target_knowledge)
+
                 hard_negative_candidates = hard_negative_candidates[:args.n_sampled_negative]
                 if args.shuffle:
                     random.shuffle(hard_negative_candidates)
 
                 predicted_know = hard_negative_candidates
-
                 relevant_idx = predicted_know.index(target_knowledge)
+                relevant_idx_list = []
+                for x in candidate_knowledges_gpt:
+                    relevant_idx_list.append(predicted_know.index(x))
+
                 predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
 
-            label = f"Passage {relevant_idx + 1}. {target_knowledge}"
+            if args.candidate_knowledges_gpt:
+                label = f"Passage {relevant_idx + 1}. {target_knowledge}"
+            else:
+                label = ', '.join([f"\"Passage {x + 1}\"" for x, y in zip(relevant_idx_list, candidate_knowledges_gpt)])
 
             if args.combined_top1:
                 if idx % 2 == 0 or args.input_top1:
