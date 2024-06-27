@@ -223,7 +223,6 @@ class LLaMaEvaluator:
                 for i in range(batch_size):
                     responses[i] = responses[i] + "\n\nProbs:" + '|'.join(["%.4f" % i for i in logits_outputs[i]])
 
-
             else:
                 responses, _ = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=self.args.num_beams)
 
