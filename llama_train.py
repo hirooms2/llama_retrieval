@@ -465,13 +465,7 @@ def llama_finetune(
             else:
                 raise ValueError
 
-            # target knowledge truncation
-            target_knowledge = self.tokenizer.decode(tokenizer(target_knowledge).input_ids[1:][:args.passage_cutoff])
-
-            # 만약에 passage X 만 출력할거면 얘는 없어도 됨
             candidate_knowledges_gpt = data['candidate_knowledges_gpt']
-            for idx, candidate in enumerate(candidate_knowledges_gpt):
-                candidate_knowledges_gpt[idx] = self.tokenizer.decode(tokenizer(candidate).input_ids[1:][:args.passage_cutoff])
 
             # topic_idx = [i for i in range(args.topk_topic)]
             # random.shuffle(topic_idx)
