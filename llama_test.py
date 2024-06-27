@@ -180,10 +180,14 @@ class LLaMaEvaluator:
                 max_new_tokens=max_new_tokens,
             )
         s = generation_output.sequences
-        logits = generation_output.logits
         # scores = generation_output.sequences_scores
         output = self.tokenizer.batch_decode(s, skip_special_tokens=True)
-        return [self.prompter.get_response(i) for i in output], logits  # , scores.to('cpu').numpy()
+        return [self.prompter.get_response(i) for i in output]  # , scores.to('cpu').numpy()
+        # s = generation_output.sequences
+        # logits = generation_output.logits
+        # # scores = generation_output.sequences_scores
+        # output = self.tokenizer.batch_decode(s, skip_special_tokens=True)
+        # return [self.prompter.get_response(i) for i in output], logits  # , scores.to('cpu').numpy()
 
     def test(self, epoch=None):
         model = self.prepare_model()
