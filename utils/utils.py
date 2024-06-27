@@ -96,7 +96,8 @@ def prepare_dataset(args, tokenizer, dataset):
                     tokenizer(passage).input_ids[1:][:args.passage_cutoff]).strip()
 
         # target knowledge truncation
-        data['gpt_selection'] = tokenizer.decode(tokenizer(data['gpt_selection']).input_ids[1:][:args.passage_cutoff])
+        if 'gpt_selection' in data:
+            data['gpt_selection'] = tokenizer.decode(tokenizer(data['gpt_selection']).input_ids[1:][:args.passage_cutoff])
 
         for idx, candidate in enumerate(data['candidate_knowledges_gpt']):
             data['candidate_knowledges_gpt'][idx] = tokenizer.decode(tokenizer(candidate).input_ids[1:][:args.passage_cutoff]).strip()
