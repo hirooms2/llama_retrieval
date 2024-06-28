@@ -465,7 +465,7 @@ def llama_finetune(
             else:
                 raise ValueError
 
-            candidate_knowledges_gpt = data['candidate_knowledges_gpt'][:1]
+            candidate_knowledges_gpt = data['candidate_knowledges_gpt']
 
             # topic_idx = [i for i in range(args.topk_topic)]
             # random.shuffle(topic_idx)
