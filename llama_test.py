@@ -205,26 +205,26 @@ class LLaMaEvaluator:
             attention_mask = batched_inputs["attention_mask"].to("cuda")
             batch_size = attention_mask.size(0)
 
-            if self.args.prompt == 'DGIP2P_cot':
-                responses, logits = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=1)
-                tokenized_response = self.tokenizer(responses, add_special_tokens=False).input_ids
-
-                rationales = [i.split(' "Passage')[0] + " \"Passage " for i in responses]
-                tokenized_rationales = self.tokenizer(rationales, add_special_tokens=False, padding=True, return_tensors="pt").attention_mask
-                tokenized_rationales_idx = torch.sum(tokenized_rationales, dim=-1)
-
-                output_list = self.tokenizer.convert_tokens_to_ids([str(idx + 1) for idx in range(self.args.n_sampled_negative)])
-                output_list = torch.LongTensor(output_list).to('cuda')
-
-                logits_outputs = torch.stack(logits, dim=1)[torch.arange(batch_size).to('cuda'), tokenized_rationales_idx.to('cuda')]  # [B, V]
-                logits_outputs = torch.nn.functional.softmax(logits_outputs, dim=-1)
-                logits_outputs = logits_outputs[:, output_list].detach().tolist()  # [B, n_sample]
-
-                for i in range(batch_size):
-                    responses[i] = responses[i] + "\n\nProbs:" + '|'.join(["%.4f" % i for i in logits_outputs[i]])
-
-            else:
-                responses, _ = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=self.args.num_beams)
+            # if self.args.prompt == 'DGIP2P_cot':
+            #     responses, logits = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=1)
+            #     tokenized_response = self.tokenizer(responses, add_special_tokens=False).input_ids
+            #
+            #     rationales = [i.split(' "Passage')[0] + " \"Passage " for i in responses]
+            #     tokenized_rationales = self.tokenizer(rationales, add_special_tokens=False, padding=True, return_tensors="pt").attention_mask
+            #     tokenized_rationales_idx = torch.sum(tokenized_rationales, dim=-1)
+            #
+            #     output_list = self.tokenizer.convert_tokens_to_ids([str(idx + 1) for idx in range(self.args.n_sampled_negative)])
+            #     output_list = torch.LongTensor(output_list).to('cuda')
+            #
+            #     logits_outputs = torch.stack(logits, dim=1)[torch.arange(batch_size).to('cuda'), tokenized_rationales_idx.to('cuda')]  # [B, V]
+            #     logits_outputs = torch.nn.functional.softmax(logits_outputs, dim=-1)
+            #     logits_outputs = logits_outputs[:, output_list].detach().tolist()  # [B, n_sample]
+            #
+            #     for i in range(batch_size):
+            #         responses[i] = responses[i] + "\n\nProbs:" + '|'.join(["%.4f" % i for i in logits_outputs[i]])
+            #
+            # else:
+            responses, _ = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=self.args.num_beams)
 
             responses = np.reshape(responses, (-1, self.args.num_beams)).tolist()  # [B, beam]
 
