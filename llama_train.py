@@ -375,7 +375,7 @@ def llama_finetune(
             elif 'DGIP2P_cot' == args.prompt:
                 # label = f"{data['topic']}"
                 rationale = data['passage_cot'].split('Therefore')[0].strip()
-                label = f"{rationale} Therefore, the most relevant passage is {label}."
+                label = f"{rationale} Therefore, the relevant passages are {label}."
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
                                                             input2=candidate_topics,
