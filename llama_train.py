@@ -375,7 +375,16 @@ def llama_finetune(
             elif 'DGIP2P_cot' == args.prompt:
                 # label = f"{data['topic']}"
                 rationale = data['passage_cot'].split('Therefore')[0].strip()
-                label = f"{rationale} Therefore, the relevant passages are {label}."
+                label = f"{rationale} Therefore, the most relevant passages is {label}."
+                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=candidate_topics,
+                                                            input3=predicted_know,
+                                                            label=label, mode=mode)
+            elif 'DGIP2P_cot_new' == args.prompt:
+                # label = f"{data['topic']}"
+                rationale = data['passage_cot'].split('Therefore')[0].strip()
+                label = f"{rationale} Therefore, the relevant passages are as follow:\n{label}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
                                                             input2=candidate_topics,
@@ -465,7 +474,7 @@ def llama_finetune(
             else:
                 raise ValueError
 
-            candidate_knowledges_gpt = data['candidate_knowledges_gpt']
+            candidate_knowledges_gpt = data['candidate_knowledges_gpt'][:args.n_sampled_positive]
 
             # topic_idx = [i for i in range(args.topk_topic)]
             # random.shuffle(topic_idx)
@@ -602,10 +611,7 @@ def llama_finetune(
                 predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
 
             if args.candidate_knowledges_gpt:
-                if args.only_passage_id:
-                    label = ', '.join([f"\"Passage {x + 1}\"" for x, y in zip(relevant_idx_list, candidate_knowledges_gpt)])
-                else:
-                    label = ', '.join([f"\"Passage {x + 1}. {y}\"" for x, y in zip(relevant_idx_list, candidate_knowledges_gpt)])
+                label = '\n'.join([f"Passage {x + 1}. {y}" for x, y in zip(relevant_idx_list, candidate_knowledges_gpt)])
 
             else:
                 label = f"Passage {relevant_idx + 1}. {target_knowledge}"
