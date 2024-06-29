@@ -532,12 +532,12 @@ def llama_finetune(
                     for idx, top_passages in enumerate(top_negative_candidates):
                         hard_negative_candidates_filtered = [passage for passage in top_passages if data['predicted_topic'][idx].lower().strip() in passage.lower().strip()]  # Filtering
                         hard_negative_candidates_unfiltered = [passage for passage in top_passages if data['predicted_topic'][idx].lower().strip() not in passage.lower().strip()]  # Filtering
-                        if len(hard_negative_candidates_filtered) < args.n_hard_negative:
-                            hard_negative_candidates_filtered = hard_negative_candidates_filtered + hard_negative_candidates_unfiltered[:args.n_hard_negative - len(hard_negative_candidates_filtered)]
+                        if len(hard_negative_candidates_filtered) < args.n_sampled_negative:
+                            hard_negative_candidates_filtered = hard_negative_candidates_filtered + hard_negative_candidates_unfiltered[:args.n_sampled_negative - len(hard_negative_candidates_filtered)]
                         top_negative_candidates[idx] = hard_negative_candidates_filtered
 
                 for idx, top_passages in enumerate(top_negative_candidates):
-                    top_negative_candidates[idx] = top_negative_candidates[idx][:args.n_hard_negative]
+                    top_negative_candidates[idx] = top_negative_candidates[idx][:args.n_sampled_negative]
 
                 if args.shuffle:
                     for idx, top_passages in enumerate(top_negative_candidates):
@@ -575,12 +575,11 @@ def llama_finetune(
                 # predicted_know.insert(0, target_knowledge)
                 # predicted_know = predicted_know[:args.n_sampled_negative]
 
-                if args.candidate_knowledges_gpt:
-                    hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage not in candidate_knowledges_gpt and passage != '']
+                hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage not in candidate_knowledges_gpt and passage != '']
+                if args.n_hard_negative != -1:
                     n_hard_negative = args.n_sampled_negative - len(candidate_knowledges_gpt)
                 else:
-                    hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage != target_knowledge and passage != '']
-                    n_hard_negative = args.n_sampled_negative - 1
+                    n_hard_negative = args.n_hard_negative
 
                 if args.filtering:
                     hard_negative_candidates_filtered = [passage for passage in hard_negative_candidates if data['predicted_topic'][0].lower().strip() in passage.lower().strip()]  # Filtering
@@ -593,11 +592,7 @@ def llama_finetune(
                 if args.shuffle:
                     random.shuffle(hard_negative_candidates)
 
-                if args.candidate_knowledges_gpt:
-                    hard_negative_candidates = candidate_knowledges_gpt + hard_negative_candidates
-                else:
-                    hard_negative_candidates.insert(0, target_knowledge)
-
+                hard_negative_candidates = candidate_knowledges_gpt + hard_negative_candidates
                 hard_negative_candidates = hard_negative_candidates[:args.n_sampled_negative]
                 if args.shuffle:
                     random.shuffle(hard_negative_candidates)
