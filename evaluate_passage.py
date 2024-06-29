@@ -13,7 +13,7 @@ tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
 train_raw_data = pickle.load(open("data/train_pred_aug_dataset_new.pkl", 'rb'))
 test_raw_data = pickle.load(open("data/test_pred_aug_dataset_new.pkl", 'rb'))
 
-results1 = json.load(open('result/0628080730_llama2_DGIP2P_cot_deepspeed_4e-4_nsampled4_rel_clean_E5.json', 'r', encoding='utf-8'))
+results1 = json.load(open('result/0629081422_llama2_DGIP2P_cotnew_deepspeed_4e-4_nsampled4_rel_clean_npos2_E3.json', 'r', encoding='utf-8'))
 
 en_test_know_combined3 = json.load(open('data/know/en_test_know_combined3.json', 'r', encoding='utf-8'))
 
@@ -49,7 +49,7 @@ for (i, j, x) in tqdm(zip(results1, test_raw_data, en_test_know_combined3)):
 print()
 hits = [0, 0, 0, 0]
 for data in results1:
-    passages_results = data['GEN'].split('relevant passage is ')[-1].split('\n\n')[0].split(", \"")
+    passages_results = data['GEN'].split('relevant passage is ')[-1].split('as follow:\n')[-1].split("\n")
     selected_passages_idx = [int(data['GEN'][m.start() + len('Passage ')]) - 1 for m in re.finditer('Passage', data['GEN'])]
     selected_passages = [data['predicted_know'][i] for i in selected_passages_idx]
     reranked_passages = selected_passages + [i for i in data['predicted_know'][:4] if i not in selected_passages]
