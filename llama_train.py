@@ -570,6 +570,10 @@ def llama_finetune(
                          enumerate(top_negative_candidates[i])])
                     predicted_know += f"{prefix}\n{candidate_passages}\n\n"
 
+            elif args.target:
+                predicted_know = data['target_knowledge']
+                predicted_know = '\n'.join([f"Passage {idx+1}. {know}" for idx, know in enumerate(predicted_know)])
+
             else:
                 # predicted_know = [item for item in data['predicted_know'][0] if item != target_knowledge]
                 # predicted_know.insert(0, target_knowledge)
