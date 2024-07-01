@@ -572,7 +572,7 @@ def llama_finetune(
 
             elif args.target:
                 predicted_know = data['target_knowledge']
-                predicted_know = '\n'.join([f"Passage {idx+1}. {know}" for idx, know in enumerate(predicted_know)])
+                predicted_know = f"Passage 1. {predicted_know}\n"
 
             else:
                 # predicted_know = [item for item in data['predicted_know'][0] if item != target_knowledge]
@@ -612,6 +612,8 @@ def llama_finetune(
             if args.candidate_knowledges_gpt:
                 label = '\n'.join([f"Passage {x + 1}. {y}" for x, y in zip(relevant_idx_list, candidate_knowledges_gpt)])
 
+            elif args.target:
+                label = f"Passage 1. {predicted_know}"
             else:
                 label = f"Passage {relevant_idx + 1}. {target_knowledge}"
 
