@@ -79,8 +79,12 @@ class Prompter(object):
                         if len(predicted_know_filtered) < self.args.n_sampled_negative:
                             predicted_know_filtered = predicted_know_filtered + predicted_know_unfiltered[:self.args.n_sampled_negative - len(predicted_know_filtered)]
                         predicted_know = predicted_know_filtered
-                    predicted_know = predicted_know[:self.args.n_sampled_negative]
-                    predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
+                    if self.args.target:
+                        predicted_know = data['target_knowledge']
+                        predicted_know = f"Passage 1. {predicted_know}\n"
+                    else:
+                        predicted_know = predicted_know[:self.args.n_sampled_negative]
+                        predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
 
             if 'UD2I' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], label=label, mode=mode))
