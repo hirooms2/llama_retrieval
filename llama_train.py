@@ -572,7 +572,7 @@ def llama_finetune(
 
             elif args.target:
                 predicted_know = data['target_knowledge']
-                predicted_know = f"Passage 1. {predicted_know}\n"
+                predicted_know = f"{predicted_know}\n"
 
             else:
                 # predicted_know = [item for item in data['predicted_know'][0] if item != target_knowledge]
