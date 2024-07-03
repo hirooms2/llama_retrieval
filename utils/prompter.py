@@ -76,13 +76,9 @@ class Prompter(object):
 
                         predicted_know_filtered = [i for i in predicted_know if p_topic.lower().strip() in i.replace('\xa0', ' ').strip().lower().strip()]
                         predicted_know_unfiltered = [i for i in predicted_know if p_topic.lower().strip() not in i.replace('\xa0', ' ').strip().lower().strip()]
-                        if self.args.n_hard_negative == -1:
-                            n_hard_negative = self.args.n_sampled_negative - len(predicted_know_filtered)
-                        else:
-                            n_hard_negative = self.args.n_hard_negative
 
                         if len(predicted_know_filtered) < self.args.n_sampled_negative:
-                            predicted_know_filtered = predicted_know_filtered + predicted_know_unfiltered[:n_hard_negative]
+                            predicted_know_filtered = predicted_know_filtered + predicted_know_unfiltered[:self.args.n_sampled_negative - len(predicted_know_filtered)]
                         predicted_know = predicted_know_filtered
                     if self.args.target:
                         predicted_know = data['target_knowledge']
