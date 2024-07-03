@@ -580,7 +580,7 @@ def llama_finetune(
                 # predicted_know = predicted_know[:args.n_sampled_negative]
 
                 hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage not in candidate_knowledges_gpt and passage != '']
-                if args.n_hard_negative != -1:
+                if args.n_hard_negative == -1:
                     n_hard_negative = args.n_sampled_negative - len(candidate_knowledges_gpt)
                 else:
                     n_hard_negative = args.n_hard_negative
