@@ -1,6 +1,0 @@
-{
-    "description": "CRS recommendation template.",
-    "prompt_input": "Pretend you are a conversational recommender system. Your task is to generate a response to the given dialog.\n\nFirst, I will provide a dialog between a user and the system, along with the goal of the response and the topic of the response. Then, I will provide candidate passages describing the topic.\n\nHere is the dialog:\n{instruction}\n\nHere is the goal:\n{input}\n\nHere is the topic:\n{input2}\n\nHere are the passages:\n{input3}\n\nBy referring to the dialog context and the passages, select the most relevant passage for the next response from the passage list. You should first give the rationale, then select the relevant passage:\n{input4}\n\nFormulate a response that the system should give by considering the above information.\n\n### Response:",
-    "prompt_no_input": "",
-    "response_split": "### Response:"
-  }
