@@ -46,11 +46,6 @@ class Prompter(object):
                         cum_prob += p_conf
                 predicted_topic_list = deepcopy(candidate_topic_entities)
 
-            if self.args.selected_topic and 'selected_topic' in dataset_input[0]:
-                predicted_topic = data['selected_topic']
-            else:
-                predicted_topic = data['predicted_topic'][0]
-
             if 'predicted_know' in data and 'P' in self.args.prompt:
                 top_negative_candidates = deepcopy(data['predicted_know'])
                 if self.args.combined:  # self.args.combined:
@@ -74,15 +69,16 @@ class Prompter(object):
                     predicted_know = [i for i in top_negative_candidates[0] if i != '']
 
                     if self.args.filtering:
-                        predicted_know_filtered = [i for i in predicted_know if predicted_topic.lower().strip() in i.replace('\xa0', ' ').strip().lower().strip()]
-                        predicted_know_unfiltered = [i for i in predicted_know if predicted_topic.lower().strip() not in i.replace('\xa0', ' ').strip().lower().strip()]
-                        if self.args.n_hard_negative == -1:
-                            n_hard_negative = self.args.n_sampled_negative - len(predicted_know_filtered)
+                        if self.args.selected_topic and 'selected_topic' in dataset_input[0]:
+                            p_topic = data['selected_topic']
                         else:
-                            n_hard_negative = self.args.n_hard_negative
+                            p_topic = data['predicted_topic'][0]
+
+                        predicted_know_filtered = [i for i in predicted_know if p_topic.lower().strip() in i.replace('\xa0', ' ').strip().lower().strip()]
+                        predicted_know_unfiltered = [i for i in predicted_know if p_topic.lower().strip() not in i.replace('\xa0', ' ').strip().lower().strip()]
 
                         if len(predicted_know_filtered) < self.args.n_sampled_negative:
-                            predicted_know_filtered = predicted_know_filtered + predicted_know_unfiltered[:n_hard_negative]
+                            predicted_know_filtered = predicted_know_filtered + predicted_know_unfiltered[:self.args.n_sampled_negative - len(predicted_know_filtered)]
                         predicted_know = predicted_know_filtered
                     if self.args.target:
                         predicted_know = data['target_knowledge']
@@ -101,7 +97,7 @@ class Prompter(object):
             elif 'DP2R' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
             elif 'DGIP2R' == self.args.prompt:
-                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=predicted_topic, input3=predicted_know, label=label, mode=mode))
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=p_topic, input3=predicted_know, label=label, mode=mode))
             elif 'D2R' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], label=label, mode=mode))
             elif 'DGI2R' in self.args.prompt:
