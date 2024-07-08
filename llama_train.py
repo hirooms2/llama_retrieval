@@ -370,6 +370,16 @@ def llama_finetune(
                                                             input2=candidate_topics,
                                                             input3=predicted_know, input4=data['user_profile'],
                                                             label=label, mode=mode)
+            elif 'UDGIP2IP_cot' == args.prompt:
+                # label = f"{data['topic']}"
+                topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
+                rationale = data['topic_cot'].split('Therefore')[0].strip()
+                label = f"{rationale}\nThe most suitable topic is as follow:\nTopic {topic_idx}. {data['topic']}\nThe relevant passages are as follow:\n{label}"
+                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=candidate_topics,
+                                                            input3=predicted_know, input4=data['user_profile'],
+                                                            label=label, mode=mode)
             elif 'UDGIP2P_new' == args.prompt:
                 # label = f"{data['topic']}"
                 label = f"{label}"
