@@ -549,7 +549,8 @@ def llama_finetune(
 
             if data['combined']:
                 for idx, top_passages in enumerate(top_negative_candidates):
-                    top_negative_candidates[idx] = [i for i in top_passages if i != target_knowledge and i != '']
+                    # top_negative_candidates[idx] = [i for i in top_passages if i != target_knowledge and i != '']
+                    top_negative_candidates[idx] = [i for i in top_passages if i not in candidate_knowledges_gpt and i != '']
 
                 # Filtering code
                 if args.filtering:
@@ -569,7 +570,8 @@ def llama_finetune(
 
                 for idx, predicted_topic in enumerate(predicted_topic_list):
                     if data['topic'] == predicted_topic:
-                        top_negative_candidates[idx].insert(0, target_knowledge)
+                        # top_negative_candidates[idx].insert(0, target_knowledge)
+                        top_negative_candidates[idx] = candidate_knowledges_gpt + top_negative_candidates[idx]
                         break
 
                 for idx, top_passages in enumerate(top_negative_candidates):
