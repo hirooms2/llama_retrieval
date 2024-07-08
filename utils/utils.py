@@ -54,7 +54,8 @@ def merge_dataset_passages(args, dataset, mode='train', know_file_path='', combi
 
     ## Duplicate the raw dataset in case the size of the knowledge dataset is larger.
     if len(dataset) != len(know_dataset):
-        dataset = [data for data in dataset for _ in range(int(len(know_dataset) / len(dataset)))]
+        print('The size of dialog dataset and know dataset are different!')
+        # dataset = [data for data in dataset for _ in range(int(len(know_dataset) / len(dataset)))]
 
     for idx, know_data in enumerate(know_dataset):
         dataset[idx]['predicted_know'] = know_data['predicted_know']
