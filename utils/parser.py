@@ -9,6 +9,9 @@ def parse_args():
     parser.add_argument('--test_continue', type=int, default=0)
 
     parser.add_argument('--log_name', type=str, default="")
+    parser.add_argument('--train_data', type=str, default="new")
+    parser.add_argument('--test_data', type=str, default="new")
+
     parser.add_argument('--log_dir', default='logs', type=str, help="logging file directory")
     parser.add_argument('--debug', type=bool, default=False)
     parser.add_argument('--write', type=bool, default=True)

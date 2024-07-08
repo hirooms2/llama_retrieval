@@ -10,11 +10,11 @@ from tqdm import tqdm
 
 def load_dataset(args):
     print('LLAMA_DATASET')
-    train_file_path = os.path.join(args.home, 'data/train_pred_aug_dataset_new.pkl')
+    train_file_path = os.path.join(args.home, f'data/train_pred_aug_dataset_{args.train_data}.pkl')
     with open(file=train_file_path, mode='rb') as f:
         train_dataset = pickle.load(f)
 
-    test_file_path = os.path.join(args.home, 'data/test_pred_aug_dataset_new.pkl')
+    test_file_path = os.path.join(args.home, f'data/test_pred_aug_dataset_{args.test_data}.pkl')
     with open(file=test_file_path, mode='rb') as f:
         test_dataset = pickle.load(f)
     return train_dataset, test_dataset
