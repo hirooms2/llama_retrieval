@@ -57,8 +57,8 @@ def merge_dataset_passages(args, dataset, mode='train', know_file_path='', combi
         print('The size of dialog dataset and know dataset are different!')
         # dataset = [data for data in dataset for _ in range(int(len(know_dataset) / len(dataset)))]
 
-    for idx, know_data in enumerate(know_dataset):
-        dataset[idx]['predicted_know'] = know_data['predicted_know']
+    for idx, data in enumerate(dataset):
+        dataset[idx]['predicted_know'] = know_dataset[min(idx, len(know_dataset)-1)]['predicted_know']
         dataset[idx]['combined'] = combined
 
     return deepcopy(dataset)
