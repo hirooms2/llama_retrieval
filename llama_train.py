@@ -364,7 +364,7 @@ def llama_finetune(
                 # label = f"{data['topic']}"
                 topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
                 rationale = data['topic_cot'].split('Therefore')[0].strip()
-                label = f"{rationale} Therefore, the most suitable topic is as follow:\nTopic {topic_idx}. {data['topic']}"
+                label = f"{rationale}\nThe most suitable topic is \"{data['topic']}\""
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
                                                             input2=candidate_topics,
