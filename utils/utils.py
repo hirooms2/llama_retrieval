@@ -57,8 +57,8 @@ def merge_dataset_passages(args, dataset, mode='train', know_file_path='', combi
         print('The size of dialog dataset and know dataset are different!')
         # dataset = [data for data in dataset for _ in range(int(len(know_dataset) / len(dataset)))]
 
-    for idx, data in enumerate(dataset):
-        dataset[idx]['predicted_know'] = know_dataset[min(idx, len(know_dataset)-1)]['predicted_know']
+    for idx, know_data in enumerate(know_dataset):
+        dataset[idx]['predicted_know'] = know_data['predicted_know']
         dataset[idx]['combined'] = combined
 
     return deepcopy(dataset)
@@ -91,16 +91,18 @@ def prepare_dataset(args, tokenizer, dataset):
         data['response'] = data['response'].replace('[SEP]', '')
         topics.append(data['topic'])
 
-        for idx1, top_passages in enumerate(data['predicted_know']):
-            for idx2, passage in enumerate(top_passages):
-                data['predicted_know'][idx1][idx2] = tokenizer.decode(tokenizer(passage).input_ids[1:][:args.passage_cutoff]).strip()
+        if 'predicted_know' in data:
+            for idx1, top_passages in enumerate(data['predicted_know']):
+                for idx2, passage in enumerate(top_passages):
+                    data['predicted_know'][idx1][idx2] = tokenizer.decode(tokenizer(passage).input_ids[1:][:args.passage_cutoff]).strip()
 
         # target knowledge truncation
         if 'gpt_selection' in data:
             data['gpt_selection'] = tokenizer.decode(tokenizer(data['gpt_selection']).input_ids[1:][:args.passage_cutoff]).strip()
 
-        for idx, candidate in enumerate(data['candidate_knowledges_gpt']):
-            data['candidate_knowledges_gpt'][idx] = tokenizer.decode(tokenizer(candidate).input_ids[1:][:args.passage_cutoff]).strip()
+        if 'candidate_knowledges_gpt' in data:
+            for idx, candidate in enumerate(data['candidate_knowledges_gpt']):
+                data['candidate_knowledges_gpt'][idx] = tokenizer.decode(tokenizer(candidate).input_ids[1:][:args.passage_cutoff]).strip()
 
         # if 'R' in args.prompt.split('2')[-1]:
         #     labels.append(data['response'].replace('\xa0', ' ').strip())
