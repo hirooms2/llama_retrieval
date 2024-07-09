@@ -561,18 +561,10 @@ def llama_finetune(
                             hard_negative_candidates_filtered = hard_negative_candidates_filtered + hard_negative_candidates_unfiltered[:args.n_sampled_negative - len(hard_negative_candidates_filtered)]
                         top_negative_candidates[idx] = hard_negative_candidates_filtered
 
-                for idx, top_passages in enumerate(top_negative_candidates):
-                    top_negative_candidates[idx] = top_negative_candidates[idx][:args.n_sampled_negative]
-
-                if args.shuffle:
-                    for idx, top_passages in enumerate(top_negative_candidates):
-                        random.shuffle(top_negative_candidates[idx])
-
                 for idx, predicted_topic in enumerate(predicted_topic_list):
                     if data['topic'] == predicted_topic:
                         # top_negative_candidates[idx].insert(0, target_knowledge)
                         top_negative_candidates[idx] = candidate_knowledges_gpt + top_negative_candidates[idx]
-                        break
 
                 for idx, top_passages in enumerate(top_negative_candidates):
                     top_negative_candidates[idx] = top_negative_candidates[idx][:args.n_sampled_negative]
@@ -580,6 +572,19 @@ def llama_finetune(
                 if args.shuffle:
                     for idx, top_passages in enumerate(top_negative_candidates):
                         random.shuffle(top_negative_candidates[idx])
+
+                # for idx, predicted_topic in enumerate(predicted_topic_list):
+                #     if data['topic'] == predicted_topic:
+                #         # top_negative_candidates[idx].insert(0, target_knowledge)
+                #         top_negative_candidates[idx] = candidate_knowledges_gpt + top_negative_candidates[idx]
+                #         break
+                #
+                # for idx, top_passages in enumerate(top_negative_candidates):
+                #     top_negative_candidates[idx] = top_negative_candidates[idx][:args.n_sampled_negative]
+                #
+                # if args.shuffle:
+                #     for idx, top_passages in enumerate(top_negative_candidates):
+                #         random.shuffle(top_negative_candidates[idx])
 
                 predicted_know = []
 
