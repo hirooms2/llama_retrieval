@@ -75,7 +75,6 @@ class Prompter(object):
 
                     if self.args.filtering:
 
-
                         predicted_know_filtered = [i for i in predicted_know if predicted_topic.lower().strip() in i.replace('\xa0', ' ').strip().lower().strip()]
                         predicted_know_unfiltered = [i for i in predicted_know if predicted_topic.lower().strip() not in i.replace('\xa0', ' ').strip().lower().strip()]
 
@@ -97,6 +96,7 @@ class Prompter(object):
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic_list)])
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics, input3=data['user_profile'], label=label, mode=mode))
             elif 'UDG2I' == self.args.prompt:
+                label = f"The most relevant topic is \"{label}\""
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=data['user_profile'], label=label, mode=mode))
             elif 'DP2R' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
