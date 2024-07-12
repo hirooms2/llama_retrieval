@@ -567,7 +567,10 @@ def llama_finetune(
                         top_negative_candidates[idx] = candidate_knowledges_gpt + top_negative_candidates[idx]
 
                 for idx, top_passages in enumerate(top_negative_candidates):
-                    top_negative_candidates[idx] = top_negative_candidates[idx][:args.n_sampled_negative]
+                    if args.n_sampled_negative == -1:
+                        top_negative_candidates[idx] = top_negative_candidates[idx][:]
+                    else:
+                        top_negative_candidates[idx] = top_negative_candidates[idx][:args.n_sampled_negative]
 
                 if args.shuffle:
                     for idx, top_passages in enumerate(top_negative_candidates):
