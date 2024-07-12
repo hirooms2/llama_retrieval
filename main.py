@@ -79,7 +79,10 @@ if __name__ == "__main__":
 
     if args.mode == 'train':
         if 'P' in args.prompt:
-            from llama_train import llama_finetune
+            if args.redial:
+                from redial_llama_train import llama_finetune
+            else:
+                from llama_train import llama_finetune
         else:
             from llama_train_gen import llama_finetune
         llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, train_know_dataset=train_know_dataset, labels=train_labels, num_epochs=args.epoch)
