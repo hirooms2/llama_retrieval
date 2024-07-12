@@ -44,7 +44,7 @@ def augment_dataset(args, know_dataset, labels, topics):
             if args.positive == 'gpt_selection':
                 if i['gpt_selection'] != '':
                     i['predicted_topic'] = [i['topic']] + i['predicted_topic']
-                    i['predicted_know'] = [i['candidate_knowledges']] + i['predicted_know']
+                    i['predicted_know'] = [i['candidate_knowledges_gpt']] + i['predicted_know']
                     new_know_dataset.append(i)
                     new_labels.append(j)
                     new_topics.append(k)
