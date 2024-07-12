@@ -594,10 +594,11 @@ def llama_finetune(
                 for i in range(len(predicted_topic_list)):
                     predicted_know += top_negative_candidates[i]
 
-                relevant_idx = predicted_know.index(target_knowledge)
-                relevant_idx_list = []
-                for x in candidate_knowledges_gpt:
-                    relevant_idx_list.append(predicted_know.index(x))
+                if not args.redial_knowledges:
+                    relevant_idx = predicted_know.index(target_knowledge)
+                    relevant_idx_list = []
+                    for x in candidate_knowledges_gpt:
+                        relevant_idx_list.append(predicted_know.index(x))
 
                 predicted_know = ""
                 for i in range(len(predicted_topic_list)):
