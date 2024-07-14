@@ -90,6 +90,8 @@ class Prompter(object):
 
             if 'UD2I' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], label=label, mode=mode))
+            if 'D2I' in self.args.prompt:
+                instructions.append(self.generate_prompt(instruction=data['dialog'], label=label, mode=mode))
             elif 'UDGI2I' == self.args.prompt:
                 if mode == 'train':
                     random.shuffle(predicted_topic_list)
