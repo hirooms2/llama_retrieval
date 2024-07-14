@@ -206,7 +206,11 @@ def make(args, mode, dialogs, augmendted_dialogs, topic_mode):
         else:
             topic = data['topic']
 
-        last_topic = data['last_topic']
+        if 'last_topic' in data:
+            last_topic = data['last_topic']
+        else:
+            last_topic = topic
+
         if len(dialog.split('[SEP]')) > 2:
             utt = dialog.split('[SEP]')[-2]
         else:
@@ -313,10 +317,11 @@ if __name__ == "__main__":
             for know in dialog['knowledge']:
                 if know: test_knowledges[clean_join_triple(know)] = know
 
-    augmendted_train_dialogs = pickle.load(open("data/train_pred_aug_dataset_new_prev.pkl", "rb"))
+    augmendted_train_dialogs = pickle.load(open("data/train_pred_aug_dataset_new.pkl", "rb"))
     augmendted_test_dialogs = pickle.load(open("data/test_pred_aug_dataset_new.pkl", "rb"))
-    # augmendted_train_dialogs = pickle.load(open("data/train_pred_aug_dataset_new3.pkl", "rb"))
-
+    augmendted_train_dialogs2 = pickle.load(open("data/train_pred_aug_dataset_new3.pkl", "rb"))
+    for data in augmendted_train_dialogs2:
+        data['candidate_knowledges_gpt'] = ['']
     # augmendted_train_dialogs_top = pickle.load(open("train_pred_aug_dataset_new.pkl", "rb"))
 
     filtered_corpus_train = []
