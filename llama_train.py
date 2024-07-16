@@ -304,7 +304,7 @@ def llama_finetune(
             self.tokenizer = tokenizer
             self.dataset = dataset
             self.prompter = Prompter(args, args.prompt)
-            self.print_cnt = 0
+            self.print_result = True
 
         def prompting(self, data, predicted_goal, predicted_topic, predicted_know, label, mode='train'):
             if 'D2P' in args.prompt:
@@ -669,10 +669,10 @@ def llama_finetune(
                 full_prompt = full_prompt.replace('\xa0', ' ').replace('  ', ' ').strip()
                 tokenized_full_prompt = tokenize(full_prompt, add_eos_token=True)
 
-            if args.debug or self.print_cnt < 5:
+            if args.debug or self.print_result:
                 print(full_prompt)
                 print(train_only_outputs)
-                self.print_cnt += 1
+                self.print_cnt = False
 
             # if not train_on_inputs:
             if train_only_outputs:
