@@ -348,6 +348,8 @@ def llama_finetune(
     if torch.__version__ >= "2" and sys.platform != "win32":
         model = torch.compile(model)
 
+    print(tokenizer.decode(train_data[0]['input_ids']))
+
     trainer.train(resume_from_checkpoint=resume_from_checkpoint)
 
     # output_dir = os.path.join(args.saved_model_path, args.log_name + '_final')
