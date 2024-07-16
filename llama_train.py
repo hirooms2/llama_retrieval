@@ -673,10 +673,9 @@ def llama_finetune(
                 full_prompt = full_prompt.replace('\xa0', ' ').replace('  ', ' ').strip()
                 tokenized_full_prompt = tokenize(full_prompt, add_eos_token=True)
 
-            if args.debug or self.print_result:
+            if args.debug:
                 print(full_prompt)
                 print(train_only_outputs)
-                self.print_cnt = False
 
             # if not train_on_inputs:
             if train_only_outputs:
