@@ -31,6 +31,10 @@ def augment_dataset(args, know_dataset, labels, topics):
                     new_labels.append(j)
                     new_topics.append(k)
             else:
+                if args.inspired:
+                    new_know_dataset.append(i)
+                    new_labels.append(j)
+                    new_topics.append(k)
                 if args.positive == 'gpt_selection':
                     if i['gpt_selection'] != '':
                         new_know_dataset.append(i)
@@ -45,18 +49,6 @@ def augment_dataset(args, know_dataset, labels, topics):
                 if i['gpt_selection'] != '':
                     i['predicted_topic'] = [i['topic']] + i['predicted_topic']
                     i['predicted_know'] = [i['candidate_knowledges_gpt']] + i['predicted_know']
-                    new_know_dataset.append(i)
-                    new_labels.append(j)
-                    new_topics.append(k)
-        elif args.inspired and i['topic'] not in i['predicted_topic'][:args.topk_topic]:
-            if args.positive == 'gpt_selection':
-                if i['gpt_selection'] != '':
-                    i['predicted_topic'] = [i['topic']] + i['predicted_topic']
-                    i['predicted_know'] = [i['candidate_knowledges_gpt']] + i['predicted_know']
-                    new_know_dataset.append(i)
-                    new_labels.append(j)
-                    new_topics.append(k)
-                else:
                     new_know_dataset.append(i)
                     new_labels.append(j)
                     new_topics.append(k)
