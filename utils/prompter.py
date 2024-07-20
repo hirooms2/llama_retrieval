@@ -49,7 +49,10 @@ class Prompter(object):
             if self.args.selected_topic and 'selected_topic' in dataset_input[0]:
                 predicted_topic = data['selected_topic']
             else:
-                predicted_topic = data['predicted_topic'][0]
+                if self.args.inspired and data['predicted_topic'] == []:
+                    predicted_topic = data['predicted_topic']
+                else:
+                    predicted_topic = data['predicted_topic'][0]
 
             if 'predicted_know' in data and 'P' in self.args.prompt:
                 top_negative_candidates = deepcopy(data['predicted_know'])
