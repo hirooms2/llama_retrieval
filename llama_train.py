@@ -545,7 +545,10 @@ def llama_finetune(
             else:
                 topic_idx = [i for i in range(topk_topic)]
             random.shuffle(topic_idx)  # 만일 top-1 item만 쓰는 경우, 아무 상관없음
-            predicted_topic_list = [data['predicted_topic'][i] for i in topic_idx]
+            if data['predicted_topic']:
+                predicted_topic_list = [data['predicted_topic'][i] for i in topic_idx]
+            else:
+                predicted_topic_list = []
 
             # if args.item_random_negative:
             #     # item 3개 중에 2개 고르기
@@ -561,7 +564,10 @@ def llama_finetune(
             #     top_negative_candidates = target_knowledges + negative_knowledges
             # else:
             #     top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])  # 순서 기반으로 자르고 있음
-            top_negative_candidates = [data['predicted_know'][i] for i in topic_idx]
+            if data['predicted_know']:
+                top_negative_candidates = [data['predicted_know'][i] for i in topic_idx]
+            else:
+                top_negative_candidates = []
 
             if data['combined']:
                 for idx, top_passages in enumerate(top_negative_candidates):
