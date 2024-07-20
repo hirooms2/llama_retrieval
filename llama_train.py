@@ -564,7 +564,7 @@ def llama_finetune(
             #     top_negative_candidates = target_knowledges + negative_knowledges
             # else:
             #     top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])  # 순서 기반으로 자르고 있음
-            if data['predicted_know'] != []:
+            if data['predicted_know']:
                 top_negative_candidates = [data['predicted_know'][i] for i in topic_idx]
             else:
                 top_negative_candidates = []
