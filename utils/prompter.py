@@ -99,7 +99,10 @@ class Prompter(object):
             if 'D2I' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], label=label, mode=mode))
             if 'DI2I' in self.args.prompt:
-                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic_list)])
+                if self.args.redial or self.args.inspired:
+                    candidate_topics = '\n'.join([f"Item {idx + 1}. {t}" for idx, t in enumerate(predicted_topic_list)])
+                else:
+                    candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic_list)])
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=candidate_topics, label=label, mode=mode))
             elif 'UDGI2I' == self.args.prompt:
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic_list)])
