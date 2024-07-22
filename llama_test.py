@@ -54,7 +54,7 @@ class LLaMaEvaluator:
         self.metric = {'bleu1': 0, 'bleu2': 0, 'bleu3': 0, 'bleu4': 0,
                        'dist1': set(), 'dist2': set(), 'dist3': set(), 'dist4': set(),
                        'hitgen': 0,
-                       'hit1': 0, 'hit3': 0, 'hit5': 0,
+                       'hit1': 0, 'hit2': 0, 'hit3': 0, 'hit4': 0, 'hit5': 0,
                        'cnt': 0}
         # self.model = self.prepare_model()
 
@@ -62,7 +62,7 @@ class LLaMaEvaluator:
         self.dataloader = dataloader
 
     def compute_hit(self, pred, label):
-        for j, k in enumerate([1, 3, 5]):
+        for j, k in enumerate([1, 2, 3, 4, 5]):
             output = '| '.join(pred[:k])
             if label.strip().lower() in output.strip().lower():
                 self.metric[f'hit{k}'] += 1
@@ -244,14 +244,16 @@ class LLaMaEvaluator:
                 hitgen = self.metric['hitgen'] / self.metric['cnt']
 
                 hit1 = self.metric['hit1'] / self.metric['cnt']
+                hit2 = self.metric['hit2'] / self.metric['cnt']
                 hit3 = self.metric['hit3'] / self.metric['cnt']
+                hit4 = self.metric['hit4'] / self.metric['cnt']
                 hit5 = self.metric['hit5'] / self.metric['cnt']
 
                 if self.args.write or self.metric['cnt'] <= 100:
                     self.args.log_file.write(
                         json.dumps({'CONTEXT': dialog, 'GEN': ' | '.join(response), 'ANSWER': label,
                                     'hitgen': '%.4f' % hitgen,
-                                    'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
+                                    'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit2, hit3, hit4, hit5]]),
                                     'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]]),
                                     'contain': response[0].strip() in dialog.strip(),
                                     'llama_hit': label.strip() in response[0].strip(),
@@ -260,6 +262,6 @@ class LLaMaEvaluator:
         if not self.args.write:
             self.args.log_file.write(f'\n---Accuracy results for {self.args.log_name} at epoch {epoch}---\n')
             self.args.log_file.write(json.dumps({'hitgen': '%.4f' % hitgen,
-                                                 'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit3, hit5]]),
+                                                 'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit2, hit3, hit4, hit5]]),
                                                  'bleu_scores': '|'.join(
                                                      ['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}) + '\n')
