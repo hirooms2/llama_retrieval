@@ -355,7 +355,10 @@ def llama_finetune(
 
             elif 'DI2I' == args.prompt:
                 label = data['topic']
-                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                if args.redial or args.inspired:
+                    candidate_topics = '\n'.join([f"Item {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                else:
+                    candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, label=label, mode=mode)
 
             elif 'UDGIP2GIP' == args.prompt:
