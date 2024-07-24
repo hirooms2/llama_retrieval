@@ -87,7 +87,10 @@ def prepare_dataset(args, tokenizer, dataset):
         dataset = dataset[args.test_continue:]
 
     for data in tqdm(dataset):
-        dialog = data['dialog'].replace('[SEP]', '\n')[:-1]
+        dialog = data['dialog'].replace('[SEP]', '\n')
+        if dialog[-1]=='\n':
+            dialog = dialog[:-1]
+            
         dialog = tokenizer.decode(tokenizer(dialog).input_ids[1:][-args.cutoff:])
         data['dialog'] = dialog
         # ['accepted food', 'accepted music', 'accepted movies', 'accepted celebrities', ]

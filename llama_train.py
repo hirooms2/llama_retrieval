@@ -335,14 +335,14 @@ def llama_finetune(
                 label = f"{guide}\nPassage:{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
                                                             label=label, mode=mode)
-            elif 'DGIP2I' == args.prompt:
-                topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
-                label = f"Topic {topic_idx}. {data['topic']}"
-                # label = f"{data['topic']}"
-                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=candidate_topics, input3=predicted_know, label=label,
-                                                            mode=mode)
+            elif 'DIP2I' == args.prompt:
+                label = data['topic']
+                if args.redial or args.inspired:
+                    candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                else:
+                    candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, input2=predicted_know, label=label,
+                                                            mode=mode)            
             elif 'D2I' == args.prompt:
                 label = data['topic']
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], label=label, mode=mode)
@@ -356,7 +356,7 @@ def llama_finetune(
             elif 'DI2I' == args.prompt:
                 label = data['topic']
                 if args.redial or args.inspired:
-                    candidate_topics = '\n'.join([f"Item {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                    candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 else:
                     candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, label=label, mode=mode)

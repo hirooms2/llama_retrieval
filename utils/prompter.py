@@ -125,10 +125,9 @@ class Prompter(object):
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=guide, label=label, mode=mode))
             elif 'UDP2GP' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, input2=data['user_profile'], label=label, mode=mode))
-            elif 'DGIP2I' == self.args.prompt:
+            elif 'DIP2I' == self.args.prompt:
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic_list)])
-
-                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics, input3=predicted_know, label=label, mode=mode))
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=candidate_topics, input2=predicted_know, label=label, mode=mode))
             elif 'DGP2P' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=predicted_know, label=label, mode=mode))
             elif 'UDGIP2P' == self.args.prompt or 'UDGIP2GIP' == self.args.prompt:
