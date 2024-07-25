@@ -31,10 +31,6 @@ def augment_dataset(args, know_dataset, labels, topics):
                     new_labels.append(j)
                     new_topics.append(k)
             else:
-                if args.inspired:
-                    new_know_dataset.append(i)
-                    new_labels.append(j)
-                    new_topics.append(k)
                 if args.positive == 'gpt_selection':
                     if i['gpt_selection'] != '':
                         new_know_dataset.append(i)
@@ -44,14 +40,14 @@ def augment_dataset(args, know_dataset, labels, topics):
                     new_know_dataset.append(i)
                     new_labels.append(j)
                     new_topics.append(k)
-        elif args.redial and i['topic'] not in i['predicted_topic'][:args.topk_topic]:
-            if args.positive == 'gpt_selection':
-                if i['gpt_selection'] != '':
-                    i['predicted_topic'] = [i['topic']] + i['predicted_topic']
-                    i['predicted_know'] = [i['candidate_knowledges_gpt']] + i['predicted_know']
-                    new_know_dataset.append(i)
-                    new_labels.append(j)
-                    new_topics.append(k)
+        # elif args.inspired:
+        #     if args.positive == 'gpt_selection':
+        #         if i['gpt_selection'] != '':
+        #             i['predicted_topic'] = [i['topic']] + i['predicted_topic']
+        #             i['predicted_know'] = [i['candidate_knowledges_gpt']] + i['predicted_know']
+        #             new_know_dataset.append(i)
+        #             new_labels.append(j)
+        #             new_topics.append(k)
 
     return new_know_dataset, new_labels, new_topics
 
@@ -90,7 +86,7 @@ def prepare_dataset(args, tokenizer, dataset):
         dialog = data['dialog'].replace('[SEP]', '\n')
         if dialog[-1]=='\n':
             dialog = dialog[:-1]
-            
+
         dialog = tokenizer.decode(tokenizer(dialog).input_ids[1:][-args.cutoff:])
         data['dialog'] = dialog
         # ['accepted food', 'accepted music', 'accepted movies', 'accepted celebrities', ]
