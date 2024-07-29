@@ -338,7 +338,7 @@ def llama_finetune(
             elif 'DIP2I' == args.prompt:
                 label = data['topic']
                 if args.redial or args.inspired:
-                    candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                    candidate_topics = '\n'.join([f"Item {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 else:
                     candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, input2=predicted_know, label=label,
@@ -347,9 +347,12 @@ def llama_finetune(
                 topic_idx = predicted_topic.index(data['topic'])
                 rationale = data['topic_cot'].split('Therefore')[0].strip()
                 label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
-                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                if args.redial or args.inspired:
+                    candidate_topics = '\n'.join([f"Item {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                else:
+                    candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, input2=predicted_know, label=label,
-                                                            mode=mode)
+                                                                mode=mode)
             elif 'D2I' == args.prompt:
                 label = data['topic']
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], label=label, mode=mode)
@@ -363,7 +366,7 @@ def llama_finetune(
             elif 'DI2I' == args.prompt:
                 label = data['topic']
                 if args.redial or args.inspired:
-                    candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                    candidate_topics = '\n'.join([f"Item {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 else:
                     candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, label=label, mode=mode)
@@ -634,7 +637,10 @@ def llama_finetune(
 
                 predicted_know = ""
                 for i in range(len(predicted_topic_list)):
-                    prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
+                    if args.inspired:
+                        prefix = f"Here are the candidate passages about Item {i + 1}. {predicted_topic_list[i]}"
+                    else:
+                        prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
                     candidate_passages = '\n'.join(
                         [f"Passage {i * args.n_sampled_negative + idx + 1}. {know}" for idx, know in
                          enumerate(top_negative_candidates[i])])
