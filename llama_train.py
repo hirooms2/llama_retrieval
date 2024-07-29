@@ -346,13 +346,13 @@ def llama_finetune(
             elif 'DIP2I_cot' == args.prompt:
                 topic_idx = predicted_topic.index(data['topic'])
                 rationale = data['topic_cot'].split('Therefore')[0].strip()
-                label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
                 if args.redial or args.inspired:
+                    label = f"{rationale} Therefore, the most suitable item is \"{data['topic']}\""
                     candidate_topics = '\n'.join([f"Item {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 else:
+                    label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
                     candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, input2=predicted_know, label=label,
-                                                                mode=mode)
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, input2=predicted_know, label=label, mode=mode)
             elif 'D2I' == args.prompt:
                 label = data['topic']
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], label=label, mode=mode)
