@@ -215,22 +215,26 @@ def make(args, mode, dialogs, augmendted_dialogs, topic_mode):
             utt = dialog.split('[SEP]')[-2]
         else:
             utt = ''
-        response = data['response']
 
-        if goal == 'Food recommendation':
-            response = dialog + response
-        else:
-            response = utt + response
+        # 임시로 꺼놓은거
+        # response = data['response']
+        #
+        # if goal == 'Food recommendation':
+        #     response = dialog + response
+        # else:
+        #     response = utt + response
+        #
+        # response = response.replace('℃', ' degrees Celsius')
+        # response = response.replace('[SEP]', ' ')
+        #
+        # response = word_piece_tokenizer.decode(word_piece_tokenizer.encode(response)[1:-1])
+        #
+        # if last_topic != topic:
+        #     response = last_topic + "|" + topic + "|" + response
+        # else:
+        #     response = topic + "|" + response
 
-        response = response.replace('℃', ' degrees Celsius')
-        response = response.replace('[SEP]', ' ')
-
-        response = word_piece_tokenizer.decode(word_piece_tokenizer.encode(response)[1:-1])
-
-        if last_topic != topic:
-            response = last_topic + "|" + topic + "|" + response
-        else:
-            response = topic + "|" + response
+        response = dialog
 
         tokenized_query = custom_tokenizer(response.lower())
         doc_scores = bm25.get_scores(tokenized_query)
@@ -319,9 +323,9 @@ if __name__ == "__main__":
 
     augmendted_train_dialogs = pickle.load(open("data/train_pred_aug_dataset_new.pkl", "rb"))
     augmendted_test_dialogs = pickle.load(open("data/test_pred_aug_dataset_new.pkl", "rb"))
-    augmendted_train_dialogs2 = pickle.load(open("data/train_pred_aug_dataset_new3.pkl", "rb"))
-    for data in augmendted_train_dialogs2:
-        data['candidate_knowledges_gpt'] = ['']
+    # augmendted_train_dialogs2 = pickle.load(open("data/train_pred_aug_dataset_new3.pkl", "rb"))
+    # for data in augmendted_train_dialogs2:
+    #     data['candidate_knowledges_gpt'] = ['']
     # augmendted_train_dialogs_top = pickle.load(open("train_pred_aug_dataset_new.pkl", "rb"))
 
     filtered_corpus_train = []
@@ -345,7 +349,7 @@ if __name__ == "__main__":
         augmendted_train_dialogs = make(args, 'train', train_dialogs, augmendted_train_dialogs, 'top3')
 
         eval(augmendted_train_dialogs)
-        pickle.dump(augmendted_train_dialogs, open(f'data/train_pred_aug_dataset_new3.pkl', 'wb'))
+        pickle.dump(augmendted_train_dialogs, open(f'data/train_pred_aug_dataset_pse_noresp.pkl', 'wb'))
 
     if 'test' in args.mode:
         augmendted_test_dialogs = make(args, 'test', test_dialogs, augmendted_test_dialogs)
