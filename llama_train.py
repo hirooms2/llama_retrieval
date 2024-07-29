@@ -637,7 +637,7 @@ def llama_finetune(
 
                 predicted_know = ""
                 for i in range(len(predicted_topic_list)):
-                    if args.inspired:
+                    if args.redial or args.inspired:
                         prefix = f"Here are the candidate passages about Item {i + 1}. {predicted_topic_list[i]}"
                     else:
                         prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
