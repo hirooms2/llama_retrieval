@@ -519,7 +519,6 @@ def llama_finetune(
 
             data = self.dataset[idx]
 
-            predicted_know = []
             if args.positive == 'pseudo':
                 target_knowledge = random.choice(data['predicted_know'][:args.n_pseudo])
             elif args.positive == 'highly_relevant':
@@ -629,15 +628,15 @@ def llama_finetune(
                 #     for idx, top_passages in enumerate(top_negative_candidates):
                 #         random.shuffle(top_negative_candidates[idx])
 
-                predicted_know = []
+                predicted_know_list = []
 
                 for i in range(len(predicted_topic_list)):
-                    predicted_know += top_negative_candidates[i]
+                    predicted_know_list += top_negative_candidates[i]
 
-                relevant_idx = predicted_know.index(target_knowledge)
-                relevant_idx_list = []
-                for x in candidate_knowledges_gpt:
-                    relevant_idx_list.append(predicted_know.index(x))
+                # relevant_idx = predicted_know_list.index(target_knowledge)
+                # relevant_idx_list = []
+                # for x in candidate_knowledges_gpt:
+                #     relevant_idx_list.append(predicted_know_list.index(x))
 
                 predicted_know = ""
                 for i in range(len(predicted_topic_list)):
@@ -650,9 +649,9 @@ def llama_finetune(
                          enumerate(top_negative_candidates[i])])
                     predicted_know += f"{prefix}\n{candidate_passages}\n\n"
 
-            elif args.target:
-                predicted_know = data['target_knowledge']
-                predicted_know = f"Passage 1. {predicted_know}\n"
+            # elif args.target:
+            #     predicted_know = data['target_knowledge']
+            #     predicted_know = f"Passage 1. {predicted_know}\n"
 
             else:
                 # predicted_know = [item for item in data['predicted_know'][0] if item != target_knowledge]
@@ -681,13 +680,14 @@ def llama_finetune(
                 if args.shuffle:
                     random.shuffle(hard_negative_candidates)
 
-                predicted_know = hard_negative_candidates
-                relevant_idx = predicted_know.index(target_knowledge)
-                relevant_idx_list = []
-                for x in candidate_knowledges_gpt:
-                    relevant_idx_list.append(predicted_know.index(x))
+                predicted_know_list = hard_negative_candidates
 
-                predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
+                predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know_list)])
+
+            relevant_idx = predicted_know_list.index(target_knowledge) if target_knowledge in predicted_topic_list else -1
+            relevant_idx_list = []
+            for x in candidate_knowledges_gpt:
+                relevant_idx_list.append(predicted_know_list.index(x))
 
             if args.candidate_knowledges_gpt:
                 label = '\n'.join([f"Passage {x + 1}. {y}" for x, y in zip(relevant_idx_list, candidate_knowledges_gpt)])
