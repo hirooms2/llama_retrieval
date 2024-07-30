@@ -48,6 +48,7 @@ def parse_args():
     parser.add_argument("--target", action='store_true',help="Input target knowledge in response generation task")
     parser.add_argument('--redial', action='store_true', help="Input redial dataset")
     parser.add_argument('--inspired',action='store_true',help='Input inspired dataset')
+    parser.add_argument('--force_topic', action='store_true', help="Insert topic in force")
 
     parser.add_argument("--partition", action='store_true', help="combine pseudo")
     parser.add_argument("--query", action='store_true', help="original goal vs. refined goal")
@@ -60,6 +61,7 @@ def parse_args():
     parser.add_argument("--postfix", action='store_true', help="Add postfix in GEN")
     parser.add_argument("--topic_num_shuffle", action='store_true', help="Variable number of topics")
     parser.add_argument('--weighted_loss', action='store_true', help="Add postfix in GEN")
+
 
     parser.add_argument('--cutoff', type=int, default=256)
     parser.add_argument('--passage_cutoff', type=int, default=50)
