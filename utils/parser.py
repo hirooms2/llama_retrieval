@@ -48,7 +48,7 @@ def parse_args():
     parser.add_argument("--target", action='store_true',help="Input target knowledge in response generation task")
     parser.add_argument('--redial', action='store_true', help="Input redial dataset")
     parser.add_argument('--inspired',action='store_true',help='Input inspired dataset')
-    parser.add_argument('--force_topic', action='store_true', help="Insert topic in force")
+    parser.add_argument('--force_gpt', action='store_true', help="Insert topic in force")
 
     parser.add_argument("--partition", action='store_true', help="combine pseudo")
     parser.add_argument("--query", action='store_true', help="original goal vs. refined goal")
