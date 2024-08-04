@@ -421,7 +421,7 @@ def llama_finetune(
                                                             input2=candidate_topics,
                                                             input3=predicted_know, input4=data['user_profile'],
                                                             label=label, mode=mode)
-            elif 'DIP2P_new' == args.prompt:
+            elif 'DIP2P' == args.prompt:
                 # label = f"{data['topic']}"
                 label = f"{label}."
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
