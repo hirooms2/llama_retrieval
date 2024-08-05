@@ -1,6 +1,6 @@
 {
     "description": "CRS recommendation template.",
-    "prompt_input": "Pretend you are a conversational recommender system. Your task is to generate the response to the given dialog.\n\nFirst, I will provide a dialog between a user and the system, along with the goal of response and topic of response. Then, I will provide relevant passages describing the topic.\n\nHere is the dialog:\n{instruction}\n\nHere is the topic:\n{input}\n\nHere are the relevant passages:\n{input2}\n\nFormulate a response that the system should give. You should refer to the keywords in the relevant passages to generate the response.\n\n### Response:",
+    "prompt_input": "Pretend you are a conversational recommender system. Your task is to generate the response to the given dialog.\n\nFirst, I will provide a dialog between a user and the system, along with the goal of response and topic of response. Then, I will provide relevant passages describing the topic.\n\nHere is the dialog:\n{instruction}\n\nHere is the item:\n{input}\n\nHere are the relevant passages:\n{input2}\n\nFormulate a response that the system should give. You should refer to the keywords in the relevant passages to generate the response.\n\n### Response:",
     "prompt_no_input": "",
     "response_split": "### Response:"
   }
