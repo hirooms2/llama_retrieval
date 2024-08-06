@@ -241,6 +241,11 @@ class LLaMaEvaluator:
                 bleu3 = self.metric['bleu3'] / self.metric['cnt']
                 bleu4 = self.metric['bleu4'] / self.metric['cnt']
 
+                sample_bleu1 = self.metric['bleu1']
+                sample_bleu2 = self.metric['bleu2']
+                sample_bleu3 = self.metric['bleu3']
+                sample_bleu4 = self.metric['bleu4']
+
                 hitgen = self.metric['hitgen'] / self.metric['cnt']
 
                 hit1 = self.metric['hit1'] / self.metric['cnt']
@@ -255,6 +260,7 @@ class LLaMaEvaluator:
                                     'hitgen': '%.4f' % hitgen,
                                     'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit2, hit3, hit4, hit5]]),
                                     'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]]),
+                                    'sample_bleu_scores': '|'.join(['%.4f' % i for i in [sample_bleu1, sample_bleu2, sample_bleu3, sample_bleu4]]),
                                     'contain': response[0].strip() in dialog.strip(),
                                     'llama_hit': label.strip() in response[0].strip(),
                                     'espresso_hit': label.strip() in dialog.strip()}, ensure_ascii=False) + '\n')
@@ -264,4 +270,6 @@ class LLaMaEvaluator:
             self.args.log_file.write(json.dumps({'hitgen': '%.4f' % hitgen,
                                                  'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit2, hit3, hit4, hit5]]),
                                                  'bleu_scores': '|'.join(
-                                                     ['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]])}) + '\n')
+                                                     ['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]]),
+                                                 'sample_bleu_scores': '|'.join(
+                                                        ['%.4f' % i for i in [sample_bleu1, sample_bleu2, sample_bleu3, sample_bleu4]])}) + '\n')
