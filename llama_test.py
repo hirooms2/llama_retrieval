@@ -52,6 +52,7 @@ class LLaMaEvaluator:
 
         self.dataloader = self.prepare_dataloader()
         self.metric = {'bleu1': 0, 'bleu2': 0, 'bleu3': 0, 'bleu4': 0,
+                       'sample_bleu1': 0, 'sample_bleu2': 0, 'sample_bleu3': 0, 'sample_bleu4': 0,
                        'dist1': set(), 'dist2': set(), 'dist3': set(), 'dist4': set(),
                        'hitgen': 0,
                        'hit1': 0, 'hit2': 0, 'hit3': 0, 'hit4': 0, 'hit5': 0,
@@ -79,6 +80,7 @@ class LLaMaEvaluator:
             weights = [0] * 4
             weights[k] = 1
             self.metric[f'bleu{k + 1}'] += sentence_bleu(label, pred, weights)
+            self.metric[f'sample_bleu{k + 1}'] = sentence_bleu(label, pred, weights)
 
     def prepare_model(self,
                       base_model: str = "",
@@ -241,10 +243,10 @@ class LLaMaEvaluator:
                 bleu3 = self.metric['bleu3'] / self.metric['cnt']
                 bleu4 = self.metric['bleu4'] / self.metric['cnt']
 
-                sample_bleu1 = self.metric['bleu1']
-                sample_bleu2 = self.metric['bleu2']
-                sample_bleu3 = self.metric['bleu3']
-                sample_bleu4 = self.metric['bleu4']
+                sample_bleu1 = self.metric['sample_bleu1']
+                sample_bleu2 = self.metric['sample_bleu2']
+                sample_bleu3 = self.metric['sample_bleu3']
+                sample_bleu4 = self.metric['sample_bleu4']
 
                 hitgen = self.metric['hitgen'] / self.metric['cnt']
 
