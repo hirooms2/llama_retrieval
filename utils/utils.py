@@ -40,7 +40,11 @@ def augment_dataset(args, know_dataset, labels, topics):
                     new_know_dataset.append(i)
                     new_labels.append(j)
                     new_topics.append(k)
-
+        else:
+            if args.force_topic:
+                new_know_dataset.append(i)
+                new_labels.append(j)
+                new_topics.append(k)
         # elif args.inspired:
         #     if args.positive == 'gpt_selection':
         #         if i['gpt_selection'] != '':
@@ -85,7 +89,7 @@ def prepare_dataset(args, tokenizer, dataset):
 
     for data in tqdm(dataset):
         dialog = data['dialog'].replace('[SEP]', '\n')
-        if dialog[-1]=='\n':
+        if dialog[-1] == '\n':
             dialog = dialog[:-1]
 
         dialog = tokenizer.decode(tokenizer(dialog).input_ids[1:][-args.cutoff:])
