@@ -584,6 +584,9 @@ def llama_finetune(
             else:
                 predicted_topic_list = []
 
+            if args.selected_topic and 'selected_topic' in data:
+                predicted_topic_list = [data['selected_topic']]
+
             # if args.item_random_negative:
             #     # item 3개 중에 2개 고르기
             #     target_item = data['topic']
