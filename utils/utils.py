@@ -42,7 +42,6 @@ def augment_dataset(args, know_dataset, labels, topics):
                     new_topics.append(k)
         else:
             if args.force_topic:
-                i['predicted_know'] = [[]]
                 new_know_dataset.append(i)
                 new_labels.append(j)
                 new_topics.append(k)
@@ -133,6 +132,10 @@ def prepare_dataset(args, tokenizer, dataset):
         #     labels.append(data['response'].replace('\xa0', ' ').strip())
         # else:
         #     raise ValueError
+
+        if args.prompt == 'DP2R_inspired':
+            data['predicted_know'] = [[]]
+
         if 'R' in args.prompt.split('2')[-1]:
             labels.append(data['response'].replace('\xa0', ' ').replace('  ', ' ').strip())
         elif 'P' in args.prompt.split('2')[-1]:
