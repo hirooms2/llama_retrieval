@@ -703,7 +703,7 @@ def llama_finetune(
                 predicted_know_list = hard_negative_candidates
 
                 predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know_list)])
-                if args.prompt == 'DP2R_inspired':
+                if args.prompt == 'DP2R_inspired' and len(predicted_know) != 0:
                     predicted_know = f'Here are the relevant passages:\n{predicted_know}'
 
             relevant_idx = predicted_know_list.index(target_knowledge) if target_knowledge in predicted_topic_list else -1
