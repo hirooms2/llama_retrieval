@@ -90,8 +90,6 @@ class Prompter(object):
                     else:
                         predicted_know = predicted_know[:self.args.n_sampled_negative]
                         predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
-                        if self.args.prompt == 'DP2R_inspired' and len(predicted_know) != 0:
-                            predicted_know = f'Here are the relevant passages:\n{predicted_know}'
 
             if mode == 'train':
                 random.shuffle(predicted_topic_list)
