@@ -432,7 +432,11 @@ def llama_finetune(
                                                             label=label, mode=mode)
             elif 'DIP2P' == args.prompt:
                 # label = f"{data['topic']}"
-                label = f"{label}."
+                if label != '':
+                    label = f"{label}"
+                else:
+                    label = "None of the passages are relevant for generating a response to the given dialog."
+
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'],
                                                             input=candidate_topics,
