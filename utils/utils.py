@@ -133,7 +133,7 @@ def prepare_dataset(args, tokenizer, dataset):
         # else:
         #     raise ValueError
 
-        if args.prompt == 'DP2R_inspired':
+        if args.prompt == 'DP2R_inspired' and args.force_split:
             if data['topic'] not in data['predicted_topic'][:args.topk_topic]:
                 data['predicted_know'] = [[]]
 
