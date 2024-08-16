@@ -42,15 +42,17 @@ def parse_args():
 
     parser.add_argument('--positive', type=str, default='pseudo', choices=['only_pseudo', 'pseudo', 'highly_relevant', 'gpt_selection', 'target'])
     parser.add_argument("--pseudo", action='store_true', help="combine pseudo")
+    parser.add_argument("--merge", action='store_true', help="combine without knowledge")
     parser.add_argument("--combined", action='store_true', help="combine pseudo")
     parser.add_argument("--combined_top1", action='store_true', help="combine combined but top-1")
     parser.add_argument("--input_top1", action='store_true', help="combine combined but top-1")
-    parser.add_argument("--target", action='store_true',help="Input target knowledge in response generation task")
+    parser.add_argument("--target", action='store_true', help="Input target knowledge in response generation task")
     parser.add_argument('--redial', action='store_true', help="Input redial dataset")
-    parser.add_argument('--inspired',action='store_true',help='Input inspired dataset')
+    parser.add_argument('--inspired', action='store_true', help='Input inspired dataset')
     parser.add_argument('--force_gpt', action='store_true', help="Insert topic in force")
     parser.add_argument('--force_topic', action='store_true', help="Insert topic in force")
     parser.add_argument('--force_split', action='store_true', help="split in dp2r task if topic in top-3")
+    parser.add_argument('--disable_know', action='store_true', help="enable_know")
 
     parser.add_argument("--partition", action='store_true', help="combine pseudo")
     parser.add_argument("--query", action='store_true', help="original goal vs. refined goal")
@@ -63,7 +65,6 @@ def parse_args():
     parser.add_argument("--postfix", action='store_true', help="Add postfix in GEN")
     parser.add_argument("--topic_num_shuffle", action='store_true', help="Variable number of topics")
     parser.add_argument('--weighted_loss', action='store_true', help="Add postfix in GEN")
-
 
     parser.add_argument('--cutoff', type=int, default=256)
     parser.add_argument('--passage_cutoff', type=int, default=50)

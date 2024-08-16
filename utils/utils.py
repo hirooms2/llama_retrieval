@@ -41,7 +41,7 @@ def augment_dataset(args, know_dataset, labels, topics):
                     new_labels.append(j)
                     new_topics.append(k)
         else:
-            if args.force_topic:
+            if args.force_topic or i['disable_know']:
                 new_know_dataset.append(i)
                 new_labels.append(j)
                 new_topics.append(k)
@@ -57,7 +57,7 @@ def augment_dataset(args, know_dataset, labels, topics):
     return new_know_dataset, new_labels, new_topics
 
 
-def merge_dataset_passages(args, dataset, mode='train', know_file_path='', combined=False):
+def merge_dataset_passages(args, dataset, mode='train', know_file_path='', combined=False, disable_know=True):
     if mode == 'train' and know_file_path == '':
         know_file_path = args.train_know_file
     elif mode == 'test' and know_file_path == '':
@@ -72,8 +72,12 @@ def merge_dataset_passages(args, dataset, mode='train', know_file_path='', combi
         # dataset = [data for data in dataset for _ in range(int(len(know_dataset) / len(dataset)))]
 
     for idx, know_data in enumerate(know_dataset):
-        dataset[idx]['predicted_know'] = know_data['predicted_know']
+        if disable_know:
+            dataset[idx]['predicted_know'] = [[]]
+        else:
+            dataset[idx]['predicted_know'] = know_data['predicted_know']
         dataset[idx]['combined'] = combined
+        dataset[idx]['disable_know'] = disable_know
 
     return deepcopy(dataset)
 
@@ -133,9 +137,9 @@ def prepare_dataset(args, tokenizer, dataset):
         # else:
         #     raise ValueError
 
-        if args.prompt == 'DP2R_inspired' and args.force_split:
-            if data['topic'] not in data['predicted_topic'][:args.topk_topic]:
-                data['predicted_know'] = [[]]
+        # if args.prompt == 'DP2R_inspired' and args.force_split:
+        #     if data['topic'] not in data['predicted_topic'][:args.topk_topic]:
+        #         data['predicted_know'] = [[]]
 
         if 'R' in args.prompt.split('2')[-1]:
             labels.append(data['response'].replace('\xa0', ' ').replace('  ', ' ').strip())

@@ -55,15 +55,15 @@ if __name__ == "__main__":
 
     train_raw_dataset, test_raw_dataset = load_dataset(args)
 
-    train_know_dataset = merge_dataset_passages(args, train_raw_dataset, mode='train', combined=args.combined)
-    test_know_dataset = merge_dataset_passages(args, test_raw_dataset, mode='test', combined=args.combined)
+    train_know_dataset = merge_dataset_passages(args, train_raw_dataset, mode='train', combined=args.combined, disable_know=args.disable_know)
+    test_know_dataset = merge_dataset_passages(args, test_raw_dataset, mode='test', combined=args.combined, disable_know=args.disable_know)
 
     # test_know_dataset_combined = merge_dataset_passages(args, test_raw_dataset, mode='test', know_file_path='combined', combined=True)
     # top2nd = json.load(open('en_CotMAE_CL_GPT_BM25_top1_know_top_1_0_test_know_3711.json', 'r', encoding='utf-8'))
 
-    if args.pseudo:
-        train_know_dataset_pseudo = merge_dataset_passages(args, train_raw_dataset, mode='train', know_file_path='pseudo', combined=False)
-        train_know_dataset.extend(train_know_dataset_pseudo)
+    if args.merge:
+        train_know_dataset_wo_know = merge_dataset_passages(args, train_raw_dataset, mode='train', combined=args.combined, disable_know=True)
+        train_know_dataset.extend(train_know_dataset_wo_know)
 
     train_know_dataset, train_labels, train_topics = prepare_dataset(args, tokenizer, train_know_dataset)
     test_know_dataset, test_labels, test_topics = prepare_dataset(args, tokenizer, test_know_dataset)
