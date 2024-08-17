@@ -42,7 +42,7 @@ def augment_dataset(args, know_dataset, labels, topics):
                     new_topics.append(k)
         else:
             if args.force_topic or i['disable_know']:
-                if args.positive == 'gpt_selection' and not args.force_gpt and args.prompt == "DIP2P":
+                if args.positive == 'gpt_selection' and not args.force_gpt:
                     if i['gpt_selection'] != '':
                         new_know_dataset.append(i)
                         new_labels.append(j)
