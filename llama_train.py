@@ -442,6 +442,18 @@ def llama_finetune(
                                                             input=candidate_topics,
                                                             input2=predicted_know,
                                                             label=label, mode=mode)
+            elif 'DIP2P_cot' == args.prompt:
+                # label = f"{data['topic']}"
+                rationale = data['passage_cot'].split('Therefore')[0].strip()
+                if label != '':
+                    label = f"{rationale} Therefore, the most relevant passages is {label}."
+                else:
+                    label = "None of the passages are relevant for generating a response to the given dialog."
+                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'],
+                                                            input=candidate_topics,
+                                                            input2=predicted_know,
+                                                            label=label, mode=mode)
             elif 'DGIP2P_new' == args.prompt:
                 # label = f"{data['topic']}"
                 label = f"{label}."
