@@ -446,7 +446,7 @@ def llama_finetune(
                 # label = f"{data['topic']}"
                 rationale = data['passage_cot'].split('Therefore')[0].strip()
                 if label != '':
-                    label = f"{rationale} Therefore, the most relevant passages is {label}."
+                    label = f"{rationale} Therefore, the most relevant passages are as follows:\n{label}."
                 else:
                     label = "None of the passages are relevant for generating a response to the given dialog."
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
