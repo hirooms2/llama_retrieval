@@ -149,7 +149,7 @@ class Prompter(object):
                     candidate_topics = f"Topic 1. {data['selected_topic']}"
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=candidate_topics, input3=predicted_know,
                                                          label=label, mode=mode))
-            elif 'DIP2P' == self.args.prompt:
+            elif 'DIP2P' in self.args.prompt:
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic_list)])
                 if self.args.selected_topic and 'selected_topic' in dataset_input[0]:
                     candidate_topics = f"Topic 1. {data['selected_topic']}"
