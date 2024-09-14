@@ -41,7 +41,7 @@ def augment_dataset(args, know_dataset, labels, topics):
                     new_labels.append(j)
                     new_topics.append(k)
         else:
-            if args.force_topic or i['disable_know']:
+            if args.force_topic: # or i['disable_know']:
                 if args.positive == 'gpt_selection' and not args.force_gpt:
                     if i['gpt_selection'] != '':
                         new_know_dataset.append(i)
@@ -83,7 +83,7 @@ def merge_dataset_passages(args, dataset, mode='train', know_file_path='', combi
         else:
             dataset[idx]['predicted_know'] = know_data['predicted_know']
         dataset[idx]['combined'] = combined
-        dataset[idx]['disable_know'] = disable_know
+        # dataset[idx]['disable_know'] = disable_know
 
     return deepcopy(dataset)
 
