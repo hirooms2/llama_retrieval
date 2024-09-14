@@ -94,9 +94,9 @@ class Prompter(object):
             if mode == 'train':
                 random.shuffle(predicted_topic_list)
 
-            if 'UD2I' in self.args.prompt:
+            if 'UD2I' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], label=label, mode=mode))
-            if 'D2I' in self.args.prompt:
+            if 'D2I' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], label=label, mode=mode))
             if 'DI2I' in self.args.prompt:
                 if self.args.redial or self.args.inspired:
