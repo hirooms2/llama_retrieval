@@ -112,8 +112,12 @@ def prepare_dataset(args, tokenizer, dataset):
             if 'accepted' in profile.lower() or 'rejected' in profile.lower():
                 filtered_user_profile.append(profile.strip())
         user_profile = " | ".join(filtered_user_profile).strip()
+        if user_profile == '':
+            user_profile = 'None'
+
         user_profile = tokenizer.decode(tokenizer(user_profile).input_ids[1:][:200])
         data['user_profile'] = user_profile
+
 
         data['response'] = data['response'].replace('[SEP]', '')
         topics.append(data['topic'])
