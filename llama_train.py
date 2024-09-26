@@ -392,7 +392,8 @@ def llama_finetune(
                                                             label=label, mode=mode)
             elif 'UDGIP2I_new' == args.prompt:
                 # label = f"{data['topic']}"
-                topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
+                # topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
+                topic_idx = [i.lower().strip() for i in predicted_topic].index(data['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower())
                 if args.postfix:
                     label = f"Considering the given dialog and passages, the most suitable topic would be:\nTopic {topic_idx}. {data['topic']}"
                 else:
@@ -404,7 +405,7 @@ def llama_finetune(
                                                             label=label, mode=mode)
             elif 'UDGIP2I_cot' == args.prompt:
                 # label = f"{data['topic']}"
-                topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
+                topic_idx = [i.lower().strip() for i in predicted_topic].index(data['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower())
                 rationale = data['topic_cot'].split('Therefore')[0].strip()
                 label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
