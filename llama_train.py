@@ -127,7 +127,7 @@ def llama_finetune(
             f"prompt template: {prompt_template_name}\n"
         )
     assert (
-        base_model
+        base_model # base_model 입력해줘야함 
     ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
     # gradient_accumulation_steps = batch_size // micro_batch_size
 
