@@ -186,7 +186,10 @@ class LLaMaEvaluator:
         s = generation_output.sequences
         # scores = generation_output.sequences_scores
         logits = generation_output.logits
-        sequences_scores = torch.softmax(generation_output.sequences_scores.view(-1, num_beams), dim=1).cpu().tolist()
+        if num_beams > 1:
+            sequences_scores = torch.softmax(generation_output.sequences_scores.view(-1, num_beams), dim=1).cpu().tolist()
+        else:
+            sequences_scores = [[0] for _ in range(input_ids.size(0))]
         output = self.tokenizer.batch_decode(s, skip_special_tokens=True)
         return [self.prompter.get_response(i) for i in output], sequences_scores  # , scores.to('cpu').numpy()
 
