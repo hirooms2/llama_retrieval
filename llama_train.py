@@ -637,7 +637,7 @@ def llama_finetune(
                         top_negative_candidates[idx] = hard_negative_candidates_filtered
 
                 for idx, predicted_topic in enumerate(predicted_topic_list):
-                    if data['topic'] == predicted_topic:
+                    if data['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower() == predicted_topic.replace('\xa0', ' ').replace('  ', ' ').strip().lower():
                         # top_negative_candidates[idx].insert(0, target_knowledge)
                         top_negative_candidates[idx] = candidate_knowledges_gpt + top_negative_candidates[idx]
 
