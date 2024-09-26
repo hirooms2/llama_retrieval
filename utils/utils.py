@@ -8,6 +8,14 @@ from pytz import timezone
 from tqdm import tqdm
 
 
+def topicList(train_data, test_data):
+    topicList = set()
+    for dataset in [train_data, test_data]:
+        for data in dataset:
+            topicList.add(data['topic'])
+    return list(topicList)
+
+
 def load_dataset(args):
     print('LLAMA_DATASET')
     train_file_path = os.path.join(args.home, f'data/train_pred_aug_dataset_{args.train_data}.pkl')
@@ -43,7 +51,7 @@ def augment_dataset(args, know_dataset, labels, topics):
                     new_labels.append(j)
                     new_topics.append(k)
         else:
-            if args.force_topic: # or i['disable_know']:
+            if args.force_topic:  # or i['disable_know']:
                 if args.positive == 'gpt_selection' and not args.force_gpt:
                     if i['gpt_selection'] != '':
                         new_know_dataset.append(i)
@@ -120,9 +128,26 @@ def prepare_dataset(args, tokenizer, dataset):
         user_profile = tokenizer.decode(tokenizer(user_profile).input_ids[1:][:200])
         data['user_profile'] = user_profile
 
-
         data['response'] = data['response'].replace('[SEP]', '')
         topics.append(data['topic'])
+
+        predicted_topic, predicted_topic_confidence, predicted_know = [], [], []
+        for p_topic, p_conf, p_know in zip(data['predicted_topic'], data['predicted_topic_confidence'], data['predicted_know']):
+            if p_topic not in args.topicList:
+                continue
+            if p_topic not in predicted_topic:
+                predicted_topic.append(p_topic)
+                predicted_topic_confidence.append(p_conf)
+                predicted_know.append(p_know)
+
+        if len(predicted_topic) == 0:
+            data['predicted_topic'] = [data['predicted_topic'][0]]
+            data['predicted_topic_confidence'] = [data['predicted_topic_confidence'][0]]
+            data['predicted_know'] = [data['predicted_know'][0]]
+        else:
+            data['predicted_topic'] = predicted_topic
+            data['predicted_topic_confidence'] = predicted_topic_confidence
+            data['predicted_know'] = predicted_know
 
         if 'predicted_know' in data:
             for idx1, top_passages in enumerate(data['predicted_know']):

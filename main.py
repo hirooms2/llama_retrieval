@@ -7,7 +7,7 @@ from llama_test import LLaMaEvaluator
 # from llama_train import llama_finetune
 from utils.parser import parse_args
 from utils.prompter import Prompter
-from utils.utils import dir_init, createLogFile, load_dataset, prepare_dataset, merge_dataset_passages, augment_dataset
+from utils.utils import dir_init, createLogFile, load_dataset, prepare_dataset, merge_dataset_passages, augment_dataset, topicList
 import pickle
 from loguru import logger
 import wandb
@@ -47,13 +47,14 @@ if __name__ == "__main__":
 
     # Wandb initialize
     # if args.debug == False:
-    args.wandb_project = "llama_retrieval"
-    args.wandb_run_name = args.log_name
-    wandb.init(project=args.wandb_project, name=args.wandb_run_name)
+    # args.wandb_project = "llama_retrieval"
+    # args.wandb_run_name = args.log_name
+    # wandb.init(project=args.wandb_project, name=args.wandb_run_name)
 
     tokenizer = AutoTokenizer.from_pretrained(args.base_model)
 
     train_raw_dataset, test_raw_dataset = load_dataset(args)
+    args.topicList = topicList(train_raw_dataset, test_raw_dataset)
 
     train_know_dataset = merge_dataset_passages(args, train_raw_dataset, mode='train', combined=args.combined, disable_know=args.disable_know)
     test_know_dataset = merge_dataset_passages(args, test_raw_dataset, mode='test', combined=args.combined, disable_know=args.disable_know)
