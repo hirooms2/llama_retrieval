@@ -186,8 +186,9 @@ class LLaMaEvaluator:
         s = generation_output.sequences
         # scores = generation_output.sequences_scores
         logits = generation_output.logits
+        sequences_scores = torch.softmax(generation_output.sequences_scores.view(-1, num_beams), dim=1).cpu().tolist()
         output = self.tokenizer.batch_decode(s, skip_special_tokens=True)
-        return [self.prompter.get_response(i) for i in output], logits  # , scores.to('cpu').numpy()
+        return [self.prompter.get_response(i) for i in output], sequences_scores  # , scores.to('cpu').numpy()
 
     def test(self, epoch=None):
         model = self.prepare_model()
@@ -228,13 +229,13 @@ class LLaMaEvaluator:
             #         responses[i] = responses[i] + "\n\nProbs:" + '|'.join(["%.4f" % i for i in logits_outputs[i]])
             #
             # else:
-            responses, _ = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=self.args.num_beams)
+            responses, sequences_scores = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=self.args.num_beams)
 
             responses = np.reshape(responses, (-1, self.args.num_beams)).tolist()  # [B, beam]
 
             dialogs, labels, topics = batch[0], batch[1], batch[2]
 
-            for dialog, response, label, topic in zip(batch[0], responses, labels, topics):
+            for dialog, response, label, topic, scores in zip(batch[0], responses, labels, topics, sequences_scores):
                 self.metric['cnt'] += 1
                 self.compute_bleu(response[0], label)  # output type이 response일때
                 self.compute_hitgen(response[0], topic)  # output type이 response일때
@@ -267,6 +268,7 @@ class LLaMaEvaluator:
                                     'sample_bleu_scores': '|'.join(['%.4f' % i for i in [sample_bleu1, sample_bleu2, sample_bleu3, sample_bleu4]]),
                                     'contain': response[0].strip() in dialog.strip(),
                                     'llama_hit': label.strip() in response[0].strip(),
+                                    'beam_scores': '|'.join(['%.4f' % i for i in scores]),
                                     'espresso_hit': label.strip() in dialog.strip()}, ensure_ascii=False) + '\n')
 
         if not self.args.write:
@@ -276,4 +278,4 @@ class LLaMaEvaluator:
                                                  'bleu_scores': '|'.join(
                                                      ['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]]),
                                                  'sample_bleu_scores': '|'.join(
-                                                        ['%.4f' % i for i in [sample_bleu1, sample_bleu2, sample_bleu3, sample_bleu4]])}) + '\n')
+                                                     ['%.4f' % i for i in [sample_bleu1, sample_bleu2, sample_bleu3, sample_bleu4]])}) + '\n')
