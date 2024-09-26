@@ -168,7 +168,7 @@ class LLaMaEvaluator:
             num_beams=num_beams,
             num_return_sequences=num_beams,
             output_logits=True,
-            output_outputs=True,
+            output_scores=True,
             return_dict_in_generate=True,
             # do_sample=True,
             **kwargs,
