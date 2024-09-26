@@ -133,7 +133,7 @@ def prepare_dataset(args, tokenizer, dataset):
 
         predicted_topic, predicted_topic_confidence, predicted_know = [], [], []
         for p_topic, p_conf, p_know in zip(data['predicted_topic'], data['predicted_topic_confidence'], data['predicted_know']):
-            if p_topic.lower().strip() not in [i.replace('\xa0', ' ').replace('  ', ' ').strip().lower() for i in args.topicList]:
+            if p_topic.strip() not in [i.replace('\xa0', ' ').replace('  ', ' ').strip() for i in args.topicList]:
                 continue
             if p_topic not in predicted_topic:
                 predicted_topic.append(p_topic)
