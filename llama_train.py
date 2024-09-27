@@ -127,7 +127,7 @@ def llama_finetune(
             f"prompt template: {prompt_template_name}\n"
         )
     assert (
-        base_model # base_model 입력해줘야함 
+        base_model  # base_model 입력해줘야함
     ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
     # gradient_accumulation_steps = batch_size // micro_batch_size
 
@@ -393,16 +393,16 @@ def llama_finetune(
             elif 'UDGIP2I_new' == args.prompt:
                 # label = f"{data['topic']}"
                 # topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
-                topic_idx = [i.lower().strip() for i in predicted_topic].index(data['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower())
-                if args.postfix:
-                    label = f"Considering the given dialog and passages, the most suitable topic would be:\nTopic {topic_idx}. {data['topic']}"
-                else:
-                    label = f"Topic {topic_idx}. {data['topic']}"
+                # topic_idx = [i.lower().strip() for i in predicted_topic].index(data['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower()) + 1
+                # if args.postfix:
+                #     label = f"Considering the given dialog and passages, the most suitable topic would be:\nTopic {topic_idx}. {data['topic']}"
+                # else:
+                #     label = f"{data['topic']}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
                                                             input2=candidate_topics,
                                                             input3=predicted_know, input4=data['user_profile'],
-                                                            label=label, mode=mode)
+                                                            label=data['topic'], mode=mode)
             elif 'UDGIP2I_cot' == args.prompt:
                 # label = f"{data['topic']}"
                 topic_idx = [i.lower().strip() for i in predicted_topic].index(data['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower())
