@@ -31,8 +31,12 @@ def load_dataset(args):
 def augment_dataset(args, know_dataset, labels, topics):
     new_know_dataset, new_labels, new_topics = [], [], []
     for i, j, k in zip(know_dataset, labels, topics):
-        topic = i['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower()
-        predicted_topic = [x.replace('\xa0', ' ').replace('  ', ' ').strip().lower() for x in i['predicted_topic']]
+        if args.inspired:
+            topic = i['topic']
+            predicted_topic = [x for x in i['predicted_topic']]
+        else:
+            topic = i['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower()
+            predicted_topic = [x.replace('\xa0', ' ').replace('  ', ' ').strip().lower() for x in i['predicted_topic']]
         if topic in predicted_topic[:args.topk_topic]:
             if args.prompt == 'UDGIP2I_cot':
                 # if i['topic'].replace('\xa0', ' ').strip().lower() in i['topic_cot'].split('Therefore')[-1].lower().strip():
