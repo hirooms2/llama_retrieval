@@ -135,23 +135,25 @@ def prepare_dataset(args, tokenizer, dataset):
         data['response'] = data['response'].replace('[SEP]', '')
         topics.append(data['topic'])
 
-        predicted_topic, predicted_topic_confidence, predicted_know = [], [], []
-        for p_topic, p_conf, p_know in zip(data['predicted_topic'], data['predicted_topic_confidence'], data['predicted_know']):
-            if p_topic.strip() not in [i.replace('\xa0', ' ').replace('  ', ' ').strip() for i in args.topicList]:
-                continue
-            if p_topic not in predicted_topic:
-                predicted_topic.append(p_topic)
-                predicted_topic_confidence.append(p_conf)
-                predicted_know.append(p_know)
+        ### JP
+        if 'durec_d2i_base' in args.test_know_file:
+            predicted_topic, predicted_topic_confidence, predicted_know = [], [], []
+            for p_topic, p_conf, p_know in zip(data['predicted_topic'], data['predicted_topic_confidence'], data['predicted_know']):
+                if p_topic.strip() not in [i.replace('\xa0', ' ').replace('  ', ' ').strip() for i in args.topicList]:
+                    continue
+                if p_topic not in predicted_topic:
+                    predicted_topic.append(p_topic)
+                    predicted_topic_confidence.append(p_conf)
+                    predicted_know.append(p_know)
 
-        if len(predicted_topic) == 0:
-            data['predicted_topic'] = [data['predicted_topic'][0]]
-            data['predicted_topic_confidence'] = [data['predicted_topic_confidence'][0]]
-            data['predicted_know'] = [data['predicted_know'][0]]
-        else:
-            data['predicted_topic'] = predicted_topic
-            data['predicted_topic_confidence'] = predicted_topic_confidence
-            data['predicted_know'] = predicted_know
+            if len(predicted_topic) == 0:
+                data['predicted_topic'] = [data['predicted_topic'][0]]
+                data['predicted_topic_confidence'] = [data['predicted_topic_confidence'][0]]
+                data['predicted_know'] = [data['predicted_know'][0]]
+            else:
+                data['predicted_topic'] = predicted_topic
+                data['predicted_topic_confidence'] = predicted_topic_confidence
+                data['predicted_know'] = predicted_know
 
         if 'predicted_know' in data:
             for idx1, top_passages in enumerate(data['predicted_know']):
