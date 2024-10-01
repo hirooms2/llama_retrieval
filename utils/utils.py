@@ -135,8 +135,7 @@ def prepare_dataset(args, tokenizer, dataset):
         data['response'] = data['response'].replace('[SEP]', '')
         topics.append(data['topic'])
 
-        ### JP
-        if 'durec_d2i_base' in args.test_know_file:
+        if args.db_check:
             predicted_topic, predicted_topic_confidence, predicted_know = [], [], []
             for p_topic, p_conf, p_know in zip(data['predicted_topic'], data['predicted_topic_confidence'], data['predicted_know']):
                 if p_topic.strip() not in [i.replace('\xa0', ' ').replace('  ', ' ').strip() for i in args.topicList]:

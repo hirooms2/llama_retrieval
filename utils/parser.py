@@ -53,6 +53,7 @@ def parse_args():
     parser.add_argument('--force_topic', action='store_true', help="Insert topic in force")
     parser.add_argument('--force_split', action='store_true', help="split in dp2r task if topic in top-3")
     parser.add_argument('--disable_know', action='store_true', help="enable_know")
+    parser.add_argument('--db_check', action='stor_true', help="Filter topic if not in DB")
 
     parser.add_argument("--partition", action='store_true', help="combine pseudo")
     parser.add_argument("--query", action='store_true', help="original goal vs. refined goal")
