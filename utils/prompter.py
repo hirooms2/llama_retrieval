@@ -96,9 +96,9 @@ class Prompter(object):
 
             if 'UD2I' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=data['user_profile'], label=label, mode=mode))
-            if 'D2I' == self.args.prompt:
+            if 'D2I' == self.args.prompt or 'D2I_cot' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], label=label, mode=mode))
-            if 'DI2I' in self.args.prompt:
+            if 'DI2I' == self.args.prompt or 'DI2I_cot' == self.args.prompt:
                 if self.args.redial or self.args.inspired:
                     candidate_topics = '\n'.join([f"Item {idx + 1}. {t}" for idx, t in enumerate(predicted_topic_list)])
                 else:
