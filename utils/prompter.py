@@ -113,6 +113,8 @@ class Prompter(object):
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=data['user_profile'], label=data['topic'], mode=mode))
             elif 'DP2R' in self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode))
+            elif 'DGP2R' == self.args.prompt:
+                instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=predicted_know, label=label, mode=mode))
             elif 'DGIP2R' == self.args.prompt:
                 instructions.append(self.generate_prompt(instruction=data['dialog'], input=predicted_goal, input2=predicted_topic, input3=predicted_know, label=label, mode=mode))
             elif 'DIP2R' == self.args.prompt:
