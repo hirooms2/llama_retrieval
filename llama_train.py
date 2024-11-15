@@ -417,7 +417,7 @@ def llama_finetune(
                 rationale = data['topic_cot'].split('Therefore')[0].strip()
                 label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=data['profile'],
+                                                            input2=data['user_profile'],
                                                             label=label, mode=mode)
 
             elif 'UDGIP2I_cot' == args.prompt:
