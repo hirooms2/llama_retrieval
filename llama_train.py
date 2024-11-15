@@ -733,22 +733,25 @@ def llama_finetune(
 
                 predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know_list)])
 
-            relevant_idx = predicted_know_list.index(target_knowledge) if target_knowledge in predicted_topic_list else -1
-            relevant_idx_list = []
-            for x in candidate_knowledges_gpt:
-                relevant_idx_list.append(predicted_know_list.index(x))
+            if args.all_passages: # 241115 JP DP(all)2R ablation
+                label = ""
+            else: # 241115 JP MOCHA code
+                relevant_idx = predicted_know_list.index(target_knowledge) if target_knowledge in predicted_topic_list else -1
+                relevant_idx_list = []
+                for x in candidate_knowledges_gpt:
+                    relevant_idx_list.append(predicted_know_list.index(x))
 
-            if args.candidate_knowledges_gpt:
-                label = '\n'.join([f"Passage {x + 1}. {y}" for x, y in zip(relevant_idx_list, candidate_knowledges_gpt)])
+                if args.candidate_knowledges_gpt:
+                    label = '\n'.join([f"Passage {x + 1}. {y}" for x, y in zip(relevant_idx_list, candidate_knowledges_gpt)])
 
-            elif args.target:
-                label = f"{predicted_know}"
-            else:
-                label = f"Passage {relevant_idx + 1}. {target_knowledge}"
+                elif args.target:
+                    label = f"{predicted_know}"
+                else:
+                    label = f"Passage {relevant_idx + 1}. {target_knowledge}"
 
-            if args.combined_top1:
-                if idx % 2 == 0 or args.input_top1:
-                    predicted_topic_list = [data['predicted_topic'][0]] if data['topic'] == data['predicted_topic'][0] else [data['predicted_topic'][1]]
+                if args.combined_top1:
+                    if idx % 2 == 0 or args.input_top1:
+                        predicted_topic_list = [data['predicted_topic'][0]] if data['topic'] == data['predicted_topic'][0] else [data['predicted_topic'][1]]
 
             if args.train_only_inputs:
                 full_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label, mode='test')
