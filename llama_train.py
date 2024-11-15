@@ -693,7 +693,10 @@ def llama_finetune(
                     candidate_passages = '\n'.join(
                         [f"Passage {i * args.n_sampled_negative + idx + 1}. {know}" for idx, know in
                          enumerate(top_negative_candidates[i])])
-                    predicted_know += f"{prefix}\n{candidate_passages}\n\n"
+                    if "P2R" in args.prompt:
+                        predicted_know = f"{candidate_passages}\n"
+                    else:
+                        predicted_know += f"{prefix}\n{candidate_passages}\n\n"
 
             # elif args.target:
             #     predicted_know = data['target_knowledge']
