@@ -62,6 +62,7 @@ def parse_args():
     parser.add_argument("--selected_topic", action='store_true', help="selected_topic")
     parser.add_argument("--candidate_knowledges_gpt", action='store_true', help="selected_topic")
     parser.add_argument("--n_sampled_positive", type=int, default=3)
+    parser.add_argument("--all_passages", action='store_true', help="DP(I)2R")
 
     parser.add_argument("--postfix", action='store_true', help="Add postfix in GEN")
     parser.add_argument("--topic_num_shuffle", action='store_true', help="Variable number of topics")
