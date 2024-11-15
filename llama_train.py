@@ -412,6 +412,14 @@ def llama_finetune(
                                                             input2=candidate_topics,
                                                             input3=predicted_know, input4=data['user_profile'],
                                                             label=data['topic'], mode=mode)
+
+            elif 'UDG2I_cot' == args.prompt:
+                rationale = data['topic_cot'].split('Therefore')[0].strip()
+                label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=data['profile'],
+                                                            label=label, mode=mode)
+
             elif 'UDGIP2I_cot' == args.prompt:
                 # label = f"{data['topic']}"
                 topic_idx = [i.lower().strip() for i in predicted_topic].index(data['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower())
