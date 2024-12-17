@@ -92,10 +92,7 @@ class Prompter(object):
                         predicted_know = f"Passage 1. {predicted_know}\n"
                     else:
                         predicted_know = predicted_know[:self.args.n_sampled_negative]
-                        if predicted_know == ['']:
-                            predicted_know = ['\n']
-                        else:
-                            predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
+                        predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know)])
 
             if mode == 'train':
                 random.shuffle(predicted_topic_list)
