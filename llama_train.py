@@ -435,7 +435,7 @@ def llama_finetune(
 
             elif 'UDGIP2I_cot' == args.prompt:
                 # label = f"{data['topic']}"
-                topic_idx = [i.lower().strip() for i in predicted_topic].index(data['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower())
+                # topic_idx = [i.lower().strip() for i in predicted_topic].index(data['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower())
                 rationale = data['topic_cot'].split('Therefore')[0].strip()
                 label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
@@ -445,7 +445,7 @@ def llama_finetune(
                                                             label=label, mode=mode)
             elif 'UDGIP2IP_cot' == args.prompt:
                 # label = f"{data['topic']}"
-                topic_idx = predicted_topic.index(data['topic'])
+                # topic_idx = predicted_topic.index(data['topic'])
                 rationale = data['passage_cot'].split('Therefore')[0].strip()
                 label = f"{rationale}\nThe most suitable topic is \"{data['topic']}\""  # as follow:\nTopic {topic_idx}. {data['topic']}\nThe relevant passages are as follow:\n{label}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
