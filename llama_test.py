@@ -13,6 +13,8 @@ from transformers import GenerationConfig, LlamaForCausalLM
 from peft import PeftModel
 
 from utils.prompter import Prompter
+import time
+import datetime
 
 # os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -207,6 +209,7 @@ class LLaMaEvaluator:
         if torch.__version__ >= "2" and sys.platform != "win32":
             model = torch.compile(model)
 
+        start_time = time.time()
         for batch in tqdm(self.dataloader, bar_format=' {percentage:3.0f} % | {bar:23} {r_bar}'):
             batched_inputs = self.tokenizer(batch[0], padding=True, return_tensors="pt")
             input_ids = batched_inputs["input_ids"].to("cuda")
@@ -273,6 +276,10 @@ class LLaMaEvaluator:
                                     'llama_hit': label.strip() in response[0].strip(),
                                     'beam_scores': '|'.join(['%.4f' % i for i in scores]),
                                     'espresso_hit': label.strip() in dialog.strip()}, ensure_ascii=False) + '\n')
+        end_time = time.time()
+        sec = (end_time - start_time)
+        result = str(datetime.timedelta(seconds=sec)).split(".")
+        json.dump(result,open(f"{self.args.log_name}_time_comp.json", "w", encoding='utf-8'))
 
         if not self.args.write:
             self.args.log_file.write(f'\n---Accuracy results for {self.args.log_name} at epoch {epoch}---\n')
