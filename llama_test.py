@@ -151,8 +151,8 @@ class LLaMaEvaluator:
                 selected_passages = [data['predicted_know'][i] for i in selected_passages_idx]
                 predicted_know_list.append({'predicted_know': selected_passages})
                 reranked_passages = selected_passages + [i for i in data['predicted_know'][:4] if i not in selected_passages]
-                if len(reranked_passages) != 4:
-                    print('Check again')
+                # if len(reranked_passages) != 4:
+                #     print('Check again')
                 target_knowledge = data['target_knowledge']
                 for topk in range(len(hits)):
                     if target_knowledge in reranked_passages[:topk + 1]:
