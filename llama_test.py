@@ -13,8 +13,12 @@ from transformers import GenerationConfig, LlamaForCausalLM
 from peft import PeftModel
 
 from utils.prompter import Prompter
+from utils.utils import load_dataset
+
+import re
 import time
 import datetime
+from copy import deepcopy
 
 # os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -84,6 +88,86 @@ class LLaMaEvaluator:
             self.metric[f'bleu{k + 1}'] += sentence_bleu(label, pred, weights)
             self.metric[f'sample_bleu{k + 1}'] = sentence_bleu(label, pred, weights)
 
+    def print_score(self, outputs):
+        prompt = self.args.propmt
+        task = prompt.split('2')[-1]
+        train_data, test_data = load_dataset(self.args)
+        test_know_file_path = self.args.test_know_file
+        test_know_file_path = os.path.join(self.args.home, f"data/know/en_test_know_{test_know_file_path}.json")
+        test_know = json.load(open(test_know_file_path, 'r', encoding='utf-8'))
+
+        total = [(o,t) for o,t in zip(outputs, test_data) if t['topic']!='Q&A' and t['topic']!='Music recommendation']
+        # result = [r for r,t in total if t['topic'].replace('  ',' ').replace('\xa0',' ').lower().strip() in r['GEN'].split('suitable topic is ')[-1].replace('  ',' ').replace('\xa0',' ').lower().strip()]
+        if task == 'I':
+            if self.args.inspired:
+                cnt = len([i for i in outputs if i['ANSWER'] in i['GEN'].split['Therefore'][-1]])
+                score = cnt / len(test_data)
+                print(f"Item hit ratio: {score}")
+            else:
+                cnt = 0
+                pattern = r'topic \d+\. '
+                for r,t in total:
+                    answer = t['topic'].replace('  ', ' ').replace('\xa0', ' ').lower().strip()
+                    # gen = r['GEN'].split('topic is ')[-1].replace('  ',' ').replace('\xa0',' ').replace('"','').lower().strip()
+                    gen = r['GEN'].split('topic is ')[-1].replace('  ', ' ').replace('\xa0', ' ').replace('"', '').lower().strip()
+                    if re.search(pattern, gen):
+                        gen = gen[re.search(pattern, gen).end():]
+                        if answer == gen:
+                            cnt += 1
+                    else:
+                        # if answer in gen.split(' | ')[:3]:
+                        #     cnt+=1
+                        gen_list = gen.split(' | ')
+                        remove_list = []
+                        for i in gen_list:
+                            if i not in remove_list and i.replace('  ', ' ').replace('\xa0', ' ').replace('"', '').lower().strip() in [t.replace('  ', ' ').replace('\xa0', ' ').replace('"', '').lower().strip() for t in topicList]:
+                                remove_list.append(i)
+                        if answer in remove_list[:1]:
+                            cnt += 1
+                score = cnt / len(total)
+                print(f"Item hit ratio: {score}")
+
+        elif task == 'P':
+            for (i, j, x) in tqdm(zip(outputs, test_data, test_know)):
+                i['response'] = j['response']
+                i['goal'] = j['goal']
+                i['topic'] = j['topic']
+                i['predicted_topic'] = j['predicted_topic']
+                i['GEN'] = i['GEN'].split("###Response:")[-1]
+                i['selected_topic'] = j['selected_topic']
+                i['predicted_topic_confidence'] = j['predicted_topic_confidence']
+                predicted_know = deepcopy(x['predicted_know'][0])
+                predicted_know = [idx for idx, y in enumerate(predicted_know) if y != '']
+                predicted_know = predicted_know[:4]
+                i['predicted_know'] = [x['predicted_know'][0][i] for i in predicted_know]  # x['predicted_know'][0] #
+                i['target_knowledge'] = j['target_knowledge']
+                i['candidate_knowledges'] = j['candidate_knowledges']
+                i['CONTEXT'] += ("\n" + i['GEN'])
+
+            predicted_know_list = []
+            hits = [0, 0, 0, 0]
+            for idx, data in tqdm(enumerate(outputs)):
+                passages_results = data['GEN'].split('relevant passage is ')[-1].split('as follow:\n')[-1].split("\n")
+                selected_passages_idx = [int(data['GEN'][m.start() + len('Passage ')]) - 1 for m in re.finditer('Passage', data['GEN'])]
+                selected_passages = [data['predicted_know'][i] for i in selected_passages_idx]
+                predicted_know_list.append({'predicted_know': selected_passages})
+                reranked_passages = selected_passages + [i for i in data['predicted_know'][:4] if i not in selected_passages]
+                if len(reranked_passages) != 4:
+                    print('Check again')
+                target_knowledge = data['target_knowledge']
+                for topk in range(len(hits)):
+                    if target_knowledge in reranked_passages[:topk + 1]:
+                        hits[topk] += 1
+            hits = ["%.4f" % (i / len(test_data)) for i in hits[:3]]
+            score = '\t'.join(hits)
+            print(f'Passage hit ratio: {score}')
+
+        elif task == 'R':
+            last = outputs[-1]
+            score = last['bleu_scores']
+            print(f"Generation bleu score: {score}")
+        else:
+            print("Check prompt")
     def prepare_model(self,
                       base_model: str = "",
                       load_8bit: bool = False,
@@ -210,6 +294,7 @@ class LLaMaEvaluator:
             model = torch.compile(model)
 
         # start_time = time.time()
+        outputs = []
         for batch in tqdm(self.dataloader, bar_format=' {percentage:3.0f} % | {bar:23} {r_bar}'):
             batched_inputs = self.tokenizer(batch[0], padding=True, return_tensors="pt")
             input_ids = batched_inputs["input_ids"].to("cuda")
@@ -265,9 +350,7 @@ class LLaMaEvaluator:
                 hit4 = self.metric['hit4'] / self.metric['cnt']
                 hit5 = self.metric['hit5'] / self.metric['cnt']
 
-                if self.args.write or self.metric['cnt'] <= 100:
-                    self.args.log_file.write(
-                        json.dumps({'CONTEXT': dialog, 'GEN': ' | '.join(response), 'ANSWER': label,
+                output = {'CONTEXT': dialog, 'GEN': ' | '.join(response), 'ANSWER': label,
                                     'hitgen': '%.4f' % hitgen,
                                     'hit_scores': '|'.join(['%.4f' % i for i in [hit1, hit2, hit3, hit4, hit5]]),
                                     'bleu_scores': '|'.join(['%.4f' % i for i in [bleu1, bleu2, bleu3, bleu4]]),
@@ -275,7 +358,13 @@ class LLaMaEvaluator:
                                     'contain': response[0].strip() in dialog.strip(),
                                     'llama_hit': label.strip() in response[0].strip(),
                                     'beam_scores': '|'.join(['%.4f' % i for i in scores]),
-                                    'espresso_hit': label.strip() in dialog.strip()}, ensure_ascii=False) + '\n')
+                                    'espresso_hit': label.strip() in dialog.strip()}
+                outputs.append(output)
+                if self.args.write or self.metric['cnt'] <= 100:
+                    self.args.log_file.write(
+                        json.dumps(output, ensure_ascii=False) + '\n')
+
+        self.print_score(outputs)
         # end_time = time.time()
         # sec = (end_time - start_time)
         # result = str(datetime.timedelta(seconds=sec)).split(".")
