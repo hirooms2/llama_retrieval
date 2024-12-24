@@ -102,7 +102,8 @@ class LLaMaEvaluator:
             if self.args.inspired:
                 cnt = len([i for i in outputs if i['ANSWER'] in i['GEN'].split['Therefore'][-1]])
                 score = cnt / len(test_data)
-                print(f"Item hit ratio: {score}")
+                print(f"Item hit ratio: hit@1")
+                print(score)
             else:
                 cnt = 0
                 pattern = r'topic \d+\. '
@@ -125,7 +126,8 @@ class LLaMaEvaluator:
                         if answer in remove_list[:1]:
                             cnt += 1
                 score = cnt / len(total)
-                print(f"Item hit ratio: {score}")
+                print(f"Item hit ratio: hit@1")
+                print(score)
 
         elif 'P' in task:
             for (i, j, x) in tqdm(zip(outputs, test_data, test_know)):
@@ -160,12 +162,14 @@ class LLaMaEvaluator:
                         hits[topk] += 1
             hits = ["%.4f" % (i / len(test_data)) for i in hits[:3]]
             score = '\t'.join(hits)
-            print(f'Passage hit ratio: {score}')
+            print(f'Passage hit ratio: hit@1 | hit@2 | hit@3')
+            print(score)
 
         elif 'R' in task:
             last = outputs[-1]
             score = last['bleu_scores']
-            print(f"Generation bleu score: {score}")
+            print(f"Generation bleu score: bleu@1 | bleu@2 | bleu@3 | bleu@4")
+            print(score)
         else:
             print("Check prompt")
     def prepare_model(self,
