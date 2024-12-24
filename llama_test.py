@@ -98,7 +98,7 @@ class LLaMaEvaluator:
 
         total = [(o,t) for o,t in zip(outputs, test_data) if t['topic']!='Q&A' and t['topic']!='Music recommendation']
         # result = [r for r,t in total if t['topic'].replace('  ',' ').replace('\xa0',' ').lower().strip() in r['GEN'].split('suitable topic is ')[-1].replace('  ',' ').replace('\xa0',' ').lower().strip()]
-        if task == 'I':
+        if 'I' in task:
             if self.args.inspired:
                 cnt = len([i for i in outputs if i['ANSWER'] in i['GEN'].split['Therefore'][-1]])
                 score = cnt / len(test_data)
@@ -127,7 +127,7 @@ class LLaMaEvaluator:
                 score = cnt / len(total)
                 print(f"Item hit ratio: {score}")
 
-        elif task == 'P':
+        elif 'P' in task:
             for (i, j, x) in tqdm(zip(outputs, test_data, test_know)):
                 i['response'] = j['response']
                 i['goal'] = j['goal']
@@ -162,7 +162,7 @@ class LLaMaEvaluator:
             score = '\t'.join(hits)
             print(f'Passage hit ratio: {score}')
 
-        elif task == 'R':
+        elif 'R' in task:
             last = outputs[-1]
             score = last['bleu_scores']
             print(f"Generation bleu score: {score}")
