@@ -89,7 +89,7 @@ class LLaMaEvaluator:
             self.metric[f'sample_bleu{k + 1}'] = sentence_bleu(label, pred, weights)
 
     def print_score(self, outputs):
-        prompt = self.args.propmt
+        prompt = self.args.prompt
         task = prompt.split('2')[-1]
         train_data, test_data = load_dataset(self.args)
         test_know_file_path = self.args.test_know_file
