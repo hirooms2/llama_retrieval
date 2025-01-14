@@ -650,9 +650,11 @@ def llama_finetune(
             #     top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])  # 순서 기반으로 자르고 있음
             if data['predicted_know']:
                 top_negative_candidates = [data['predicted_know'][i] for i in topic_idx]
-                candidate_passages = [data['predicted_know'][i] for i in topic_idx]
-                random.shuffle(candidate_passages)
-                random_candidates = candidate_passages
+                random_candidates = []
+                for i in topic_idx:
+                    tmp = data['predicted_know'][i]
+                    random.shuffle(tmp)
+                    random_candidates.append(tmp)
             else:
                 top_negative_candidates = []
                 random_candidates = []
