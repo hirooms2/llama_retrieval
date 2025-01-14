@@ -650,8 +650,12 @@ def llama_finetune(
             #     top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])  # 순서 기반으로 자르고 있음
             if data['predicted_know']:
                 top_negative_candidates = [data['predicted_know'][i] for i in topic_idx]
+                candidate_passages = [data['predicted_know'][i] for i in topic_idx]
+                random.shuffle(candidate_passages)
+                random_candidates = candidate_passages
             else:
                 top_negative_candidates = []
+                random_candidates = []
 
             if data['combined']:
                 for idx, top_passages in enumerate(top_negative_candidates):
@@ -696,9 +700,13 @@ def llama_finetune(
                 #         random.shuffle(top_negative_candidates[idx])
 
                 predicted_know_list = []
+                random_know_list = []
 
                 for i in range(len(predicted_topic_list)):
                     predicted_know_list += top_negative_candidates[i]
+
+                for i in range(len(predicted_topic_list)):
+                    random_know_list += random_candidates[i]
 
                 # relevant_idx = predicted_know_list.index(target_knowledge)
                 # relevant_idx_list = []
@@ -711,7 +719,12 @@ def llama_finetune(
                         prefix = f"Here are the candidate passages about Item {i + 1}. {predicted_topic_list[i]}"
                     else:
                         prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
-                    candidate_passages = '\n'.join(
+                    if args.random_passages:
+                        candidate_passages = '\n'.join(
+                            [f"Passage {i * args.n_sampled_negative + idx + 1}. {know}" for idx, know in
+                             enumerate(random_candidates[i])])
+                    else:
+                        candidate_passages = '\n'.join(
                         [f"Passage {i * args.n_sampled_negative + idx + 1}. {know}" for idx, know in
                          enumerate(top_negative_candidates[i])])
                     if "P2R" in args.prompt:
