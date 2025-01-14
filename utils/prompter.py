@@ -61,7 +61,9 @@ class Prompter(object):
                     for idx, top_passages in enumerate(top_negative_candidates):
                         top_negative_candidates[idx] = [i for i in top_passages if i != '']
                     for idx, random_passages in enumerate(random_candidates):
-                        random_candidates[idx] = random.shuffle([i for i in random_passages if i != ''])
+                        tmp = [i for i in random_passages if i != '']
+                        random.shuffle(tmp)
+                        random_candidates[idx] = tmp
 
                     # Filtering code
                     if self.args.filtering:
