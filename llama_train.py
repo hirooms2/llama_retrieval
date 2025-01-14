@@ -654,7 +654,7 @@ def llama_finetune(
                 for i in topic_idx:
                     tmp = deepcopy(data['predicted_know'][i])
                     random.shuffle(tmp)
-                    random_candidates.append(tmp)
+                    random_candidates.append(tmp[:args.n_sampled_negative])
             else:
                 top_negative_candidates = []
                 random_candidates = []
@@ -727,8 +727,8 @@ def llama_finetune(
                              enumerate(random_candidates[i])])
                     else:
                         candidate_passages = '\n'.join(
-                        [f"Passage {i * args.n_sampled_negative + idx + 1}. {know}" for idx, know in
-                         enumerate(top_negative_candidates[i])])
+                            [f"Passage {i * args.n_sampled_negative + idx + 1}. {know}" for idx, know in
+                             enumerate(top_negative_candidates[i])])
                     if "P2R" in args.prompt:
                         predicted_know += f"{candidate_passages}\n\n"
                     else:
