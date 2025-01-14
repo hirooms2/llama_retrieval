@@ -39,6 +39,8 @@ def parse_args():
     parser.add_argument('--n_pseudo', type=int, default=2)
     parser.add_argument('--n_hard_negative', type=int, default=-1)
     parser.add_argument('--n_sampled_negative', type=int, default=3)
+    parser.add_argument('--random_passages', action='store_true', help='random passages for selected item')
+
 
     parser.add_argument('--positive', type=str, default='pseudo', choices=['only_pseudo', 'pseudo', 'highly_relevant', 'gpt_selection', 'target'])
     parser.add_argument("--pseudo", action='store_true', help="combine pseudo")

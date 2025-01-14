@@ -56,9 +56,13 @@ class Prompter(object):
 
             if 'predicted_know' in data and 'P' in self.args.prompt:
                 top_negative_candidates = deepcopy(data['predicted_know'])
+                random_candidates = deepcopy(data['predicted_know'])
                 if self.args.combined:  # self.args.combined:
                     for idx, top_passages in enumerate(top_negative_candidates):
                         top_negative_candidates[idx] = [i for i in top_passages if i != '']
+                    for idx, random_passages in enumerate(random_candidates):
+                        random_candidates[idx] = [random.shuffle(i) for i in random_passages if i != '']
+
                     # Filtering code
                     if self.args.filtering:
                         for idx, top_passages in enumerate(top_negative_candidates):
@@ -67,14 +71,21 @@ class Prompter(object):
                     for idx, top_passages in enumerate(top_negative_candidates):
                         top_negative_candidates[idx] = top_negative_candidates[idx][:self.args.n_sampled_negative]
 
+                    for idx, random_passages in enumerate(random_candidates):
+                        random_candidates[idx] = random_candidates[idx][:self.args.n_sampled_negative]
+
                     predicted_know = ""
                     for i in range(len(predicted_topic_list)):
                         prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
                         candidate_passages = '\n'.join([f"Passage {i * self.args.n_sampled_negative + idx + 1}. {know}" for idx, know in enumerate(top_negative_candidates[i])])
+                        random_passages = '\n'.join([f"Passage {i * self.args.n_sampled_negative + idx + 1}. {know}" for idx, know in enumerate(random_candidates[i])])
                         if self.args.all_passages:
                             predicted_know += f"{candidate_passages}\n\n"
                         else:
-                            predicted_know += f"{prefix}\n{candidate_passages}\n\n"
+                            if self.args.random_passages:
+                                predicted_know += f"{prefix}\n{random_passages}\n\n"
+                            else:
+                                predicted_know += f"{prefix}\n{candidate_passages}\n\n"
 
                 else:  # 사용되는 topic이 무조건 top-1인 경우
                     predicted_know = [i for i in top_negative_candidates[0] if i != '']
