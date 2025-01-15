@@ -103,7 +103,7 @@ class LLaMaEvaluator:
         # result = [r for r,t in total if t['topic'].replace('  ',' ').replace('\xa0',' ').lower().strip() in r['GEN'].split('suitable topic is ')[-1].replace('  ',' ').replace('\xa0',' ').lower().strip()]
         if 'I' in task:
             if self.args.inspired:
-                cnt = len([i for i in outputs if i['ANSWER'] in i['GEN'].split['Therefore'][-1]])
+                cnt = len([i for i in outputs if i['ANSWER'] in i['GEN'].split('Therefore')[-1]])
                 score = cnt / len(test_data)
                 print()
                 print(f"Item hit ratio: hit@1")
