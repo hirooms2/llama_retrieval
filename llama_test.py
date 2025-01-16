@@ -95,9 +95,9 @@ class LLaMaEvaluator:
         test_know_file_path = self.args.test_know_file
         test_know_file_path = os.path.join(self.args.home, f"data/know/en_test_know_{test_know_file_path}.json")
         test_know = json.load(open(test_know_file_path, 'r', encoding='utf-8'))
-        goalTopic_path = os.path.join(self.args.home)
-        goalTopicDic = json.load(open("/home/submission/junpyo/KEMGCRS/data/2/durecdial/DuRec_topicDic.json", 'r', encoding='utf-8'))
-        topicList = list(goalTopicDic['str'].keys())
+        # goalTopic_path = os.path.join(self.args.home)
+        # goalTopicDic = json.load(open("/home/submission/junpyo/KEMGCRS/data/2/durecdial/DuRec_topicDic.json", 'r', encoding='utf-8'))
+        # topicList = list(goalTopicDic['str'].keys())
 
         total = [(o,t) for o,t in zip(outputs, test_data) if t['topic']!='Q&A' and t['topic']!='Music recommendation']
         # result = [r for r,t in total if t['topic'].replace('  ',' ').replace('\xa0',' ').lower().strip() in r['GEN'].split('suitable topic is ')[-1].replace('  ',' ').replace('\xa0',' ').lower().strip()]
