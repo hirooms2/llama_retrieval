@@ -702,13 +702,12 @@ def llama_finetune(
                 #         random.shuffle(top_negative_candidates[idx])
 
                 predicted_know_list = []
-                random_know_list = []
 
                 for i in range(len(predicted_topic_list)):
                     predicted_know_list += top_negative_candidates[i]
 
                 for i in range(len(predicted_topic_list)):
-                    random_know_list += random_candidates[i]
+                    predicted_know_list += random_candidates[i]
 
                 # relevant_idx = predicted_know_list.index(target_knowledge)
                 # relevant_idx_list = []
