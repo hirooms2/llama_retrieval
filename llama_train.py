@@ -775,8 +775,9 @@ def llama_finetune(
             else: # 241115 JP MOCHA code
                 relevant_idx = predicted_know_list.index(target_knowledge) if target_knowledge in predicted_topic_list else -1
                 relevant_idx_list = []
-                for x in candidate_knowledges_gpt:
-                    relevant_idx_list.append(predicted_know_list.index(x))
+                if not args.random_passages: # 250116 random_passages
+                    for x in candidate_knowledges_gpt:
+                        relevant_idx_list.append(predicted_know_list.index(x))
 
                 if args.candidate_knowledges_gpt:
                     label = '\n'.join([f"Passage {x + 1}. {y}" for x, y in zip(relevant_idx_list, candidate_knowledges_gpt)])
