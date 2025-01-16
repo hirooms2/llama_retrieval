@@ -702,12 +702,13 @@ def llama_finetune(
                 #         random.shuffle(top_negative_candidates[idx])
 
                 predicted_know_list = []
+                random_know_list = []
 
                 for i in range(len(predicted_topic_list)):
                     predicted_know_list += top_negative_candidates[i]
 
                 for i in range(len(predicted_topic_list)):
-                    predicted_know_list += random_candidates[i]
+                    random_know_list += random_candidates[i]
 
                 # relevant_idx = predicted_know_list.index(target_knowledge)
                 # relevant_idx_list = []
@@ -721,6 +722,7 @@ def llama_finetune(
                     else:
                         prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
                     if args.random_passages:
+                        predicted_know_list = random_know_list
                         candidate_passages = '\n'.join(
                             [f"Passage {i * args.n_sampled_negative + idx + 1}. {know}" for idx, know in
                              enumerate(random_candidates[i])])
