@@ -78,7 +78,10 @@ class Prompter(object):
 
                     predicted_know = ""
                     for i in range(len(predicted_topic_list)):
-                        prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
+                        if self.args.inspired or self.args.redial:
+                            prefix = f"Here are the candidate passages about Item {i + 1}. {predicted_topic_list[i]}"
+                        else:
+                            prefix = f"Here are the candidate passages about Topic {i + 1}. {predicted_topic_list[i]}"
                         candidate_passages = '\n'.join([f"Passage {i * self.args.n_sampled_negative + idx + 1}. {know}" for idx, know in enumerate(top_negative_candidates[i])])
                         random_passages = '\n'.join([f"Passage {i * self.args.n_sampled_negative + idx + 1}. {know}" for idx, know in enumerate(random_candidates[i])])
                         if self.args.all_passages:
