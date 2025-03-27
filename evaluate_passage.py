@@ -10,12 +10,12 @@ import numpy as np
 import re
 
 tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
-train_raw_data = pickle.load(open("data/train_pred_aug_dataset_new.pkl", 'rb'))
-test_raw_data = pickle.load(open("data/test_pred_aug_dataset_new.pkl", 'rb'))
+train_raw_data = pickle.load(open("/home/user/junpyo/llama_retrieval/data/train_pred_aug_dataset_new.pkl", 'rb'))
+test_raw_data = pickle.load(open("/home/user/junpyo/llama_retrieval/data/test_pred_aug_dataset_new.pkl", 'rb'))
 
-results1 = json.load(open('/home/submission/junpyo/llama_retrieval/result/meta-llama-Llama-2-7b-chat-hf/0708/0708152036_llama2_Passage_selection_ours_DGIP2P_cot_E5.json', 'r', encoding='utf-8'))
+results1 = json.load(open('/home/user/junpyo/llama_retrieval/result/meta-llama-Llama-2-7b-chat-hf/0202/0202070053_llama2_Passage_selection_only_DGIP2P_new_T5_E5.json', 'r', encoding='utf-8'))
 
-en_test_know_combined3 = json.load(open('data/know/en_test_know_combined3.json', 'r', encoding='utf-8'))
+en_test_know_combined3 = json.load(open('/home/user/junpyo/llama_retrieval/data/know/en_test_know_combined3.json', 'r', encoding='utf-8'))
 
 for (i, j, x) in tqdm(zip(results1, test_raw_data, en_test_know_combined3)):
     i['response'] = j['response']
@@ -49,9 +49,10 @@ for (i, j, x) in tqdm(zip(results1, test_raw_data, en_test_know_combined3)):
 predicted_know_list = []
 print()
 hits = [0, 0, 0, 0]
-for idx, (data, raw) in tqdm(enumerate(zip(results1, train_raw_data))):
+for idx, (data, raw) in tqdm(enumerate(zip(results1, test_raw_data))):
     passages_results = data['GEN'].split('relevant passage is ')[-1].split('as follow:\n')[-1].split("\n")
     selected_passages_idx = [int(data['GEN'][m.start() + len('Passage ')]) - 1 for m in re.finditer('Passage', data['GEN'])]
+    selected_passages_idx = [i for i in selected_passages_idx if i < 4]
     selected_passages = [data['predicted_know'][i] for i in selected_passages_idx]
     predicted_know_list.append({'predicted_know': selected_passages})
 
