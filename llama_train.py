@@ -349,7 +349,7 @@ def llama_finetune(
                 label = f"{guide}\nPassage:{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
                                                             label=label, mode=mode)
-            elif 'DIP2I' == args.prompt:
+            elif 'DIP2I' == args.prompt or 'DIP2I_redial' == args.prompt:
                 label = data['topic']
                 if args.redial or args.inspired:
                     candidate_topics = '\n'.join([f"Item {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
@@ -357,8 +357,8 @@ def llama_finetune(
                     candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, input2=predicted_know, label=label,
                                                             mode=mode)
-            elif 'DIP2I_cot' == args.prompt:
-                topic_idx = predicted_topic.index(data['topic'])
+            elif 'DIP2I_cot' == args.prompt or 'DIP2I_redial_cot' == args.prompt:
+                # topic_idx = predicted_topic.index(data['topic'])
                 rationale = data['topic_cot'].split('Therefore')[0].strip()
                 if args.redial or args.inspired:
                     label = f"{rationale} Therefore, the most suitable item is \"{data['topic']}\""
