@@ -20,7 +20,6 @@ en_test_know_file = json.load(open('data/know/en_test_know_ins2combined_new3_dpr
 for (i, j, x) in tqdm(zip(results1, test_raw_data, en_test_know_file)):
     i['response'] = j['response']
     # if i['response'] == "System: It's suitable for eating Steamed Chicken with Chili Sauce in such weather.[SEP]":
-    #     print('fuck')
     i['goal'] = j['goal']
     i['topic'] = j['topic']
     i['predicted_topic'] = j['predicted_topic']
@@ -56,8 +55,6 @@ for idx, (data, raw) in tqdm(enumerate(zip(results1, train_raw_data))):
     predicted_know_list.append({'predicted_know': selected_passages})
 
     reranked_passages = selected_passages + [i for i in data['predicted_know'][:4] if i not in selected_passages]
-    if len(reranked_passages) != 4:
-        print('fuck')
     target_knowledge = data['target_knowledge']
     for topk in range(len(hits)):
         if target_knowledge in reranked_passages[:topk + 1]:
