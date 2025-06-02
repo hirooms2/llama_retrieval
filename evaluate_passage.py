@@ -19,7 +19,6 @@ en_test_know_combined3 = json.load(open('/home/user/junpyo/llama_retrieval/data/
 
 for (i, j, x) in tqdm(zip(results1, test_raw_data, en_test_know_combined3)):
     i['response'] = j['response']
-    # if i['response'] == "System: It's suitable for eating Steamed Chicken with Chili Sauce in such weather.[SEP]":
     i['goal'] = j['goal']
     i['topic'] = j['topic']
     i['predicted_topic'] = j['predicted_topic']
@@ -28,18 +27,10 @@ for (i, j, x) in tqdm(zip(results1, test_raw_data, en_test_know_combined3)):
     i['predicted_topic_confidence'] = j['predicted_topic_confidence']
 
     predicted_know = deepcopy(x['predicted_know'][0])
-
-    # for idx, psg in enumerate(predicted_know):
-    #     predicted_know[idx] = tokenizer.decode(tokenizer(psg).input_ids[1:][:50]).strip()
-
     predicted_know = [idx for idx, y in enumerate(predicted_know) if y != '']
-    # predicted_know_filtered = [idx for idx, y in enumerate(predicted_know) if j['selected_topic'].replace('\xa0', ' ').strip().lower() in y.replace('\xa0', ' ').strip().lower()]
-    # predicted_know_unfiltered = [idx for idx, y in enumerate(predicted_know) if j['selected_topic'].replace('\xa0', ' ').strip().lower() not in y.replace('\xa0', ' ').strip().lower() and y != '']
-    # if len(predicted_know_filtered) < 4:
-    #     predicted_know_filtered = predicted_know_filtered + predicted_know_unfiltered[:4 - len(predicted_know_filtered)]
     predicted_know = predicted_know[:4]
 
-    i['predicted_know'] = [x['predicted_know'][0][i] for i in predicted_know]  # x['predicted_know'][0] #
+    i['predicted_know'] = [x['predicted_know'][0][i] for i in predicted_know]
 
     i['target_knowledge'] = j['target_knowledge']
     i['candidate_knowledges'] = j['candidate_knowledges']

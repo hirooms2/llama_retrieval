@@ -193,9 +193,9 @@ def llama_finetune(
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_use_double_quant=True,
-            bnb_4bit_quant_type="nf4",  # nomalized 라 하던데, 그냥 default 로 쓰는 것인듯
-            bnb_4bit_compute_dtype=torch.bfloat16  # fp16으로 하면 발산함
-        )  # 240414 추가
+            bnb_4bit_quant_type="nf4", 
+            bnb_4bit_compute_dtype=torch.bfloat16  # fp16 --> divergence
+        )
         print('#' * 64)
         print('4 bit')
         print('#' * 64)
@@ -234,19 +234,19 @@ def llama_finetune(
     # else:
     model = LlamaForCausalLM.from_pretrained(
         base_model,
-        torch_dtype=dtype,  # 의미 없음 -> 오히려 빨라지는 양상? 이거 BF16으로 한번 해보기?
+        torch_dtype=dtype,
         device_map=device_map,
-        quantization_config=quantization_config,  # 240414 추가
+        quantization_config=quantization_config,
     )
 
     tokenizer.pad_token_id = (
         0  # unk. we want this to be different from the eos token
     )
-    tokenizer.padding_side = "left"  # "left" 이거 right로 하면 학습안됨?"" # Allow batched inference
-    # tokenizer.add_eos_token = True  # 이렇게 했을 때, 마지막에 eos 붙는거 확인.. 위치는 SFTtrainer 안에 _prepare_dataset() 내에서 진행. 240414 추가
+    tokenizer.padding_side = "left"  # Allow batched inference
+    # tokenizer.add_eos_token = True  # Check eos
 
     # model = prepare_model_for_int8_training(model)
-    model = prepare_model_for_kbit_training(model)  # 얘 하면 시간 더 오래 걸리는데, 어떤 역할을 하는지 모르겠음 -> 어떨때는 또 오래 안걸림
+    model = prepare_model_for_kbit_training(model)
 
     config = LoraConfig(
         r=lora_r,
@@ -324,11 +324,11 @@ def llama_finetune(
             lr_scheduler_type="cosine",
             output_dir=output_dir,
             optim="adamw_torch",
-            # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음. paged_adamw_32bit???
+            # use 32bit adamW optimizer with paging. decoding error if use 4bit optimizer
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="no",
-            fp16=False if args.deepspeed != '' else args.fp16_trainarg,  # fp16,  # ,
-            bf16=bf16,  # BF16으로 하는 거면 True
+            fp16=False if args.deepspeed != '' else args.fp16_trainarg,  # fp16,
+            bf16=bf16,  # True if BF16
             eval_steps=5 if val_set_size > 0 else None,
             report_to="wandb",
         ),
@@ -337,7 +337,7 @@ def llama_finetune(
     )
     model.config.use_cache = False
 
-    # 이거 켜놓으면 절대 안됨
+    # Turn off the setting below
     # old_state_dict = model.state_dict
     # model.state_dict = (
     #     lambda self, *_, **__: get_peft_model_state_dict(

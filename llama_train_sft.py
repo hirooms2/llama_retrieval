@@ -144,23 +144,21 @@ def llama_finetune_sft(
             print("Your GPU supports bfloat16: accelerate training with bf16=True")
             print("=" * 80)
 
-    """
-    FP16로 하면 알 수 없는 에러들이 발생함 (학습시 발산하거나, 추론 시 토큰에 대한 확률값이 inf가 나오든가)
-    FP16은 FP32에 비해 표현 범위가 한참 작음. 만일 이 범위를 벗어나는 값이 계산되었을 때, 에러가 발생하는 것 같음.
-    예상 에러 지점은 generation 시, softmax 할 때 특정 토큰에 대한 로직값이 매우 크거나 매우 작을 때, NaN 이 나오는 것 같음.
-    (어떤 사람들이 temperature를 조절하면서 해결했다는 것을 보면, 로직값 크기 범위가 문제가 되는 것이 맞는 것으로 보임).
-    (batch size가 1일 때는 문제가 발생하지 않는 것으로 보아, 문제의 원인은 pad_token 때문인거 같은데, 이게 왜 영향을 미치는지는 미지수임. 왜냐하면 attention_mask로 다 처리되는거 같기 때문)
-    BF16은 FP32와 표현 범위는 같음. 그러나 표현 정밀도가 낮음. 따라서, 만일 문제의 원인이 너무 큰(작은) 값때문이 맞다면, BF16으로는 해결돼야 할 것으로 보임.
-    """
-
-    # quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # 몇 비트 연산을 할 것인가에 대한 것인데, 최근에는 아래 4비트로 연산하는 듯. 오히려 8비트가 에러가 존재하는 듯? -> 실제적인 메모리 사용량 차이는 크게 안나는 듯
-    # 만약에 8bit로 돌릴거면 밑에서 fp16=True, bf16=False로 해야함
+    # FP16 errors (Divergence in training phase, 'inf' in inference phase)
+    # FP16 has small range than FP32.
+    # NaN Error if logits of specific token is too small/big when softmax computation
+    # So it could be solved by temperature setting
+    # no problem if batch_size=1
+    # pad_token --> attention mask
+    # Range of BF16 = FP32 but low accuracy
+    # quantization_config = BitsAndBytesConfig(load_in_8bit=True)  # For bit computation. No memory diff between 4bit & 8bit
+    # fp16=True, bf16=False if 8bit computation
 
     quantization_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_use_double_quant=True,
-        bnb_4bit_quant_type="nf4",  # nomalized 라 하던데, 그냥 default 로 쓰는 것인듯
-        bnb_4bit_compute_dtype=torch.bfloat16  # fp16으로 하면 발산함
+        bnb_4bit_quant_type="nf4",  # default
+        bnb_4bit_compute_dtype=torch.bfloat16  # divergence if fp16
     )
 
     data = []
@@ -194,23 +192,23 @@ def llama_finetune_sft(
 
     model = LlamaForCausalLM.from_pretrained(
         base_model,
-        # torch_dtype=torch.float16, # 의미 없음 -> 오히려 빨라지는 양상?
-        device_map={"":0}, # 만일 multi-GPU를 'auto',
+        # torch_dtype=torch.float16,
+        device_map={"":0},
         quantization_config=quantization_config,
     )
 
     tokenizer.pad_token_id = (
         0  # unk. we want this to be different from the eos token
     )
-    tokenizer.padding_side = "right"  # Allow batched inference + SFT 쓰면 무조건 얘 하라고 메세지 뜸
+    tokenizer.padding_side = "right"  # Allow batched inference + SFT
 
-    model.gradient_checkpointing_enable() # 있고 없고에 따라, 시간 차이가 생기는지?
-    model = prepare_model_for_kbit_training(model)  # 얘 하면 시간 더 오래 걸리는데, 어떤 역할을 하는지 모르겠음 -> 어떨때는 또 오래 안걸림
+    model.gradient_checkpointing_enable()
+    model = prepare_model_for_kbit_training(model)
 
     peft_config = LoraConfig(
         r=lora_r,
         lora_alpha=lora_alpha,
-        target_modules=lora_target_modules,  # 'all-linear'로 할 시 학습 파라미터 수 증가 -> 시간/메모리 더 오래 걸림 & 근데 아마 정확도는 더 오를 듯
+        target_modules=lora_target_modules,  # number of training parameter get increase if 'all-linear' --> time/memory increase
         lora_dropout=lora_dropout,
         bias="none",
         task_type="CAUSAL_LM",
@@ -247,9 +245,9 @@ def llama_finetune_sft(
         model.is_parallelizable = True
         model.model_parallel = True
 
-    # tokenizer.pad_token = tokenizer.eos_token # 많은 코드들이 이렇게 하는데, 이러면 EOS 학습이 안되지 않나?
-    tokenizer.add_eos_token = True  # 이렇게 했을 때, 마지막에 eos 붙는거 확인.. 위치는 SFTtrainer 안에 _prepare_dataset() 내에서 진행.
-    torch.cuda.empty_cache()  # 이거 쓰면 좋을게 있는지 모르겠는데, 일단 사용
+    # tokenizer.pad_token = tokenizer.eos_token 
+    tokenizer.add_eos_token = True  # Check eos token
+    torch.cuda.empty_cache() 
     print(f"Train_data input_ids[0] contents \n{train_data[0]}\n")
     print(per_device_train_batch_size)
     print(gradient_accumulation_steps)
@@ -257,7 +255,7 @@ def llama_finetune_sft(
         model=model,
         tokenizer=tokenizer,
         train_dataset=train_data,
-        dataset_text_field="instruction",  # 사실상 얘가 tokenize 돼서, input이자 labels가 됨
+        dataset_text_field="instruction",  # Be an input & labels after tokenize
         peft_config=peft_config,
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
@@ -268,21 +266,21 @@ def llama_finetune_sft(
             learning_rate=learning_rate,
             logging_steps=10,
             output_dir=output_dir,
-            optim="paged_adamw_32bit",  # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음.
+            optim="paged_adamw_32bit",  # use 32bit adamW optimizer with paging. decoding error if use 4bit optimizer
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="no",
             fp16=False,
-            bf16=True,  # BF16으로 하는 거면 True
+            bf16=True,  # True if BF16
             eval_steps=5 if val_set_size > 0 else None,
             report_to="none",
-            gradient_checkpointing=True,  # 이거 없으면 메모리 엄청 먹음.
-            gradient_checkpointing_kwargs={"use_reentrant": False},  # 얘는 위에거랑 세트
+            gradient_checkpointing=True,  # memory issue without this setting
+            gradient_checkpointing_kwargs={"use_reentrant": False},  # memory issue without this setting
         ),
-        data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, pad_to_multiple_of=8, mlm=False),  # pad_to_multiple_of=8은 텐서를 8의 배수의 크기로 맞춘다는 것인데, 메모리 (혹은 연산속도) 상 이점이 있다 함
+        data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, pad_to_multiple_of=8, mlm=False),  # pad_to_multiple_of=8 means set the tensor size into multiple of 8, it has memory efficiency
         callbacks=[QueryEvalCallback(args)],
 
     )
-    model.config.use_cache = False  # silence the warnings. Please re-enable for inference! -> 필요한지 잘 모르겠음. 대세엔 영향 없어보이긴 함
+    model.config.use_cache = False  # silence the warnings. Please re-enable for inference
     # trainer.train()
 
     trainer.train(resume_from_checkpoint=resume_from_checkpoint)

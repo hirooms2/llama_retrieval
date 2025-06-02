@@ -4,7 +4,6 @@ import sys
 
 import numpy as np
 import torch
-# import wandb
 from nltk.translate.bleu_score import sentence_bleu
 
 from torch.utils.data import Dataset, DataLoader
@@ -46,7 +45,6 @@ class Textdataset(Dataset):
 class LLaMaEvaluator:
     def __init__(self, args, tokenizer, insturctions, labels, topics, prompt_template_name: str = ""):
         self.args = args
-        # self.dataset = dataset
         self.instructions = insturctions  # [i['context_tokens'] for i in dataset]
         self.labels = labels  # [i['item'] for i in dataset]
         # self.negItems = dataset['negItems']
@@ -201,8 +199,8 @@ class LLaMaEvaluator:
                 base_model,
                 load_in_8bit=load_8bit,
                 torch_dtype=dtype,  #
-                # device_map='auto' # 이거 auto로 하니가 왜 인지 모르는데, 가끔식 GPU 할당이 이상하게 됌. 특정 GPU로 고정 할당하니까 문제 해결된 듯?
-            ).to("cuda")  # MultiGPU 써보려고
+                # device_map='auto' # Auto GPU allocation can be a problem. --> Allocate fixed specific GPU
+            ).to("cuda")  # Try MultiGPU
 
             # todo: For evaluating the PEFT model
             if peft_weights != "":
@@ -233,7 +231,7 @@ class LLaMaEvaluator:
         self.tokenizer.add_eos_token = False
         # if not load_8bit and not self.args.sft:
         #     model.half()  # seems to fix bugs for some users. # bfloat16()
-        #     # model.bfloat16()  # bf16로 학습시킨거면, 무조건 이거 써야 함... 근데 애초에 이 코드가 필요한 부분인가? 위에서 설정해주는데??
+        #     # model.bfloat16()  # use if model trained on bf16
 
         return model
 
@@ -253,7 +251,7 @@ class LLaMaEvaluator:
                  temperature=0.1,
                  top_p=0.75,
                  top_k=40,
-                 num_beams=1,  # todo: beam 1개로 바꿔보기
+                 num_beams=1,  # todo: beam1 setting
                  max_new_tokens=128,
                  **kwargs):
         generation_config = GenerationConfig(
@@ -309,37 +307,16 @@ class LLaMaEvaluator:
             input_ids = batched_inputs["input_ids"].to("cuda")
             attention_mask = batched_inputs["attention_mask"].to("cuda")
             batch_size = attention_mask.size(0)
-
-            # if self.args.prompt == 'DGIP2P_cot':
-            #     responses, logits = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=1)
-            #     tokenized_response = self.tokenizer(responses, add_special_tokens=False).input_ids
-            #
-            #     rationales = [i.split(' "Passage')[0] + " \"Passage " for i in responses]
-            #     tokenized_rationales = self.tokenizer(rationales, add_special_tokens=False, padding=True, return_tensors="pt").attention_mask
-            #     tokenized_rationales_idx = torch.sum(tokenized_rationales, dim=-1)
-            #
-            #     output_list = self.tokenizer.convert_tokens_to_ids([str(idx + 1) for idx in range(self.args.n_sampled_negative)])
-            #     output_list = torch.LongTensor(output_list).to('cuda')
-            #
-            #     logits_outputs = torch.stack(logits, dim=1)[torch.arange(batch_size).to('cuda'), tokenized_rationales_idx.to('cuda')]  # [B, V]
-            #     logits_outputs = torch.nn.functional.softmax(logits_outputs, dim=-1)
-            #     logits_outputs = logits_outputs[:, output_list].detach().tolist()  # [B, n_sample]
-            #
-            #     for i in range(batch_size):
-            #         responses[i] = responses[i] + "\n\nProbs:" + '|'.join(["%.4f" % i for i in logits_outputs[i]])
-            #
-            # else:
             responses, sequences_scores = self.evaluate(input_ids, attention_mask, model, max_new_tokens=self.args.max_new_tokens, num_beams=self.args.num_beams)
-
             responses = np.reshape(responses, (-1, self.args.num_beams)).tolist()  # [B, beam]
 
             dialogs, labels, topics = batch[0], batch[1], batch[2]
 
             for dialog, response, label, topic, scores in zip(batch[0], responses, labels, topics, sequences_scores):
                 self.metric['cnt'] += 1
-                self.compute_bleu(response[0], label)  # output type이 response일때
-                self.compute_hitgen(response[0], topic)  # output type이 response일때
-                self.compute_hit(response, label)  # output type이 topic or passage 일때
+                self.compute_bleu(response[0], label)  # use if output type is response
+                self.compute_hitgen(response[0], topic)  # use if output type is response
+                self.compute_hit(response, label)  # use if output type is topic or passage
 
                 bleu1 = self.metric['bleu1'] / self.metric['cnt']
                 bleu2 = self.metric['bleu2'] / self.metric['cnt']
@@ -374,10 +351,6 @@ class LLaMaEvaluator:
                         json.dumps(output, ensure_ascii=False) + '\n')
 
         self.print_score(outputs)
-        # end_time = time.time()
-        # sec = (end_time - start_time)
-        # result = str(datetime.timedelta(seconds=sec)).split(".")
-        # json.dump(result,open(f"{self.args.log_name}_time_comp.json", "w", encoding='utf-8'))
 
         if not self.args.write:
             self.args.log_file.write(f'\n---Accuracy results for {self.args.log_name} at epoch {epoch}---\n')

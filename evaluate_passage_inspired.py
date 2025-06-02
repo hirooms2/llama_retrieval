@@ -10,16 +10,15 @@ import numpy as np
 import re
 
 tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
-train_raw_data = pickle.load(open("data/train_pred_aug_dataset_inspired2_134_cot_dpr_resp.pkl", 'rb'))
-test_raw_data = pickle.load(open("data/test_pred_aug_dataset_inspired2_new3_dpr_resp.pkl", 'rb'))
+train_raw_data = pickle.load(open("data/train_pred_aug_dataset_inspired2_final.pkl", 'rb'))
+test_raw_data = pickle.load(open("data/test_pred_aug_dataset_inspired2_final.pkl", 'rb'))
 
 results1 = json.load(open('/home/submission/junpyo/llama_retrieval/result/meta-llama-Llama-2-7b-chat-hf/0708/0708152036_llama2_Passage_selection_ours_DGIP2P_cot_E5.json', 'r', encoding='utf-8'))
 
-en_test_know_file = json.load(open('data/know/en_test_know_ins2combined_new3_dpr_resp.json', 'r', encoding='utf-8'))
+en_test_know_file = json.load(open('data/know/en_test_know_inspired2_fsel.json', 'r', encoding='utf-8'))
 
 for (i, j, x) in tqdm(zip(results1, test_raw_data, en_test_know_file)):
     i['response'] = j['response']
-    # if i['response'] == "System: It's suitable for eating Steamed Chicken with Chili Sauce in such weather.[SEP]":
     i['goal'] = j['goal']
     i['topic'] = j['topic']
     i['predicted_topic'] = j['predicted_topic']
@@ -28,19 +27,10 @@ for (i, j, x) in tqdm(zip(results1, test_raw_data, en_test_know_file)):
     i['predicted_topic_confidence'] = j['predicted_topic_confidence']
 
     predicted_know = deepcopy(x['predicted_know'][0])
-
-    # for idx, psg in enumerate(predicted_know):
-    #     predicted_know[idx] = tokenizer.decode(tokenizer(psg).input_ids[1:][:50]).strip()
-
     predicted_know = [idx for idx, y in enumerate(predicted_know) if y != '']
-    # predicted_know_filtered = [idx for idx, y in enumerate(predicted_know) if j['selected_topic'].replace('\xa0', ' ').strip().lower() in y.replace('\xa0', ' ').strip().lower()]
-    # predicted_know_unfiltered = [idx for idx, y in enumerate(predicted_know) if j['selected_topic'].replace('\xa0', ' ').strip().lower() not in y.replace('\xa0', ' ').strip().lower() and y != '']
-    # if len(predicted_know_filtered) < 4:
-    #     predicted_know_filtered = predicted_know_filtered + predicted_know_unfiltered[:4 - len(predicted_know_filtered)]
     predicted_know = predicted_know[:4]
 
-    i['predicted_know'] = [x['predicted_know'][0][i] for i in predicted_know]  # x['predicted_know'][0] #
-
+    i['predicted_know'] = [x['predicted_know'][0][i] for i in predicted_know]
     i['target_knowledge'] = j['target_knowledge']
     i['candidate_knowledges'] = j['candidate_knowledges']
     i['CONTEXT'] += ("\n" + i['GEN'])

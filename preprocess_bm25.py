@@ -216,7 +216,6 @@ def make(args, mode, dialogs, augmendted_dialogs, topic_mode):
         else:
             utt = ''
 
-        # 임시로 꺼놓은거
         # response = data['response']
         #
         # if goal == 'Food recommendation':

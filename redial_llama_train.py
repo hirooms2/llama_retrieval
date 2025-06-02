@@ -200,8 +200,8 @@ def llama_finetune(
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_use_double_quant=True,
-            bnb_4bit_quant_type="nf4",  # nomalized 라 하던데, 그냥 default 로 쓰는 것인듯
-            bnb_4bit_compute_dtype=torch.bfloat16  # fp16으로 하면 발산함
+            bnb_4bit_quant_type="nf4",  # default
+            bnb_4bit_compute_dtype=torch.bfloat16  # fp16 --> divergence
         )  # 240414 추가
         print('#' * 64)
         print('4 bit')
@@ -242,9 +242,9 @@ def llama_finetune(
     # else:
     model = AutoModelForCausalLM.from_pretrained(
         base_model,
-        torch_dtype=dtype,  # 의미 없음 -> 오히려 빨라지는 양상? 이거 BF16으로 한번 해보기?
-        device_map=device_map,  # {"": 0},  # device_map,  # {"": 0},  # 만일 multi-GPU를 'auto', 240414 추가
-        quantization_config=quantization_config,  # 240414 추가
+        torch_dtype=dtype,
+        device_map=device_map,  # {"": 0},  # device_map,  # {"": 0},  # multi-GPU --> 'auto'
+        quantization_config=quantization_config,
     )
 
     # tokenizer.pad_token_id = (
@@ -254,11 +254,11 @@ def llama_finetune(
     model.resize_token_embeddings(len(tokenizer))
     model.config.pad_token_id = tokenizer.pad_token_id
 
-    tokenizer.padding_side = "left"  # "left" 이거 right로 하면 학습안됨?"" # Allow batched inference
-    # tokenizer.add_eos_token = True  # 이렇게 했을 때, 마지막에 eos 붙는거 확인.. 위치는 SFTtrainer 안에 _prepare_dataset() 내에서 진행. 240414 추가
+    tokenizer.padding_side = "left"  # # Allow batched inference
+    # tokenizer.add_eos_token = True  # Check eos 
 
     # model = prepare_model_for_int8_training(model)
-    model = prepare_model_for_kbit_training(model)  # 얘 하면 시간 더 오래 걸리는데, 어떤 역할을 하는지 모르겠음 -> 어떨때는 또 오래 안걸림
+    model = prepare_model_for_kbit_training(model) 
 
     config = LoraConfig(
         r=lora_r,
@@ -510,15 +510,15 @@ def llama_finetune(
             else:
                 predicted_goal = data['predicted_goal'][0]
 
-            topk_topic = args.topk_topic if data['combined'] else 1  # data['combined']의 경우 여러개의 item이 섞인 상황. 아니면 top-1만 쓰는 상황
+            topk_topic = args.topk_topic if data['combined'] else 1  # data['combined'] is for multi-item
             if args.topic_num_shuffle and topk_topic > 1:
                 # item이 3개, 2개 섞어 들어감
                 topk_topic = random.randint(2, topk_topic)
 
             # if args.item_random_negative:
-            #     # item 3개 중에 2개 고르기
-            #     # 일단 item 3개 다 넣어서 predicted_topic_list 를 만든 후
-            #     # 뒤에서 2개 골라서 top_negative_candidates를 만들도록 함
+            #     # choose 2 items in 3 items
+            #     # make predicted_topic_list with 3 items
+            #     # make top_negative_candidates with last 2 items
             #     topk_topic = args.item_random_negative_num
 
             if args.item_random_negative:
@@ -529,23 +529,23 @@ def llama_finetune(
                         topic_idx.append(negative_idx)
             else:
                 topic_idx = [i for i in range(topk_topic)]
-            random.shuffle(topic_idx)  # 만일 top-1 item만 쓰는 경우, 아무 상관없음
+            random.shuffle(topic_idx)  # Doesn't matter if top-1 item only
             predicted_topic_list = [data['predicted_topic'][i] for i in topic_idx]
 
             # if args.item_random_negative:
-            #     # item 3개 중에 2개 고르기
+            #     # choose 2 items in 3 items
             #     target_item = data['topic']
             #     target_idx = data['predicted_topic'].index(target_item)
             #     negative_item_idx_list = [predicted_topic_list.index(i) for i in predicted_topic_list if
             #                               i != target_item]
             #     random.shuffle(negative_item_idx_list)
             #
-            #     target_knowledges = deepcopy(data['predicted_know'][target_idx])  # 정답 넣어주기
+            #     target_knowledges = deepcopy(data['predicted_know'][target_idx])  # insert answer
             #     negative_knowledges = deepcopy(
-            #         data['predicted_know'][negative_item_idx_list[0]])  # negative sample 넣어주기
+            #         data['predicted_know'][negative_item_idx_list[0]])  # insert negative sample
             #     top_negative_candidates = target_knowledges + negative_knowledges
             # else:
-            #     top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])  # 순서 기반으로 자르고 있음
+            #     top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])  # cut in order
             top_negative_candidates = [data['predicted_know'][i] for i in topic_idx]
 
             if data['combined']:
@@ -712,11 +712,11 @@ def llama_finetune(
             lr_scheduler_type="cosine",
             output_dir=output_dir,
             optim="adamw_torch",
-            # paging 기법이 적용된 adamW optimizer 를 쓰는데, 32 bit 씀. 이거 4bit로 하면 decoding 할 때 에러나는 경우가 있음. paged_adamw_32bit???
+            # use 32bit adamW optimizer with paging. decoding error if use 4bit optimizer
             evaluation_strategy="steps" if val_set_size > 0 else "no",
             save_strategy="no",
-            fp16=False if args.deepspeed != '' else args.fp16_trainarg,  # fp16,  # ,
-            bf16=bf16,  # BF16으로 하는 거면 True
+            fp16=False if args.deepspeed != '' else args.fp16_trainarg,  # fp16
+            bf16=bf16,  # True if BF16
             eval_steps=5 if val_set_size > 0 else None,
             report_to="wandb",
         ),
@@ -726,7 +726,7 @@ def llama_finetune(
     )
     model.config.use_cache = False
 
-    # 이거 켜놓으면 절대 안됨
+    # Turn off the setting below
     # old_state_dict = model.state_dict
     # model.state_dict = (
     #     lambda self, *_, **__: get_peft_model_state_dict(
