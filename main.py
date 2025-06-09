@@ -33,11 +33,8 @@ def initLogging(args):
     return logger
 
 
-prompt_list = ["D2P", "DI2P", "DP2I", "UDP2I", "DG2P", "DP2GP", "UDP2GP", "DGIP2GIP", "UDGIP2GIP", "UDGIP2P"]
-
 if __name__ == "__main__":
 
-    # fire.Fire(llama_finetune)
     args = parse_args()
     args = dir_init(args)
     args = createLogFile(args)
@@ -59,9 +56,6 @@ if __name__ == "__main__":
     train_know_dataset = merge_dataset_passages(args, train_raw_dataset, mode='train', combined=args.combined, disable_know=args.disable_know)
     test_know_dataset = merge_dataset_passages(args, test_raw_dataset, mode='test', combined=args.combined, disable_know=args.disable_know)
 
-    # test_know_dataset_combined = merge_dataset_passages(args, test_raw_dataset, mode='test', know_file_path='combined', combined=True)
-    # top2nd = json.load(open('en_CotMAE_CL_GPT_BM25_top1_know_top_1_0_test_know_3711.json', 'r', encoding='utf-8'))
-
     if args.merge:
         train_know_dataset_wo_know = merge_dataset_passages(args, train_raw_dataset, mode='train', combined=args.combined, disable_know=True)
         train_know_dataset.extend(train_know_dataset_wo_know)
@@ -69,7 +63,6 @@ if __name__ == "__main__":
     train_know_dataset, train_labels, train_topics = prepare_dataset(args, tokenizer, train_know_dataset)
     test_know_dataset, test_labels, test_topics = prepare_dataset(args, tokenizer, test_know_dataset)
 
-    # if 'P' in args.prompt: # and args.positive == 'gpt_selection':
     train_know_dataset, train_labels, train_topics = augment_dataset(args, train_know_dataset, train_labels, train_topics)
 
     prompter = Prompter(args, args.prompt)
@@ -81,20 +74,19 @@ if __name__ == "__main__":
             from llama_train import llama_finetune
         elif 'cot' in args.prompt:
             from llama_train import llama_finetune
-        else:
+        else: # Remove?
             from llama_train_gen import llama_finetune
         llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, train_know_dataset=train_know_dataset, labels=train_labels, num_epochs=args.epoch)
     elif args.mode == 'test':
         LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, topics=test_topics, prompt_template_name=args.prompt).test()
     elif args.mode == 'train_test':
-        if args.sft:
+        if args.sft: # Remove?
             from llama_train_sft import llama_finetune_sft
-
             llama_finetune_sft(args, tokenizer=tokenizer, instructions=train_instructions, labels=train_labels, num_epochs=args.epoch)
         else:
             if 'P' in args.prompt:
                 from llama_train import llama_finetune
-            else:
+            else: # Remove?
                 from llama_train_gen import llama_finetune
             llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, train_know_dataset=train_know_dataset, labels=train_labels, num_epochs=args.epoch)
 

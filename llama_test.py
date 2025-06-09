@@ -45,13 +45,11 @@ class Textdataset(Dataset):
 class LLaMaEvaluator:
     def __init__(self, args, tokenizer, insturctions, labels, topics, prompt_template_name: str = ""):
         self.args = args
-        self.instructions = insturctions  # [i['context_tokens'] for i in dataset]
-        self.labels = labels  # [i['item'] for i in dataset]
-        # self.negItems = dataset['negItems']
-        self.topics = topics  # [i['explanation'] for i in dataset]
+        self.instructions = insturctions
+        self.labels = labels
+        self.topics = topics
         self.tokenizer = tokenizer  # , LlamaTokenizer.from_pretrained(self.args.base_model)
 
-        # self.candidate_scores = candidate_scores
         self.prompter = Prompter(args, prompt_template_name)
 
         self.dataloader = self.prepare_dataloader()
@@ -71,8 +69,6 @@ class LLaMaEvaluator:
             output = '| '.join(pred[:k])
             if label.strip().lower() in output.strip().lower():
                 self.metric[f'hit{k}'] += 1
-            # if f"Passage:{label[0]}" in output.strip().lower():
-            #     self.metric[f'hit{k}'] += 1
 
     def compute_hitgen(self, pred, topic):
         if topic.lower() in pred.lower():
@@ -93,12 +89,8 @@ class LLaMaEvaluator:
         test_know_file_path = self.args.test_know_file
         test_know_file_path = os.path.join(self.args.home, f"data/know/en_test_know_{test_know_file_path}.json")
         test_know = json.load(open(test_know_file_path, 'r', encoding='utf-8'))
-        # goalTopic_path = os.path.join(self.args.home)
-        # goalTopicDic = json.load(open("/home/submission/junpyo/KEMGCRS/data/2/durecdial/DuRec_topicDic.json", 'r', encoding='utf-8'))
-        # topicList = list(goalTopicDic['str'].keys())
 
         total = [(o,t) for o,t in zip(outputs, test_data) if t['topic']!='Q&A' and t['topic']!='Music recommendation']
-        # result = [r for r,t in total if t['topic'].replace('  ',' ').replace('\xa0',' ').lower().strip() in r['GEN'].split('suitable topic is ')[-1].replace('  ',' ').replace('\xa0',' ').lower().strip()]
         if 'I' in task:
             if self.args.inspired:
                 cnt = len([i for i in outputs if i['ANSWER'] in i['GEN'].split('Therefore')[-1]])
@@ -112,7 +104,6 @@ class LLaMaEvaluator:
                 pattern = r'topic \d+\. '
                 for r,t in total:
                     answer = t['topic'].replace('  ', ' ').replace('\xa0', ' ').lower().strip()
-                    # gen = r['GEN'].split('topic is ')[-1].replace('  ',' ').replace('\xa0',' ').replace('"','').lower().strip()
                     gen = r['GEN'].split('topic is ')[-1].replace('  ', ' ').replace('\xa0', ' ').replace('"', '').lower().strip()
                     if re.search(pattern, gen):
                         gen = gen[re.search(pattern, gen).end():]
@@ -292,15 +283,11 @@ class LLaMaEvaluator:
             log_file = open(os.path.join(self.args.result_path, f'{self.args.log_name}_E{int(epoch)}.json'), 'a',
                             buffering=1, encoding='UTF-8')
             self.args.log_file = log_file
-        # elif epoch is None:
-        #     self.args.log_file = open(os.path.join(self.args.result_path, f'{self.args.log_name}.json'), 'a',
-        #                               buffering=1, encoding='UTF-8')
 
         model.eval()
         if torch.__version__ >= "2" and sys.platform != "win32":
             model = torch.compile(model)
 
-        # start_time = time.time()
         outputs = []
         for batch in tqdm(self.dataloader, bar_format=' {percentage:3.0f} % | {bar:23} {r_bar}'):
             batched_inputs = self.tokenizer(batch[0], padding=True, return_tensors="pt")

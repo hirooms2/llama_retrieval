@@ -17,7 +17,7 @@ Unused imports:
 import torch.nn as nn
 import bitsandbytes as bnb
 """
-# JP
+
 from peft import (
     LoraConfig,
     get_peft_model,
@@ -53,7 +53,7 @@ def llama_finetune(
         # training hyperparams
         batch_size: int = 2,
         num_epochs: int = 3,
-        learning_rate: float = 3e-4,
+        learning_rate: float = 4e-4,
         warmup_steps=200,
         val_set_size: int = 0,
         # lora hyperparams
@@ -215,8 +215,7 @@ def llama_finetune(
     data = []
     for inst, lab in zip(train_know_dataset, labels):
         inst['output'] = lab
-        data.append(inst)
-        # data.append({"dialog": inst['dialog'], "topic": inst['topic'], "predicted_know": inst['predicted_know'], "candidate_knowledges_gpt": inst['candidate_knowledges_gpt'], "output": lab})
+        data.append(inst) # keys: dialog, topic, predicted_know, candidate_knowledges_gpt
 
     first_sample = Dataset.from_pandas(pd.DataFrame([data[0]]))
     data = Dataset.from_pandas(pd.DataFrame(data))
@@ -232,14 +231,10 @@ def llama_finetune(
             train_val["test"].shuffle().map(generate_and_tokenize_prompt)
         )
     else:
-        # generate_and_tokenize_prompt(first_sample[0])
+        # generate_and_tokenize_prompt(first_sample[0]) # Debug
         train_data = data.shuffle()  # .map(generate_and_tokenize_prompt)
         val_data = None
 
-    # if args.debug:
-    #     configuration = LlamaConfig(num_hidden_layers=1)
-    #     model = LlamaForCausalLM(configuration)
-    # else:
     model = AutoModelForCausalLM.from_pretrained(
         base_model,
         torch_dtype=dtype, 
@@ -257,8 +252,8 @@ def llama_finetune(
     tokenizer.padding_side = "left"  # Allow batched inference
     # tokenizer.add_eos_token = True  # Check eos token
 
-    # model = prepare_model_for_int8_training(model)
-    model = prepare_model_for_kbit_training(model)
+    # model = prepare_model_for_int8_training(model) # Quantization
+    model = prepare_model_for_kbit_training(model) # Quantization
 
     config = LoraConfig(
         r=lora_r,
@@ -340,7 +335,6 @@ def llama_finetune(
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
                                                             label=label, mode=mode)
             elif 'DG2P' == args.prompt:
-                # num_items = 2 if mode == 'train' else 1
                 guide = f"Goal:{predicted_goal} | Topic:{' or '.join(data['topic'])}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
                                                             input2=guide, label=label, mode=mode)
@@ -358,7 +352,6 @@ def llama_finetune(
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, input2=predicted_know, label=label,
                                                             mode=mode)
             elif 'DIP2I_cot' == args.prompt or 'DIP2I_redial_cot' == args.prompt:
-                # topic_idx = predicted_topic.index(data['topic'])
                 rationale = data['topic_cot'].split('Therefore')[0].strip()
                 if args.redial or args.inspired:
                     label = f"{rationale} Therefore, the most suitable item is \"{data['topic']}\""
@@ -405,13 +398,6 @@ def llama_finetune(
                                                             input3=predicted_know, input4=data['user_profile'],
                                                             label=label, mode=mode)
             elif 'UDGIP2I_new' == args.prompt:
-                # label = f"{data['topic']}"
-                # topic_idx = 1 if predicted_topic[0] == data['topic'] else 2
-                # topic_idx = [i.lower().strip() for i in predicted_topic].index(data['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower()) + 1
-                # if args.postfix:
-                #     label = f"Considering the given dialog and passages, the most suitable topic would be:\nTopic {topic_idx}. {data['topic']}"
-                # else:
-                #     label = f"{data['topic']}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
                                                             input2=candidate_topics,
@@ -434,8 +420,6 @@ def llama_finetune(
                                                             label=label, mode=mode)
 
             elif 'UDGIP2I_cot' == args.prompt:
-                # label = f"{data['topic']}"
-                # topic_idx = [i.lower().strip() for i in predicted_topic].index(data['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower())
                 rationale = data['topic_cot'].split('Therefore')[0].strip()
                 label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
@@ -444,8 +428,6 @@ def llama_finetune(
                                                             input3=predicted_know, input4=data['user_profile'],
                                                             label=label, mode=mode)
             elif 'UDGIP2IP_cot' == args.prompt:
-                # label = f"{data['topic']}"
-                # topic_idx = predicted_topic.index(data['topic'])
                 rationale = data['passage_cot'].split('Therefore')[0].strip()
                 label = f"{rationale}\nThe most suitable topic is \"{data['topic']}\""  # as follow:\nTopic {topic_idx}. {data['topic']}\nThe relevant passages are as follow:\n{label}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
@@ -454,7 +436,6 @@ def llama_finetune(
                                                             input3=predicted_know, input4=data['user_profile'],
                                                             label=label, mode=mode)
             elif 'UDGIP2P_new' == args.prompt:
-                # label = f"{data['topic']}"
                 label = f"{label}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
@@ -462,7 +443,6 @@ def llama_finetune(
                                                             input3=predicted_know, input4=data['user_profile'],
                                                             label=label, mode=mode)
             elif 'DIP2P' == args.prompt:
-                # label = f"{data['topic']}"
                 if label != '':
                     label = f"{label}"
                 else:
@@ -474,7 +454,6 @@ def llama_finetune(
                                                             input2=predicted_know,
                                                             label=label, mode=mode)
             elif 'DIP2P_cot' == args.prompt:
-                # label = f"{data['topic']}"
                 rationale = data['passage_cot'].split('Therefore')[0].strip()
                 if label != '':
                     label = f"{rationale} Therefore, the most relevant passages are as follows:\n{label}."
@@ -486,7 +465,6 @@ def llama_finetune(
                                                             input2=predicted_know,
                                                             label=label, mode=mode)
             elif 'DGIP2P_new' == args.prompt:
-                # label = f"{data['topic']}"
                 label = f"{label}."
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
@@ -494,7 +472,6 @@ def llama_finetune(
                                                             input3=predicted_know,
                                                             label=label, mode=mode)
             elif 'DGIP2P_cot' == args.prompt:
-                # label = f"{data['topic']}"
                 rationale = data['passage_cot'].split('Therefore')[0].strip()
                 label = f"{rationale} Therefore, the most relevant passages is {label}."
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
@@ -503,7 +480,6 @@ def llama_finetune(
                                                             input3=predicted_know,
                                                             label=label, mode=mode)
             elif 'DGIP2P_cot_new' == args.prompt:
-                # label = f"{data['topic']}"
                 rationale = data['passage_cot'].split('Therefore')[0].strip()
                 label = f"{rationale} Therefore, the relevant passages are as follow:\n{label}"
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
@@ -513,14 +489,12 @@ def llama_finetune(
                                                             label=label, mode=mode)
             elif 'DGIP2GIP_new' == args.prompt:
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                # topic_idx = 1 if data['predicted_topic'][0] == data['topic'] else 2
                 label = f"Based on the user profile, dialog, and candidate passages for each topic, determine the most suitable goal and topic for the response.\nGoal:{data['goal']}\nTopic:{data['topic']}\n\nThen, using the chosen goal and topic, select the most relevant passage from the list above for generating the response to the given dialog.\nPassage:{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
                                                             input2=candidate_topics,
                                                             input3=predicted_know,
                                                             label=label, mode=mode)
             elif 'UDGIP2P_cot' == args.prompt:
-                # label = f"{data['topic']}"
                 rationale = data['passage_cot'].split('Therefore')[0].strip()
                 label = f"{rationale} Therefore, the most relevant passage is \"{label}\""
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
@@ -530,7 +504,6 @@ def llama_finetune(
                                                             label=label, mode=mode)
             elif 'UDGIP2GIP_new' == args.prompt:
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                # topic_idx = 1 if data['predicted_topic'][0] == data['topic'] else 2
                 label = f"Based on the user profile, dialog, and candidate passages for each topic, determine the most suitable goal and topic for the response.\nGoal:{data['goal']}\nTopic:{data['topic']}\n\nThen, using the chosen goal and topic, select the most relevant passage from the list above for generating the response to the given dialog.\nPassage:{label}"
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
                                                             input2=candidate_topics,
@@ -571,7 +544,6 @@ def llama_finetune(
             return full_prompt
 
         def __getitem__(self, idx):
-            # train_on_inputs = args.train_on_inputs
             train_only_inputs = args.train_only_inputs
             train_only_outputs = args.train_only_outputs
 
@@ -596,10 +568,6 @@ def llama_finetune(
 
             candidate_knowledges_gpt = data['candidate_knowledges_gpt'][:args.n_sampled_positive]
 
-            # topic_idx = [i for i in range(args.topk_topic)]
-            # random.shuffle(topic_idx)
-            # predicted_topic = [data['predicted_topic'][i] for i in topic_idx]
-
             if args.query:
                 predicted_goal = data['query']
             else:
@@ -610,12 +578,6 @@ def llama_finetune(
             if args.topic_num_shuffle and topk_topic > 1:
                 # item이 3개, 2개 섞어 들어감
                 topk_topic = random.randint(2, topk_topic)
-
-            # if args.item_random_negative:
-            #     # choose 2 items in 3 items
-            #     # make predicted_topic_list with 3 items
-            #     # make top_negative_candidates with last 2 items
-            #     topk_topic = args.item_random_negative_num
 
             if args.item_random_negative:
                 topic_idx = [data['predicted_topic'].index(data['topic'])]
@@ -634,20 +596,6 @@ def llama_finetune(
             if args.selected_topic and 'selected_topic' in data:
                 predicted_topic_list = [data['selected_topic']]
 
-            # if args.item_random_negative:
-            #      # choose 2 items in 3 items
-            #     target_item = data['topic']
-            #     target_idx = data['predicted_topic'].index(target_item)
-            #     negative_item_idx_list = [predicted_topic_list.index(i) for i in predicted_topic_list if
-            #                               i != target_item]
-            #     random.shuffle(negative_item_idx_list)
-            #
-            #     target_knowledges = deepcopy(data['predicted_know'][target_idx])  # insert answer
-            #     negative_knowledges = deepcopy(
-            #         data['predicted_know'][negative_item_idx_list[0]])  # insert negative sample
-            #     top_negative_candidates = target_knowledges + negative_knowledges
-            # else:
-            #     top_negative_candidates = deepcopy(data['predicted_know'][:topk_topic])  # cut in order
             if data['predicted_know']:
                 top_negative_candidates = deepcopy([data['predicted_know'][i] for i in topic_idx])
                 random_candidates = []
@@ -661,7 +609,6 @@ def llama_finetune(
 
             if data['combined']:
                 for idx, top_passages in enumerate(top_negative_candidates):
-                    # top_negative_candidates[idx] = [i for i in top_passages if i != target_knowledge and i != '']
                     top_negative_candidates[idx] = [i for i in top_passages if i not in candidate_knowledges_gpt and i != '']
 
                 # Filtering code
@@ -675,7 +622,6 @@ def llama_finetune(
 
                 for idx, predicted_topic in enumerate(predicted_topic_list):
                     if data['topic'].replace('\xa0', ' ').replace('  ', ' ').strip().lower() == predicted_topic.replace('\xa0', ' ').replace('  ', ' ').strip().lower():
-                        # top_negative_candidates[idx].insert(0, target_knowledge)
                         top_negative_candidates[idx] = candidate_knowledges_gpt + top_negative_candidates[idx]
 
                 for idx, top_passages in enumerate(top_negative_candidates):
@@ -688,19 +634,6 @@ def llama_finetune(
                     for idx, top_passages in enumerate(top_negative_candidates):
                         random.shuffle(top_negative_candidates[idx])
 
-                # for idx, predicted_topic in enumerate(predicted_topic_list):
-                #     if data['topic'] == predicted_topic:
-                #         # top_negative_candidates[idx].insert(0, target_knowledge)
-                #         top_negative_candidates[idx] = candidate_knowledges_gpt + top_negative_candidates[idx]
-                #         break
-                #
-                # for idx, top_passages in enumerate(top_negative_candidates):
-                #     top_negative_candidates[idx] = top_negative_candidates[idx][:args.n_sampled_negative]
-                #
-                # if args.shuffle:
-                #     for idx, top_passages in enumerate(top_negative_candidates):
-                #         random.shuffle(top_negative_candidates[idx])
-
                 predicted_know_list = []
                 random_know_list = []
 
@@ -709,11 +642,6 @@ def llama_finetune(
 
                 for i in range(len(predicted_topic_list)):
                     random_know_list += random_candidates[i]
-
-                # relevant_idx = predicted_know_list.index(target_knowledge)
-                # relevant_idx_list = []
-                # for x in candidate_knowledges_gpt:
-                #     relevant_idx_list.append(predicted_know_list.index(x))
 
                 predicted_know = ""
                 for i in range(len(predicted_topic_list)):
@@ -735,15 +663,7 @@ def llama_finetune(
                     else:
                         predicted_know += f"{prefix}\n{candidate_passages}\n\n"
 
-            # elif args.target:
-            #     predicted_know = data['target_knowledge']
-            #     predicted_know = f"Passage 1. {predicted_know}\n"
-
             else:
-                # predicted_know = [item for item in data['predicted_know'][0] if item != target_knowledge]
-                # predicted_know.insert(0, target_knowledge)
-                # predicted_know = predicted_know[:args.n_sampled_negative]
-
                 hard_negative_candidates = [passage for passage in data['predicted_know'][0] if passage not in candidate_knowledges_gpt and passage != '']
                 if args.n_hard_negative == -1:
                     n_hard_negative = args.n_sampled_negative - len(candidate_knowledges_gpt)
@@ -770,7 +690,7 @@ def llama_finetune(
 
                 predicted_know = '\n'.join([f"Passage {idx + 1}. {know}" for idx, know in enumerate(predicted_know_list)])
 
-            if args.all_passages: # DP(all)2R ablation
+            if args.all_passages: # DP(all)2R ablation setting
                 label = ""
             else: # MOCHA code
                 relevant_idx = predicted_know_list.index(target_knowledge) if target_knowledge in predicted_topic_list else -1
@@ -804,7 +724,6 @@ def llama_finetune(
                 print(full_prompt)
                 print(train_only_outputs)
 
-            # if not train_on_inputs:
             if train_only_outputs:
                 user_prompt = self.prompting(data, predicted_goal, predicted_topic_list, predicted_know, label, mode='test')
 
@@ -832,7 +751,6 @@ def llama_finetune(
     trainer = Trainer(
         model=model,
         train_dataset=D2PDataset(tokenizer, train_data),
-        # eval_dataset=val_data,
         args=transformers.TrainingArguments(
             num_train_epochs=num_epochs,
             deepspeed=args.deepspeed if args.deepspeed != '' else None,
