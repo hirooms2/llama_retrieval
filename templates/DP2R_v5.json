@@ -1,6 +1,0 @@
-{
-    "description": "CRS recommendation template.",
-    "prompt_input": "Pretend you are a movie recommender system. I will provide candidate relevant passages retrieved from external sources and a dialog between the above user and a system.\n\nHere is the dialog:\n{instruction}\n\nHere are the candidate relevant passages:\n{input}\n\nFormulate a response that the system should give. You should use the words from the given passages to generate the response if you find them useful and trustworthy.\n\n### Response:",
-    "prompt_no_input": "",
-    "response_split": "### Response:"
-  }

@@ -1,6 +1,0 @@
-{
-    "description": "CRS recommendation template.",
-    "prompt_input": "Pretend you are a movie recommender system. I will give you a conversation between a user and you (a recommender system).\nBased on the conversation, create a system response by referring to the passages below.\n\nnHere are the passages:\n{input}\n\nHere is the conversation:\n{instruction}\n\n### Response:",
-    "prompt_no_input": "",
-    "response_split": "### Response:"
-  }

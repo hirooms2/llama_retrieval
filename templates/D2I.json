@@ -1,6 +1,0 @@
-{
-  "description": "CRS recommendation template.",
-  "prompt_input": "Pretend you are a conversational recommender system. Your task is to decide the topic (item or entity) to mention in the next response based on the provided dialog.\n\nI will provide a dialog between a user and the system.\n\nHere is the dialog:\n{instruction}\n\nBased on the dialog, guess the most suitable topic for the response.\n\n### Response:",
-  "prompt_no_input": "Pretend you are a movie recommender system. I will give you a dialogue between a user and you (a recommender system).\n\n Here is the dialogue:\n{instruction}\n\nGuess which movie should be recommended to the user.\n\n### Response:",
-  "response_split": "### Response:"
-}

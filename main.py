@@ -70,26 +70,15 @@ if __name__ == "__main__":
     test_instructions = prompter.generate_instructions('test', test_know_dataset, test_labels)
 
     if args.mode == 'train':
-        if 'P' in args.prompt:
-            from llama_train import llama_finetune
-        elif 'cot' in args.prompt:
-            from llama_train import llama_finetune
-        else: # Remove?
-            from llama_train_gen import llama_finetune
+        from llama_train import llama_finetune
         llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, train_know_dataset=train_know_dataset, labels=train_labels, num_epochs=args.epoch)
     elif args.mode == 'test':
         LLaMaEvaluator(args=args, tokenizer=tokenizer, insturctions=test_instructions, labels=test_labels, topics=test_topics, prompt_template_name=args.prompt).test()
     elif args.mode == 'train_test':
-        if args.sft: # Remove?
-            from llama_train_sft import llama_finetune_sft
-            llama_finetune_sft(args, tokenizer=tokenizer, instructions=train_instructions, labels=train_labels, num_epochs=args.epoch)
-        else:
-            if 'P' in args.prompt:
-                from llama_train import llama_finetune
-            else: # Remove?
-                from llama_train_gen import llama_finetune
-            llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, train_know_dataset=train_know_dataset, labels=train_labels, num_epochs=args.epoch)
-
+        from llama_train import llama_finetune
+        # Train
+        llama_finetune(args, tokenizer=tokenizer, instructions=train_instructions, train_know_dataset=train_know_dataset, labels=train_labels, num_epochs=args.epoch)
+        # Test
         for e in range(args.epoch):
             args.peft_weights = os.path.join(args.saved_model_path, args.log_name + '_E' + str(int(e + 1)))
             print(f"loading peft model: {args.peft_weights}")

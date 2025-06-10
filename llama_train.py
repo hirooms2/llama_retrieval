@@ -302,48 +302,9 @@ def llama_finetune(
             self.print_result = True
 
         def prompting(self, data, predicted_goal, predicted_topic, predicted_know, label, mode='train'):
-            if 'D2P' in args.prompt:
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
-                                                            label=label, mode=mode)
-            elif 'DI2P' in args.prompt:
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
-                                                            input2=data['topic'], label=label, mode=mode)
-            elif 'D2R' == args.prompt:
-                label = data['response']
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], label=label, mode=mode)
-            elif 'DP2R' in args.prompt:
-                label = data['response']
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode)
-            elif 'DGP2R' in args.prompt:
-                label = data['response']
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=predicted_know,
-                                                            label=label, mode=mode)
-            elif 'DGIP2R' in args.prompt:
-                label = data['response']
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=", ".join(predicted_topic),
-                                                            input3=predicted_know,
-                                                            label=label, mode=mode)
-            elif 'DIP2R' in args.prompt:
-                label = data['response']
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'],
-                                                            input=", ".join(predicted_topic),
-                                                            input2=predicted_know,
-                                                            label=label, mode=mode)
-            elif 'DP2I' == args.prompt:
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
-                                                            label=label, mode=mode)
-            elif 'DG2P' == args.prompt:
-                guide = f"Goal:{predicted_goal} | Topic:{' or '.join(data['topic'])}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
-                                                            input2=guide, label=label, mode=mode)
-            elif 'DP2GP' == args.prompt:
-                guide = f"Goal:{predicted_goal}: {data['topic']}"
-                label = f"{guide}\nPassage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
-                                                            label=label, mode=mode)
-            elif 'DIP2I' == args.prompt or 'DIP2I_redial' == args.prompt:
+            # Inspired2
+            ## Item selection ablation (w/o CoT)
+            if 'DIP2I' == args.prompt:
                 label = data['topic']
                 if args.redial or args.inspired:
                     candidate_topics = '\n'.join([f"Item {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
@@ -351,7 +312,8 @@ def llama_finetune(
                     candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, input2=predicted_know, label=label,
                                                             mode=mode)
-            elif 'DIP2I_cot' == args.prompt or 'DIP2I_redial_cot' == args.prompt:
+            ## Item selection ours
+            elif 'DIP2I_cot' == args.prompt:
                 rationale = data['topic_cot'].split('Therefore')[0].strip()
                 if args.redial or args.inspired:
                     label = f"{rationale} Therefore, the most suitable item is \"{data['topic']}\""
@@ -360,88 +322,7 @@ def llama_finetune(
                     label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
                     candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, input2=predicted_know, label=label, mode=mode)
-
-            elif 'D2I_cot' == args.prompt:
-                rationale = data['topic_cot'].split('Therefore')[0].strip()
-                if args.redial or args.inspired:
-                    label = f"{rationale} Therefore, the most suitable item is \"{data['topic']}\""
-                else:
-                    label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], label=label, mode=mode)
-
-            elif 'D2I' == args.prompt:
-                label = data['topic']
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], label=label, mode=mode)
-
-            elif 'DI2I_cot' == args.prompt:
-                rationale = data['topic_cot'].split('Therefore')[0].strip()
-                if args.redial or args.inspired:
-                    label = f"{rationale} Therefore, the most suitable item is \"{data['topic']}\""
-                    candidate_topics = '\n'.join([f"Item {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                else:
-                    label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
-                    candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, label=label, mode=mode)
-
-            elif 'DI2I' == args.prompt:
-                label = data['topic']
-                if args.redial or args.inspired:
-                    candidate_topics = '\n'.join([f"Item {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                else:
-                    candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=candidate_topics, label=label, mode=mode)
-
-            elif 'UDGIP2GIP' == args.prompt:
-                label = f"Goal:{predicted_goal}\nTopic:{data['topic']}\nPassage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=", ".join(predicted_topic),
-                                                            input3=predicted_know, input4=data['user_profile'],
-                                                            label=label, mode=mode)
-            elif 'UDGIP2I_new' == args.prompt:
-                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=candidate_topics,
-                                                            input3=predicted_know, input4=data['user_profile'],
-                                                            label=data['topic'], mode=mode)
-
-            elif 'UDG2I_cot' == args.prompt:
-                rationale = data['topic_cot'].split('Therefore')[0].strip()
-                label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=data['user_profile'],
-                                                            label=label, mode=mode)
-
-            elif 'UDGI2I_cot' == args.prompt:
-                rationale = data['topic_cot'].split('Therefore')[0].strip()
-                label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
-                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=candidate_topics, input3=data['user_profile'],
-                                                            label=label, mode=mode)
-
-            elif 'UDGIP2I_cot' == args.prompt:
-                rationale = data['topic_cot'].split('Therefore')[0].strip()
-                label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
-                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=candidate_topics,
-                                                            input3=predicted_know, input4=data['user_profile'],
-                                                            label=label, mode=mode)
-            elif 'UDGIP2IP_cot' == args.prompt:
-                rationale = data['passage_cot'].split('Therefore')[0].strip()
-                label = f"{rationale}\nThe most suitable topic is \"{data['topic']}\""  # as follow:\nTopic {topic_idx}. {data['topic']}\nThe relevant passages are as follow:\n{label}"
-                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=candidate_topics,
-                                                            input3=predicted_know, input4=data['user_profile'],
-                                                            label=label, mode=mode)
-            elif 'UDGIP2P_new' == args.prompt:
-                label = f"{label}"
-                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=candidate_topics,
-                                                            input3=predicted_know, input4=data['user_profile'],
-                                                            label=label, mode=mode)
+            ## Feature selection ablation (w/o CoT)
             elif 'DIP2P' == args.prompt:
                 if label != '':
                     label = f"{label}"
@@ -453,6 +334,7 @@ def llama_finetune(
                                                             input=candidate_topics,
                                                             input2=predicted_know,
                                                             label=label, mode=mode)
+            ## Feature selection ours
             elif 'DIP2P_cot' == args.prompt:
                 rationale = data['passage_cot'].split('Therefore')[0].strip()
                 if label != '':
@@ -464,6 +346,29 @@ def llama_finetune(
                                                             input=candidate_topics,
                                                             input2=predicted_know,
                                                             label=label, mode=mode)
+            ## Response generation ours
+            elif 'DP2R' in args.prompt:
+                label = data['response']
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know, label=label, mode=mode)
+            
+            # DurecDial2
+            ## Item selection ablation (w/o CoT)
+            elif 'UDGIP2I_new' == args.prompt:
+                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=candidate_topics,
+                                                            input3=predicted_know, input4=data['user_profile'],
+                                                            label=data['topic'], mode=mode)
+            ## Item selection ours
+            elif 'UDGIP2I_cot' == args.prompt:
+                rationale = data['topic_cot'].split('Therefore')[0].strip()
+                label = f"{rationale} Therefore, the most suitable topic is \"{data['topic']}\""
+                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
+                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
+                                                            input2=candidate_topics,
+                                                            input3=predicted_know, input4=data['user_profile'],
+                                                            label=label, mode=mode)
+            ## Feature selection ablation (w/o CoT)
             elif 'DGIP2P_new' == args.prompt:
                 label = f"{label}."
                 candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
@@ -471,14 +376,7 @@ def llama_finetune(
                                                             input2=candidate_topics,
                                                             input3=predicted_know,
                                                             label=label, mode=mode)
-            elif 'DGIP2P_cot' == args.prompt:
-                rationale = data['passage_cot'].split('Therefore')[0].strip()
-                label = f"{rationale} Therefore, the most relevant passages is {label}."
-                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=candidate_topics,
-                                                            input3=predicted_know,
-                                                            label=label, mode=mode)
+            ## Feature selection ours
             elif 'DGIP2P_cot_new' == args.prompt:
                 rationale = data['passage_cot'].split('Therefore')[0].strip()
                 label = f"{rationale} Therefore, the relevant passages are as follow:\n{label}"
@@ -487,58 +385,12 @@ def llama_finetune(
                                                             input2=candidate_topics,
                                                             input3=predicted_know,
                                                             label=label, mode=mode)
-            elif 'DGIP2GIP_new' == args.prompt:
-                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                label = f"Based on the user profile, dialog, and candidate passages for each topic, determine the most suitable goal and topic for the response.\nGoal:{data['goal']}\nTopic:{data['topic']}\n\nThen, using the chosen goal and topic, select the most relevant passage from the list above for generating the response to the given dialog.\nPassage:{label}"
+            ## Response generation ours
+            elif 'DGP2R' in args.prompt:
+                label = data['response']
                 full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=candidate_topics,
-                                                            input3=predicted_know,
+                                                            input2=predicted_know,
                                                             label=label, mode=mode)
-            elif 'UDGIP2P_cot' == args.prompt:
-                rationale = data['passage_cot'].split('Therefore')[0].strip()
-                label = f"{rationale} Therefore, the most relevant passage is \"{label}\""
-                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=candidate_topics,
-                                                            input3=predicted_know, input4=data['user_profile'],
-                                                            label=label, mode=mode)
-            elif 'UDGIP2GIP_new' == args.prompt:
-                candidate_topics = '\n'.join([f"Topic {idx + 1}. {t}" for idx, t in enumerate(predicted_topic)])
-                label = f"Based on the user profile, dialog, and candidate passages for each topic, determine the most suitable goal and topic for the response.\nGoal:{data['goal']}\nTopic:{data['topic']}\n\nThen, using the chosen goal and topic, select the most relevant passage from the list above for generating the response to the given dialog.\nPassage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=candidate_topics,
-                                                            input3=predicted_know, input4=data['user_profile'],
-                                                            label=label, mode=mode)
-            elif 'DGIP2GIP' in args.prompt:
-                if 'DGIP2GIP_newnew' == args.prompt:
-                    label = f"Let's think step by step.\nBased on the dialog and candidate passages, determine the most suitable goal and topic for the response.\nGoal: {predicted_goal}\nTopic: {data['topic']}\n\nThen, using the chosen goal and topic, select the most relevant passage from the list above to generate the response.\nPassage: {label}"
-                else:
-                    label = f"Goal:{predicted_goal}\nTopic:{data['topic']}\nPassage:{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=", ".join(predicted_topic), input3=predicted_know,
-                                                            label=label, mode=mode)
-            elif 'UDGIP2P' == args.prompt:
-                label = f"{label}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=", ".join(predicted_topic),
-                                                            input3=predicted_know, input4=data['user_profile'],
-                                                            label=label, mode=mode)
-            elif 'DGP2P' == args.prompt:
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=predicted_know, label=label, mode=mode)
-            elif 'UDGIP2GI' == args.prompt:
-                label = f"Goal:{predicted_goal}\nTopic:{data['topic']}"
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_goal,
-                                                            input2=", ".join(predicted_topic),
-                                                            input3=predicted_know, input4=data['user_profile'],
-                                                            label=label, mode=mode)
-
-            elif 'UDP2GP' == args.prompt:
-                guide = f"Goal:{predicted_goal}: {data['topic']}"
-                label = f"{guide}\nPassage:{label}"
-                profile = data['user_profile']
-                full_prompt = self.prompter.generate_prompt(instruction=data['dialog'], input=predicted_know,
-                                                            input2=profile, label=label, mode=mode)
             else:
                 raise ValueError
             return full_prompt

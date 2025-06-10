@@ -1,6 +1,0 @@
-{
-  "description": "CRS recommendation template.",
-  "prompt_input": "Pretend you are a passage retrieval module. I will provide multiple passages retrieved from external sources along with a dialog between the user and the system and a guideline for response generation.\n\nHere is the dialog:\n{instruction}\n\nHere are the passages:\n{input}\n\nHere are the guideline for response generation:\n{input2}\n\nPlease select one passage from the list above that is most relevant for generating a response to the provided dialog.\n\n### Response:",
-  "prompt_no_input": "I will provide you with a dialog between a user and a system.\n\n{instruction}\n\nGuess which passage should be retrieved to the user for generating the response to this dialog.\n\n### Response:",
-  "response_split": "### Response:"
-}

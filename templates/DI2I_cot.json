@@ -1,6 +1,0 @@
-{
-  "description": "CRS recommendation template.",
-  "prompt_input": "Pretend you are a conversational recommender system. Your task is to select the item to mention in the next response based on the provided dialog.\nFirst, I will provide a dialog between a user and the system. Then, I will provide candidate items.\n\nHere is the dialog:\n{instruction}\n\nHere are the candidate items:\n{input}\n\nBased on the dialog and candidate items, you can recommend an item or chat about the items that are already mentioned in the next response.\n\nAmong the candidate items, select the most suitable item to be mentioned in the next response.\nYou should first give the rationale, then select the item.\n\n### Response:",
-  "prompt_no_input": "Pretend you are a movie recommender system. I will give you a dialogue between a user and you (a recommender system).\n\n Here is the dialogue:\n{instruction}\n\nGuess which movie should be recommended to the user.\n\n### Response:",
-  "response_split": "### Response:"
-}
