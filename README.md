@@ -1,11 +1,11 @@
 # Leveraging Retrieval-Augmented Language Models for Accurate Item/Feature Selection in Conversational Recommender Systems
 
-This repository provides a reference implementation of VITA as described in the following paper:
-
+This repository provides a reference implementation of MOCHA as described in the following paper:
+```
 - Leveraging Retrieval-Augmented Language Models for Accurate Item/Feature Selection in Conversational Recommender Systems 
 - Taeho Kim, Junpyo Kim, Won-Yong Shin, Sang-Wook Kim.
 - Conference name ()
-
+```
 
 The codebase will be provided shortly.
 
