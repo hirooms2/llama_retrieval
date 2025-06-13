@@ -12,8 +12,8 @@ The codebase will be provided shortly.
 ## Authors
 - Taeho Kim (hirooms2@hanyang.ac.kr)
 - Junpyo Kim (pyo9912@hanyang.ac.kr)
-- Won-Yong Shin ()
-- Sang-Wook Kim ()
+- Won-Yong Shin (wy.shin@yonsei.ac.kr)
+- Sang-Wook Kim (wook@hanyang.ac.kr)
   
 ## Requirements
 The code has been tested running under Python 3.8.19  
