@@ -7,8 +7,6 @@ This repository provides a reference implementation of MOCHA as described in the
 - Conference name ()
 ```
 
-The codebase will be provided shortly.
-
 ## Authors
 - Taeho Kim (hirooms2@hanyang.ac.kr)
 - Junpyo Kim (pyo9912@hanyang.ac.kr)
