@@ -131,6 +131,8 @@ model_cache/
 data/
 logs/
 models/
+tmp_codes/
+saved_model/
 .idea/
 *.bin
 *.pt
