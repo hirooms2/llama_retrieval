@@ -4,7 +4,7 @@ This repository provides a reference implementation of MOCHA as described in the
 ```
 - Leveraging Retrieval-Augmented Language Models for Accurate Item/Feature Selection in Conversational Recommender Systems 
 - Taeho Kim, Junpyo Kim, Won-Yong Shin, Sang-Wook Kim.
-- Conference name ()
+- Conference name ( )
 ```
 
 ## Authors
