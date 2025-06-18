@@ -21,6 +21,10 @@ conda create --file environment.yaml
 conda activate mocha
 ```
 
+## Dataset
+You can download dataset from the [link](https://drive.google.com/drive/folders/1HjDFGiEK4sUlyaPwj2l8C0TAYcsvW6PT?usp=sharing), which include recommendation and conversation of **Inspired2**. Please put the downloaded dataset into data directory.
+
+
 ## Basic Usage
 The run commands are provided in `run.sh` 
 
