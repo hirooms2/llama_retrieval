@@ -32,12 +32,14 @@ class QueryEvalCallback(TrainerCallback):
     def __init__(self, args):
         self.log_name = args.log_name
         self.saved_model_path = args.saved_model_path
+        self.no_save = args.no_save
 
     def on_epoch_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         model = kwargs['model']
         epoch = state.epoch
         path = os.path.join(self.saved_model_path, self.log_name + '_E' + str(int(epoch)))
-        model.save_pretrained(path)
+        if not self.no_save:
+            model.save_pretrained(path)
 
 
 def llama_finetune(
