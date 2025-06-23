@@ -26,8 +26,8 @@ You can download dataset from the [link](https://drive.google.com/drive/folders/
 
 
 ## Basic Usage
-The run commands are provided in `run.sh` 
-The commands below is for train and test on Inspired2 dataset
+The run commands are provided in `run.sh`.  
+The commands below is for train and test on Inspired2 dataset.
 
 Item selection commands
 ```
